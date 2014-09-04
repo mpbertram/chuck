@@ -1,10 +1,10 @@
 DESTDIR=/usr/bin
 
 # default target: print usage message and quit
-current: 
+current:
 	@echo "[chuck build]: please use one of the following configurations:"
 	@echo "   make linux-alsa, make linux-jack, make linux-pulse,"
-	@echo "   make osx, make osx-ub, make cygwin, or make win32"
+	@echo "   make osx, make osx-ub, make cygwin, make win32, or make emscripten"
 
 install:
 	cp $(wildcard chuck chuck.exe) $(DESTDIR)/
@@ -18,7 +18,7 @@ endif
 endif
 
 .PHONY: osx linux-pulse linux-jack linux-alsa cygwin osx-rl
-osx linux-pulse linux-jack linux-alsa cygwin osx-rl: chuck
+osx linux-pulse linux-jack linux-alsa cygwin osx-rl emscripten: chuck
 
 win32:
 	make -f makefile.win32
@@ -53,6 +53,10 @@ endif
 
 ifneq (,$(strip $(filter osx bin-dist-osx,$(MAKECMDGOALS))))
 include makefile.osx
+endif
+
+ifneq (,$(strip $(filter emscripten,$(MAKECMDGOALS))))
+include makefile.emscripten
 endif
 
 ifneq (,$(strip $(filter linux-pulse,$(MAKECMDGOALS))))
@@ -147,11 +151,11 @@ $(CXXOBJS): %.o: %.cpp
 	$(CXX) $(CFLAGS) $(ARCHOPTS) -c $< -o $@
 	@$(CXX) -MM -MQ "$@" $(CFLAGSDEPEND) $< > $*.d
 
-clean: 
+clean:
 	@rm -rf $(wildcard chuck chuck.exe) *.o *.d $(OBJS) \
          $(patsubst %.o,%.d,$(OBJS)) *~ chuck.output chuck.tab.h chuck.tab.c \
          chuck.yy.c $(DIST_DIR){,.tgz,.zip} Release Debug
-	
+
 
 # ------------------------------------------------------------------------------
 # Distribution meta-targets
@@ -218,5 +222,3 @@ src-dist:
 	cp $(addprefix ../notes/,$(NOTES)) $(DIST_DIR)
 # tar/gzip
 	tar czf $(DIST_DIR).tgz $(DIST_DIR)
-
-
