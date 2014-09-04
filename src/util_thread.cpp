@@ -31,6 +31,7 @@
 //          Perry R. Cook + Gary Scavone
 // date: autumn 2004
 //-----------------------------------------------------------------------------
+#ifndef __EMSCRIPTEN__
 #include "util_thread.h"
 #include "util_buffers.h"
 #include "chuck_errmsg.h"
@@ -88,7 +89,7 @@ XThread::~XThread( )
 bool XThread::start( THREAD_FUNCTION routine, void * ptr )
 {
     bool result = false;
-    
+
 #if ( defined(__PLATFORM_MACOSX__) || defined(__PLATFORM_LINUX__) || defined(__WINDOWS_PTHREAD__) )
     if( pthread_create( &thread, NULL, *routine, ptr ) == 0 )
         result = true;
@@ -110,7 +111,7 @@ bool XThread::start( THREAD_FUNCTION routine, void * ptr )
 bool XThread::wait( long milliseconds, bool cancel )
 {
     bool result = false;
-    
+
 #if ( defined(__PLATFORM_MACOSX__) || defined(__PLATFORM_LINUX__) || defined(__WINDOWS_PTHREAD__) )
     if(cancel) pthread_cancel(thread);
     pthread_join(thread, NULL);
@@ -156,7 +157,7 @@ XMutex::XMutex( )
     pthread_mutex_init(&mutex, NULL);
 #elif defined(__PLATFORM_WIN32__)
     InitializeCriticalSection(&mutex);
-#endif 
+#endif
 }
 
 
@@ -172,7 +173,7 @@ XMutex::~XMutex( )
     pthread_mutex_destroy( &mutex );
 #elif defined(__PLATFORM_WIN32__)
     DeleteCriticalSection(&mutex);
-#endif 
+#endif
 }
 
 
@@ -188,7 +189,7 @@ void XMutex::acquire( )
     pthread_mutex_lock(&mutex);
 #elif defined(__PLATFORM_WIN32__)
     EnterCriticalSection(&mutex);
-#endif 
+#endif
 }
 
 
@@ -204,7 +205,7 @@ void XMutex::release( )
     pthread_mutex_unlock(&mutex);
 #elif defined(__PLATFORM_WIN32__)
     LeaveCriticalSection(&mutex);
-#endif 
+#endif
 }
 
 
@@ -221,7 +222,7 @@ XWriteThread * XWriteThread::shared()
 	// check
 	if( o_defaultWriteThread == NULL )
 		o_defaultWriteThread = new XWriteThread();
-    
+
 	return o_defaultWriteThread;
 }
 
@@ -271,7 +272,7 @@ void XWriteThread::shutdown()
     Message msg;
     msg.operation = Message::SHUTDOWN;
     m_msg_buffer->put( msg );
-    
+
     m_thread.wait( -1, false );
 }
 
@@ -286,19 +287,19 @@ size_t XWriteThread::fwrite(const void * ptr, size_t size, size_t nitems, FILE *
 {
     if(stream != m_stream)
         flush_data_buffer();
-    
+
     // TODO: overflow detection
     if(m_data_buffer->put((char*)ptr, size*nitems) == 0)
     {
         EM_log(CK_LOG_SEVERE, "XWriteThread::fwrite: data buffer overflow");
     }
-    
+
     m_bytes_in_buffer += size*nitems;
     m_stream = stream;
-    
+
     if(m_bytes_in_buffer >= PRODUCER_BUFFER_SIZE)
         flush_data_buffer();
-    
+
     return nitems;
 }
 
@@ -312,14 +313,14 @@ size_t XWriteThread::fwrite(const void * ptr, size_t size, size_t nitems, FILE *
 int XWriteThread::fseek(FILE *stream, long offset, int whence)
 {
     flush_data_buffer();
-    
+
     Message msg;
     msg.file = stream;
     msg.operation = Message::SEEK;
     msg.seek.offset = offset;
     msg.seek.whence = whence;
     m_msg_buffer->put(msg);
-    
+
     return 0;
 }
 
@@ -333,12 +334,12 @@ int XWriteThread::fseek(FILE *stream, long offset, int whence)
 int XWriteThread::fflush(FILE *stream)
 {
     flush_data_buffer();
-    
+
     Message msg;
     msg.file = stream;
     msg.operation = Message::FLUSH;
     m_msg_buffer->put(msg);
-    
+
     return 0;
 }
 
@@ -352,12 +353,12 @@ int XWriteThread::fflush(FILE *stream)
 int XWriteThread::fclose(FILE *stream)
 {
     flush_data_buffer();
-    
+
     Message msg;
     msg.file = stream;
     msg.operation = Message::CLOSE;
     m_msg_buffer->put(msg);
-    
+
     return 0;
 }
 
@@ -377,7 +378,7 @@ void XWriteThread::flush_data_buffer()
         msg.operation = Message::WRITE;
         msg.write.data_size = m_bytes_in_buffer;
         m_msg_buffer->put(msg);
-        
+
         m_bytes_in_buffer = 0;
     }
 }
@@ -397,7 +398,7 @@ unsigned XWriteThread::write_cb(void * _thiss)
 {
     XWriteThread * _this = (XWriteThread *) _thiss;
     Message msg;
-    
+
     while(!_this->m_thread_exit)
     {
         while(_this->m_msg_buffer->get(msg))
@@ -411,7 +412,7 @@ unsigned XWriteThread::write_cb(void * _thiss)
                     EM_log(CK_LOG_SEVERE, "XWriteThread: buffered data size mismatch (%li : %li)",
                            msg.write.data_size, actual_size);
                 }
-                
+
                 ::fwrite(_this->m_thread_buffer, 1, actual_size, msg.file);
             }
             else if(msg.operation == Message::SEEK)
@@ -432,12 +433,13 @@ unsigned XWriteThread::write_cb(void * _thiss)
                 break;
             }
         }
-        
+
         usleep(1000);
     }
-    
+
     delete _this;
     _thiss = _this = NULL;
-    
+
     return 0;
 }
+#endif

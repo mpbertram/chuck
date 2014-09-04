@@ -34,8 +34,9 @@
 
 #include "chuck_def.h"
 #include "util_network.h"
+#ifndef __EMSCRIPTEN__
 #include "util_thread.h"
-
+#endif
 
 
 
@@ -66,8 +67,10 @@ extern t_CKBOOL g_do_watchdog;
 extern t_CKUINT g_watchdog_countermeasure_priority;
 // watchdog timeout
 extern t_CKFLOAT g_watchdog_timeout;
+#ifndef __EMSCRIPTEN__
 // thread id for whatever
 extern CHUCK_THREAD g_tid_whatever;
+#endif
 // flag for providing Std.system( string )
 extern t_CKBOOL g_enable_system_cmd;
 

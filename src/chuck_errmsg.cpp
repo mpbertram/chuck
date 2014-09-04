@@ -36,8 +36,9 @@
 #include <string.h>
 #include "chuck_utils.h"
 #include "chuck_errmsg.h"
+#ifndef __EMSCRIPTEN__
 #include "util_thread.h"
-
+#endif
 
 // global
 int EM_tokPos = 0;
@@ -55,7 +56,9 @@ static size_t g_lasterrorIndex = strlen(g_lasterror);
 // log globals
 int g_loglevel = CK_LOG_CORE;
 int g_logstack = 0;
+#ifndef __EMSCRIPTEN__
 XMutex g_logmutex;
+#endif
 
 // name
 static const char * g_str[] = {
@@ -81,14 +84,14 @@ static IntList linePos=NULL;
 static int lastErrorCat(const char * str)
 {
     assert(g_lasterrorIndex <= LASTERROR_SIZE-1);
-    
+
     size_t len = strnlen(str, LASTERROR_SIZE);
-    
+
     strncat(g_lasterror, str, LASTERROR_SIZE-g_lasterrorIndex-1);
-    
+
     size_t appendCount = ck_min(LASTERROR_SIZE-g_lasterrorIndex-1, len);
     g_lasterrorIndex += appendCount;
-    
+
     return appendCount > 0;
 }
 
@@ -137,7 +140,7 @@ void EM_reset_msg()
     g_lasterrorIndex = 0;
 }
 
-// [%s]:line(%d).char(%d): 
+// [%s]:line(%d).char(%d):
 void EM_error( int pos, const char * message, ... )
 {
     va_list ap;
@@ -145,15 +148,15 @@ void EM_error( int pos, const char * message, ... )
     int num = lineNum;
 
     anyErrors = TRUE;
-    while( lines && lines->i >= pos ) 
+    while( lines && lines->i >= pos )
     {
         lines = lines->rest;
         num--;
     }
-    
+
     // separate errmsgs with newlines
     if( g_lasterror[0] != '\0' ) lastErrorCat( "\n" );
-    
+
     fprintf( stderr, "[%s]:", *fileName ? mini(fileName) : "chuck" );
     sprintf( g_buffer, "[%s]:", *fileName ? mini(fileName) : "chuck" );
     lastErrorCat( g_buffer );
@@ -165,7 +168,7 @@ void EM_error( int pos, const char * message, ... )
     }
     fprintf(stderr, " " );
     lastErrorCat( " " );
-    
+
     va_start(ap, message);
     vfprintf(stderr, message, ap);
     va_end(ap);
@@ -173,7 +176,7 @@ void EM_error( int pos, const char * message, ... )
     va_start(ap, message);
     vsprintf( g_buffer, message, ap );
     va_end(ap);
-    
+
     fprintf(stderr, "\n");
     fflush( stderr );
     lastErrorCat( g_buffer );
@@ -189,7 +192,7 @@ void EM_error2( int line, const char * message, ... )
 
     // separate errmsgs with newlines
     if( g_lasterror[0] != '\0' ) lastErrorCat( "\n" );
-    
+
     fprintf( stderr, "[%s]:", *fileName ? mini(fileName) : "chuck" );
     sprintf( g_buffer, "[%s]:", *fileName ? mini(fileName) : "chuck" );
     lastErrorCat( g_buffer );
@@ -220,12 +223,12 @@ void EM_error2( int line, const char * message, ... )
 void EM_error2b( int line, const char * message, ... )
 {
     va_list ap;
-    
+
     EM_extLineNum = line;
 
     // separate errmsgs with newlines
     if( g_lasterror[0] != '\0' ) lastErrorCat( "\n" );
-    
+
     fprintf( stderr, "[%s]:", *fileName ? mini(fileName) : "chuck" );
     sprintf( g_buffer, "[%s]:", *fileName ? mini(fileName) : "chuck" );
     lastErrorCat( g_buffer );
@@ -252,14 +255,14 @@ void EM_error2b( int line, const char * message, ... )
 }
 
 
-// 
+//
 void EM_error3( const char * message, ... )
 {
     va_list ap;
-    
+
     // separate errmsgs with newlines
     if( g_lasterror[0] != '\0' ) lastErrorCat( "\n" );
-    
+
 //    g_lasterror[0] = '\0';
     g_buffer[0] = '\0';
 
@@ -288,7 +291,9 @@ void EM_log( int level, const char * message, ... )
     // check level
     if( level > g_loglevel ) return;
 
+#ifndef __EMSCRIPTEN__
     g_logmutex.acquire();
+#endif
     fprintf( stderr, "[chuck]:" );
     fprintf( stderr, "(%i:%s): ", level, g_str[level] );
 
@@ -302,7 +307,9 @@ void EM_log( int level, const char * message, ... )
 
     fprintf( stderr, "\n" );
     fflush( stderr );
+#ifndef __EMSCRIPTEN__
     g_logmutex.release();
+#endif
 }
 
 

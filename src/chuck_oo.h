@@ -40,8 +40,9 @@
 #include <map>
 #include <queue>
 #include <fstream>
+#ifndef __EMSCRIPTEN__
 #include "util_thread.h" // added 1.3.0.0
-
+#endif
 
 #ifndef __PLATFORM_WIN32__
   #include <dirent.h>
@@ -82,7 +83,7 @@ public:
     virtual void release();
     // lock
     virtual void lock();
-    
+
     // NOTE: be careful when overriding these, should always
     // explicitly call up to ChucK_VM_Object (ge: 2013)
 
@@ -100,7 +101,7 @@ public:
 public:
     // where
     std::vector<Chuck_VM_Object *> * m_v_ref;
-    
+
 private:
     void init_ref();
 };
@@ -116,7 +117,7 @@ struct Chuck_VM_Alloc
 {
 public:
     static Chuck_VM_Alloc * instance();
-    
+
 public:
     void add_object( Chuck_VM_Object * obj );
     void free_object( Chuck_VM_Object * obj );
@@ -234,8 +235,8 @@ public:
     virtual t_CKINT set_capacity( t_CKINT capacity );
     virtual t_CKINT find( const std::string & key );
     virtual t_CKINT erase( const std::string & key );
-    virtual t_CKINT data_type_size( ) { return CHUCK_ARRAY4_DATASIZE; } 
-    virtual t_CKINT data_type_kind( ) { return CHUCK_ARRAY4_DATAKIND; } 
+    virtual t_CKINT data_type_size( ) { return CHUCK_ARRAY4_DATASIZE; }
+    virtual t_CKINT data_type_kind( ) { return CHUCK_ARRAY4_DATAKIND; }
 
 public:
     std::vector<t_CKUINT> m_vector;
@@ -278,7 +279,7 @@ public:
     virtual t_CKINT find( const std::string & key );
     virtual t_CKINT erase( const std::string & key );
     virtual t_CKINT data_type_size( ) { return CHUCK_ARRAY8_DATASIZE; }
-    virtual t_CKINT data_type_kind( ) { return CHUCK_ARRAY8_DATAKIND; } 
+    virtual t_CKINT data_type_kind( ) { return CHUCK_ARRAY8_DATAKIND; }
 
 public:
     std::vector<t_CKFLOAT> m_vector;
@@ -320,7 +321,7 @@ public:
     virtual t_CKINT find( const std::string & key );
     virtual t_CKINT erase( const std::string & key );
     virtual t_CKINT data_type_size( ) { return CHUCK_ARRAY16_DATASIZE; }
-    virtual t_CKINT data_type_kind( ) { return CHUCK_ARRAY16_DATAKIND; } 
+    virtual t_CKINT data_type_kind( ) { return CHUCK_ARRAY16_DATAKIND; }
 
 public:
     std::vector<t_CKCOMPLEX> m_vector;
@@ -353,7 +354,9 @@ public:
 
 protected:
     std::queue<Chuck_VM_Shred *> m_queue;
+#ifndef __EMSCRIPTEN__
     XMutex m_queue_lock;
+#endif
 };
 
 
@@ -385,7 +388,7 @@ struct Chuck_IO : Chuck_Event
 public:
     Chuck_IO();
     virtual ~Chuck_IO();
-    
+
 public:
     // meta
     virtual t_CKBOOL good() = 0;
@@ -393,30 +396,32 @@ public:
     virtual void flush() = 0;
     virtual t_CKINT mode() = 0;
     virtual void mode( t_CKINT flag ) = 0;
-    
+
     // reading
     virtual Chuck_String * readLine() = 0;
     virtual t_CKINT readInt( t_CKINT flags ) = 0;
     virtual t_CKFLOAT readFloat() = 0;
     virtual t_CKBOOL readString( std::string & str ) = 0;
     virtual t_CKBOOL eof() = 0;
-    
+
     // writing
     virtual void write( const std::string & val ) = 0;
     virtual void write( t_CKINT val ) = 0;
     virtual void write( t_CKFLOAT val ) = 0;
-    
+
     // constants
 public:
     static const t_CKINT READ_INT32;
     static const t_CKINT READ_INT16;
     static const t_CKINT READ_INT8;
-    
+
     // asynchronous I/O members
     static const t_CKINT MODE_SYNC;
     static const t_CKINT MODE_ASYNC;
     Chuck_Event * m_asyncEvent;
+#ifndef __EMSCRIPTEN__
     XThread * m_thread;
+#endif
     struct async_args
     {
         Chuck_IO_File * fileio_obj;
@@ -437,7 +442,7 @@ struct Chuck_IO_File : Chuck_IO
 public:
     Chuck_IO_File();
     virtual ~Chuck_IO_File();
-    
+
 public:
     // meta
     virtual t_CKBOOL open( const std::string & path, t_CKINT flags );
@@ -447,15 +452,15 @@ public:
     virtual t_CKINT mode();
     virtual void mode( t_CKINT flag );
     virtual t_CKINT size();
-    
+
     // seeking
     virtual void seek( t_CKINT pos );
     virtual t_CKINT tell();
-    
+
     // directories
     virtual t_CKINT isDir();
     virtual Chuck_Array4 * dirList();
-    
+
     // reading
     // virtual Chuck_String * read( t_CKINT length );
     virtual Chuck_String * readLine();
@@ -463,7 +468,7 @@ public:
     virtual t_CKFLOAT readFloat();
     virtual t_CKBOOL readString( std::string & str );
     virtual t_CKBOOL eof();
-    
+
     // reading -- async
     /* TODO: doesn't look like asynchronous reads will work
      static THREAD_RETURN ( THREAD_TYPE read_thread ) ( void *data );
@@ -471,17 +476,19 @@ public:
      static THREAD_RETURN ( THREAD_TYPE readInt_thread ) ( void *data );
      static THREAD_RETURN ( THREAD_TYPE readFloat_thread ) ( void *data );
      */
-    
+
     // writing
     virtual void write( const std::string & val );
     virtual void write( t_CKINT val );
     virtual void write( t_CKFLOAT val );
-    
+
     // writing -- async
+#ifndef __EMSCRIPTEN__
     static THREAD_RETURN ( THREAD_TYPE writeStr_thread ) ( void *data );
     static THREAD_RETURN ( THREAD_TYPE writeInt_thread ) ( void *data );
     static THREAD_RETURN ( THREAD_TYPE writeFloat_thread ) ( void *data );
-    
+#endif
+
 public:
     // constants
     static const t_CKINT FLAG_READ_WRITE;
@@ -490,7 +497,7 @@ public:
     static const t_CKINT FLAG_APPEND;
     static const t_CKINT TYPE_ASCII;
     static const t_CKINT TYPE_BINARY;
-    
+
 protected:
     // open flags
     t_CKINT m_flags;
@@ -521,7 +528,7 @@ public:
 
     static Chuck_IO_Chout * our_chout;
     static Chuck_IO_Chout * getInstance();
-    
+
 public:
     // meta
     virtual t_CKBOOL good();
@@ -529,7 +536,7 @@ public:
     virtual void flush();
     virtual t_CKINT mode();
     virtual void mode( t_CKINT flag );
-    
+
     // reading
     virtual Chuck_String * readLine();
     virtual t_CKINT readInt( t_CKINT flags );
@@ -555,10 +562,10 @@ struct Chuck_IO_Cherr : Chuck_IO
 public:
     Chuck_IO_Cherr();
     virtual ~Chuck_IO_Cherr();
-    
+
     static Chuck_IO_Cherr * our_cherr;
     static Chuck_IO_Cherr * getInstance();
-    
+
 public:
     // meta
     virtual t_CKBOOL good();
@@ -566,14 +573,14 @@ public:
     virtual void flush();
     virtual t_CKINT mode();
     virtual void mode( t_CKINT flag );
-    
+
     // reading
     virtual Chuck_String * readLine();
     virtual t_CKINT readInt( t_CKINT flags );
     virtual t_CKFLOAT readFloat();
     virtual t_CKBOOL readString( std::string & str );
     virtual t_CKBOOL eof();
-    
+
     // writing
     virtual void write( const std::string & val );
     virtual void write( t_CKINT val );

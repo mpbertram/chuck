@@ -37,7 +37,9 @@
 
 #include "chuck_def.h"
 #include "util_buffers.h"
+#ifndef __EMSCRIPTEN__
 #include "util_thread.h"
+#endif
 
 #include "util_hid.h"
 
@@ -63,7 +65,7 @@ public:
     t_CKBOOL close();
     t_CKBOOL good() { return m_valid; }
     t_CKINT  num() { return m_valid ? (t_CKINT)m_device_num : -1; }
-    
+
 public:
     void     set_suppress( t_CKBOOL print_or_not )
     { m_suppress_output = print_or_not; }
@@ -130,7 +132,7 @@ public:
     static t_CKBOOL open( HidIn * hin, t_CKINT device_type, t_CKINT device_num );
     static t_CKBOOL open( HidIn * hin, t_CKINT device_type, std::string & device_name );
     static t_CKBOOL close( HidIn * hin );
-    
+
     static void probeHidIn();
     static void probeHidOut();
 
@@ -141,12 +143,14 @@ public:
 #endif
 
     static void push_message( HidMsg & msg );
-    
+
     static CBufferSimple * m_event_buffer;
-    
+
 protected:
     static std::vector< std::vector<PhyHidDevIn *> > the_matrix;
+#ifndef __EMSCRIPTEN__
     static XThread * the_thread;
+#endif
     static CBufferSimple * msg_buffer;
     static t_CKBOOL thread_going;
     static t_CKBOOL has_init;

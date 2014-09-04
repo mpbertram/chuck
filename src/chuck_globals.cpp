@@ -67,8 +67,10 @@ t_CKUINT g_watchdog_countermeasure_priority = 0;
 #endif
 // watchdog timeout
 t_CKFLOAT g_watchdog_timeout = 0.5;
+#ifndef __EMSCRIPTEN__
 // thread id for whatever
 CHUCK_THREAD g_tid_whatever = 0;
+#endif
 // flag for Std.system( string )
 t_CKBOOL g_enable_system_cmd = FALSE;
 
@@ -99,7 +101,7 @@ extern "C" void all_detach()
     // shutdown HID
     HidInManager::cleanup();
 #endif // __ALTER_HID__
-    
+
     Chuck_IO_Serial::shutdown();
     // pop
     EM_poplog();

@@ -65,7 +65,13 @@ const t_CKINT Chuck_IO_File::TYPE_BINARY = 0x100;
 Chuck_IO_Chout * Chuck_IO_Chout::our_chout = NULL;
 Chuck_IO_Cherr * Chuck_IO_Cherr::our_cherr = NULL;
 
-
+#ifndef __EMSCRIPTEN__
+#define ACQUIRE_QUEUE_LOCK m_queue_lock.acquire();
+#define RELEASE_QUEUE_LOCK m_queue_lock.release();
+#else
+#define ACQUIRE_QUEUE_LOCK
+#define RELEASE_QUEUE_LOCK
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -124,7 +130,7 @@ void Chuck_VM_Object::release()
     assert( m_ref_count > 0 );
     // decrement
     m_ref_count--;
-    
+
     // added 1.3.0.0
     CK_MEMMGMT_TRACK(fprintf(stderr, "Chuck_VM_Object::release() : 0x%08x, %s, %ulu\n", this, typeid(*this).name(), m_ref_count));
     // string n = typeid(*this).name();
@@ -208,7 +214,7 @@ Chuck_VM_Alloc * Chuck_VM_Alloc::instance()
         our_instance = new Chuck_VM_Alloc;
         assert( our_instance != NULL );
     }
-    
+
     return our_instance;
 }
 
@@ -309,7 +315,7 @@ Chuck_Object::Chuck_Object()
 //-----------------------------------------------------------------------------
 Chuck_Object::~Chuck_Object()
 {
-    // added 1.3.0.0: 
+    // added 1.3.0.0:
     // call destructors, from latest descended child to oldest parent
     Chuck_Type * type = this->type_ref;
     while( type != NULL )
@@ -325,7 +331,7 @@ Chuck_Object::~Chuck_Object()
         // go up the inheritance
         type = type->parent;
     }
-    
+
     // free
     if( vtable ) { delete vtable; vtable = NULL; }
     if( type_ref ) { type_ref->release(); type_ref = NULL; }
@@ -475,7 +481,7 @@ t_CKINT Chuck_Array4::set( const string & key, t_CKUINT val )
     map<string, t_CKUINT>::iterator iter = m_map.find( key );
 
     // if obj
-    if( m_is_obj && iter != m_map.end() ) 
+    if( m_is_obj && iter != m_map.end() )
         ((Chuck_Object *)(*iter).second)->release();
 
     if( !val ) m_map.erase( key );
@@ -513,7 +519,7 @@ t_CKINT Chuck_Array4::erase( const string & key )
     t_CKINT v = iter != m_map.end();
 
     // if obj
-    if( m_is_obj && iter != m_map.end() ) 
+    if( m_is_obj && iter != m_map.end() )
         ((Chuck_Object *)(*iter).second)->release();
 
     // erase
@@ -535,7 +541,7 @@ t_CKINT Chuck_Array4::push_back( t_CKUINT val )
 
     // if obj, reference count it (added 1.3.0.0)
     if( m_is_obj && val ) ((Chuck_Object *)val)->add_ref();
-    
+
     // add to vector
     m_vector.push_back( val );
 
@@ -563,12 +569,12 @@ t_CKINT Chuck_Array4::pop_back( )
         // if not null, release
         if( v ) v->release();
     }
-    
+
     // zero
     m_vector[m_vector.size()-1] = 0;
     // add to vector
     m_vector.pop_back();
-    
+
     return 1;
 }
 
@@ -587,7 +593,7 @@ t_CKINT Chuck_Array4::back( t_CKUINT * val ) const
 
     // get
     *val = m_vector.back();
-    
+
     return 1;
 }
 
@@ -896,7 +902,7 @@ t_CKINT Chuck_Array8::pop_back( )
     m_vector[m_vector.size()-1] = 0.0;
     // add to vector
     m_vector.pop_back();
-    
+
     return 1;
 }
 
@@ -915,7 +921,7 @@ t_CKINT Chuck_Array8::back( t_CKFLOAT * val ) const
 
     // get
     *val = m_vector.back();
-    
+
     return 1;
 }
 
@@ -1185,7 +1191,7 @@ t_CKINT Chuck_Array16::push_back( t_CKCOMPLEX val )
 {
     // add to vector
     m_vector.push_back( val );
-    
+
     return 1;
 }
 
@@ -1207,7 +1213,7 @@ t_CKINT Chuck_Array16::pop_back( )
     m_vector[m_vector.size()-1].im = 0.0;
     // add to vector
     m_vector.pop_back();
-    
+
     return 1;
 }
 
@@ -1226,7 +1232,7 @@ t_CKINT Chuck_Array16::back( t_CKCOMPLEX * val ) const
 
     // get
     *val = m_vector.back();
-    
+
     return 1;
 }
 
@@ -1331,12 +1337,12 @@ t_CKUINT Chuck_Event::our_can_wait = 0;
 //-----------------------------------------------------------------------------
 void Chuck_Event::signal()
 {
-    m_queue_lock.acquire();
+    ACQUIRE_QUEUE_LOCK
     if( !m_queue.empty() )
     {
         Chuck_VM_Shred * shred = m_queue.front();
         m_queue.pop();
-        m_queue_lock.release();
+        RELEASE_QUEUE_LOCK
         Chuck_VM_Shreduler * shreduler = shred->vm_ref->shreduler();
         shred->event = NULL;
         shreduler->remove_blocked( shred );
@@ -1346,7 +1352,9 @@ void Chuck_Event::signal()
         push_( sp, shreduler->now_system );
     }
     else
-        m_queue_lock.release();
+    {
+        RELEASE_QUEUE_LOCK
+    }
 }
 
 
@@ -1360,7 +1368,7 @@ t_CKBOOL Chuck_Event::remove( Chuck_VM_Shred * shred )
 {
     queue<Chuck_VM_Shred *> temp;
     t_CKBOOL removed = FALSE;
-    m_queue_lock.acquire();
+    ACQUIRE_QUEUE_LOCK
     while( !m_queue.empty() )
     {
         if( m_queue.front() != shred )
@@ -1373,7 +1381,7 @@ t_CKBOOL Chuck_Event::remove( Chuck_VM_Shred * shred )
     }
 
     m_queue = temp;
-    m_queue_lock.release();
+    RELEASE_QUEUE_LOCK
     return removed;
 }
 
@@ -1389,17 +1397,17 @@ t_CKBOOL Chuck_Event::remove( Chuck_VM_Shred * shred )
 void Chuck_Event::queue_broadcast( CBufferSimple * event_buffer )
 {
     // TODO: handle multiple VM
-    m_queue_lock.acquire();
+    ACQUIRE_QUEUE_LOCK
     if( !m_queue.empty() )
     {
         Chuck_VM_Shred * shred = m_queue.front();
-        m_queue_lock.release();
+        RELEASE_QUEUE_LOCK
         // queue the event on the vm (added 1.3.0.0: event_buffer)
         shred->vm_ref->queue_event( this, 1, event_buffer );
     }
     else
     {
-        m_queue_lock.release();
+        RELEASE_QUEUE_LOCK
     }
 }
 
@@ -1412,14 +1420,14 @@ void Chuck_Event::queue_broadcast( CBufferSimple * event_buffer )
 //-----------------------------------------------------------------------------
 void Chuck_Event::broadcast()
 {
-    m_queue_lock.acquire();
+    ACQUIRE_QUEUE_LOCK
     while( !m_queue.empty() )
     {
-        m_queue_lock.release();
+        RELEASE_QUEUE_LOCK
         this->signal();
-        m_queue_lock.acquire();
+        ACQUIRE_QUEUE_LOCK
     }
-    m_queue_lock.release();
+    RELEASE_QUEUE_LOCK
 }
 
 
@@ -1435,7 +1443,7 @@ void Chuck_Event::wait( Chuck_VM_Shred * shred, Chuck_VM * vm )
     EM_log( CK_LOG_FINE, "shred '%d' wait on event '%x'...", shred->xid, (t_CKUINT)this );
     // make sure the shred info matches the vm
     assert( shred->vm_ref == vm );
-    
+
     Chuck_DL_Return RETURN;
     // get the member function
     f_mfun canwaitplease = (f_mfun)this->vtable->funcs[our_can_wait]->code->native_func;
@@ -1451,9 +1459,9 @@ void Chuck_Event::wait( Chuck_VM_Shred * shred, Chuck_VM * vm )
         shred->is_running = FALSE;
 
         // add to waiting list
-        m_queue_lock.acquire();
+        ACQUIRE_QUEUE_LOCK
         m_queue.push( shred );
-        m_queue_lock.release();
+        RELEASE_QUEUE_LOCK
 
         // add event to shred
         assert( shred->event == NULL );
@@ -1507,7 +1515,9 @@ Chuck_IO_File::Chuck_IO_File()
     m_dir_start = 0;
     m_asyncEvent = new Chuck_Event;
     initialize_object( m_asyncEvent, &t_event );
+#ifndef __EMSCRIPTEN__
     m_thread = new XThread;
+#endif
 }
 
 
@@ -1522,7 +1532,9 @@ Chuck_IO_File::~Chuck_IO_File()
     // clean up
     this->close();
     delete m_asyncEvent;
+#ifndef __EMSCRIPTEN__
     delete m_thread;
+#endif
 }
 
 
@@ -1538,7 +1550,7 @@ t_CKBOOL Chuck_IO_File::open( const string & path, t_CKINT flags )
     EM_log( CK_LOG_INFO, "FileIO: opening file from disk..." );
     EM_log( CK_LOG_INFO, "FileIO: path: %s", path.c_str() );
     EM_pushlog();
-    
+
     // if no flag specified, make it READ by default
     if( !(flags & FLAG_READ_WRITE) &&
         !(flags & FLAG_READONLY) &&
@@ -1555,7 +1567,7 @@ t_CKBOOL Chuck_IO_File::open( const string & path, t_CKINT flags )
         flags ^= FLAG_WRITEONLY;
         flags |= FLAG_READ_WRITE;
     }
-    
+
     // check flags for errors
     if ((flags & TYPE_ASCII) &&
         (flags & TYPE_BINARY))
@@ -1563,45 +1575,45 @@ t_CKBOOL Chuck_IO_File::open( const string & path, t_CKINT flags )
         EM_error3( "[chuck](via FileIO): cannot open file in both ASCII and binary mode" );
         goto error;
     }
-    
+
     if ((flags & FLAG_READ_WRITE) &&
         (flags & FLAG_READONLY))
     {
         EM_error3( "[chuck](via FileIO): conflicting flags: READ_WRITE and READ" );
         goto error;
     }
-    
+
     if ((flags & FLAG_READ_WRITE) &&
         (flags & FLAG_WRITEONLY))
     {
         EM_error3( "[chuck](via FileIO): conflicting flags: READ_WRITE and WRITE" );
         goto error;
     }
-    
+
     if ((flags & FLAG_READ_WRITE) &&
         (flags & FLAG_APPEND))
     {
         EM_error3( "[chuck](via FileIO): conflicting flags: READ_WRITE and APPEND" );
         goto error;
     }
-    
+
     if ((flags & FLAG_WRITEONLY) &&
         (flags & FLAG_READONLY))
     {
         EM_error3( "[chuck](via FileIO): conflicting flags: WRITE and READ" );
         goto error;
     }
-    
+
     if ((flags & FLAG_APPEND) &&
         (flags & FLAG_READONLY))
     {
         EM_error3( "[chuck](via FileIO): conflicting flags: APPEND and FLAG_READ" );
         goto error;
     }
-    
+
     // set open flags
     ios_base::openmode mode;
-    
+
     if (flags & FLAG_READ_WRITE)
         mode = ios_base::in | ios_base::out;
     else if (flags & FLAG_READONLY)
@@ -1610,21 +1622,21 @@ t_CKBOOL Chuck_IO_File::open( const string & path, t_CKINT flags )
         mode = ios_base::out | ios_base::app;
     else if (flags & FLAG_WRITEONLY)
         mode = ios_base::out | ios_base::trunc;
-    
+
     if (flags & TYPE_BINARY)
         mode |= ios_base::binary;
-    
+
     // close first
     if (m_io.is_open())
         this->close();
-    
+
     // try to open as a dir first (fixed 1.3.0.0 removed warning)
     if( (m_dir = opendir( path.c_str() )) )
     {
         EM_poplog();
         return TRUE;
     }
-    
+
     // not a dir, create file if it does not exist unless flag is
     // readonly
     if ( !(flags & FLAG_READONLY) )
@@ -1639,17 +1651,17 @@ t_CKBOOL Chuck_IO_File::open( const string & path, t_CKINT flags )
         else
             m_io.close();
     }
-    
+
     //open file
     m_io.open( path.c_str(), mode );
-    
+
     // seek to beginning if necessary
     if (flags & FLAG_READ_WRITE)
     {
         m_io.seekp(0);
         m_io.seekg(0);
     }
-    
+
     /* ATODO: Ge's code
      // windows sucks for being creative in the wrong places
      #ifdef __PLATFORM_WIN32__
@@ -1659,14 +1671,14 @@ t_CKBOOL Chuck_IO_File::open( const string & path, t_CKINT flags )
      m_io.open( path.c_str(), (_Ios_Openmode)nMode );
      #endif
      */
-    
+
     // check for error
     if( !(m_io.is_open()) )
     {
         // EM_error3( "[chuck](via FileIO): cannot open file: '%s'", path.c_str() );
         goto error;
     }
-    
+
     // set path
     m_path = path;
     // set flags
@@ -1675,24 +1687,24 @@ t_CKBOOL Chuck_IO_File::open( const string & path, t_CKINT flags )
         m_flags |= Chuck_IO_File::TYPE_ASCII; // ASCII is default
     // set mode
     m_iomode = MODE_SYNC;
-    
+
     // pop
     EM_poplog();
-    
+
     return TRUE;
-    
+
 error:
-    
+
     // pop
     EM_poplog();
-    
+
     // reset
     m_path = "";
     m_flags = 0;
     m_iomode = MODE_SYNC;
     m_io.clear();
     m_io.close();
-    
+
     return FALSE;
 }
 
@@ -1776,7 +1788,7 @@ t_CKINT Chuck_IO_File::mode()
 // desc: ...
 //-----------------------------------------------------------------------------
 void Chuck_IO_File::mode( t_CKINT flag )
-{    
+{
     // sanity
     if ( m_dir )
     {
@@ -1788,7 +1800,7 @@ void Chuck_IO_File::mode( t_CKINT flag )
         EM_error3( "[chuck](via FileIO): invalid mode flag" );
         return;
     }
-    
+
     m_iomode = flag;
 }
 
@@ -1808,7 +1820,7 @@ t_CKINT Chuck_IO_File::size()
         EM_error3( "[chuck](via FileIO): cannot get size on a directory" );
         return -1;
     }
-    
+
     // no easy way to find file size in C++
     // have to seek to end, report position
     FILE * stream = fopen( m_path.c_str(), "r" );
@@ -1857,7 +1869,7 @@ t_CKINT Chuck_IO_File::tell()
         EM_error3( "[chuck](via FileIO): cannot tell on directory" );
         return -1;
     }
-    
+
     return m_io.tellg();
 }
 
@@ -1890,7 +1902,7 @@ Chuck_Array4 * Chuck_IO_File::dirList()
         initialize_object( ret, &t_array );
         return ret;
     }
-    
+
     // fill vector with entry names
     rewinddir( m_dir );
     std::vector<Chuck_String *> entrylist;
@@ -1903,7 +1915,7 @@ Chuck_Array4 * Chuck_IO_File::dirList()
             // don't include .. and . in the list
             entrylist.push_back( s );
     }
-    
+
     // make array
     Chuck_Array4 *array = new Chuck_Array4( true, entrylist.size() );
     initialize_object( array, &t_array );
@@ -1926,18 +1938,18 @@ Chuck_Array4 * Chuck_IO_File::dirList()
         EM_error3( "[chuck](via FileIO): cannot read: no file open" );
         return new Chuck_String( "" );
     }
-    
+
     if (m_io.fail()) {
         EM_error3( "[chuck](via FileIO): cannot read: I/O stream failed" );
         return new Chuck_String( "" );
     }
-    
+
     if ( m_dir )
     {
         EM_error3( "[chuck](via FileIO): cannot read on a directory" );
         return new Chuck_String( "" );
     }
-    
+
     char buf[length+1];
     m_io.read( buf, length );
     buf[m_io.gcount()] = '\0';
@@ -1959,18 +1971,18 @@ Chuck_String * Chuck_IO_File::readLine()
         EM_error3( "[chuck](via FileIO): cannot readLine: no file open" );
         return new Chuck_String( "" );
     }
-    
+
     if (m_io.fail()) {
         EM_error3( "[chuck](via FileIO): cannot readLine: I/O stream failed" );
         return new Chuck_String( "" );
     }
-    
+
     if ( m_dir )
     {
         EM_error3( "[chuck](via FileIO): cannot readLine on directory" );
         return new Chuck_String( "" );
     }
-    
+
     string s;
     getline( m_io, s );
     return new Chuck_String( s );
@@ -1990,23 +2002,23 @@ t_CKINT Chuck_IO_File::readInt( t_CKINT flags )
         EM_error3( "[chuck](via FileIO): cannot readInt: no file open" );
         return 0;
     }
-    
+
     if (m_io.eof()) {
         EM_error3( "[chuck](via FileIO): cannot readInt: EOF reached" );
         return 0;
     }
-    
+
     if ( m_dir )
     {
         EM_error3( "[chuck](via FileIO): cannot read on directory" );
         return 0;
     }
-    
+
     if (m_io.fail()) {
         EM_error3( "[chuck](via FileIO): cannot readInt: I/O stream failed" );
         return 0;
     }
-    
+
     if (m_flags & TYPE_ASCII) {
         // ASCII
         t_CKINT val = 0;
@@ -2014,7 +2026,7 @@ t_CKINT Chuck_IO_File::readInt( t_CKINT flags )
         // if (m_io.fail())
         //     EM_error3( "[chuck](via FileIO): cannot readInt: I/O stream failed" );
         return val;
-        
+
     } else if (m_flags & TYPE_BINARY) {
         // binary
         if (flags & Chuck_IO::READ_INT32) {
@@ -2052,7 +2064,7 @@ t_CKINT Chuck_IO_File::readInt( t_CKINT flags )
             EM_error3( "[chuck](via FileIO): readInt error: invalid int size flag" );
             return 0;
         }
-        
+
     } else {
         EM_error3( "[chuck](via FileIO): readInt error: invalid ASCII/binary flag" );
         return 0;
@@ -2073,23 +2085,23 @@ t_CKFLOAT Chuck_IO_File::readFloat()
         EM_error3( "[chuck](via FileIO): cannot readFloat: no file open" );
         return 0;
     }
-    
+
     if (m_io.eof()) {
         EM_error3( "[chuck](via FileIO): cannot readFloat: EOF reached" );
         return 0;
     }
-    
+
     if (m_io.fail()) {
         EM_error3( "[chuck](via FileIO): cannot readFloat: I/O stream failed" );
         return 0;
     }
-    
+
     if ( m_dir )
     {
         EM_error3( "[chuck](via FileIO): cannot read a directory" );
         return 0;
     }
-    
+
     if (m_flags & TYPE_ASCII) {
         // ASCII
         t_CKFLOAT val = 0;
@@ -2097,7 +2109,7 @@ t_CKFLOAT Chuck_IO_File::readFloat()
         // if (m_io.fail())
         //     EM_error3( "[chuck](via FileIO): cannot readFloat: I/O stream failed" );
         return val;
-        
+
     } else if (m_flags & TYPE_BINARY) {
         // binary
         t_CKFLOAT i;
@@ -2107,7 +2119,7 @@ t_CKFLOAT Chuck_IO_File::readFloat()
         else if (m_io.fail())
             EM_error3( "[chuck](via FileIO): cannot readInt: I/O stream failed" );
         return i;
-        
+
     } else {
         EM_error3( "[chuck](via FileIO): readFloat error: invalid ASCII/binary flag" );
         return 0;
@@ -2131,23 +2143,23 @@ t_CKBOOL Chuck_IO_File::readString( std::string & str )
         EM_error3( "[chuck](via FileIO): cannot readString: no file open" );
         return FALSE;
     }
-    
+
     if (m_io.eof()) {
         EM_error3( "[chuck](via FileIO): cannot readString: EOF reached" );
         return FALSE;
     }
-    
+
     if ( m_dir )
     {
         EM_error3( "[chuck](via FileIO): cannot read on directory" );
         return FALSE;
     }
-    
+
     if (m_io.fail()) {
         EM_error3( "[chuck](via FileIO): cannot readString: I/O stream failed" );
         return FALSE;
     }
-    
+
     if (m_flags & TYPE_ASCII) {
         // ASCII
         m_io >> str;
@@ -2165,7 +2177,7 @@ t_CKBOOL Chuck_IO_File::readString( std::string & str )
 
 
 /* (ATODO: doesn't look like asynchronous reads will work)
- 
+
  THREAD_RETURN ( THREAD_TYPE Chuck_IO_File::read_thread ) ( void *data )
  {
  // (ATODO: test this)
@@ -2181,16 +2193,16 @@ t_CKBOOL Chuck_IO_File::readString( std::string & str )
  cerr << "Woke up" << endl;
  delete args;
  cerr << "Deleted args" << endl;
- 
+
  return (THREAD_RETURN)0;
  }
- 
+
  THREAD_RETURN ( THREAD_TYPE Chuck_IO_File::readLine_thread ) ( void *data )
  {
  // not yet implemented
  return NULL;
  }
- 
+
  THREAD_RETURN ( THREAD_TYPE Chuck_IO_File::readInt_thread ) ( void *data )
  {
  // (ATODO: test this)
@@ -2201,10 +2213,10 @@ t_CKBOOL Chuck_IO_File::readString( std::string & str )
  args->fileio_obj->m_asyncEvent->broadcast(); // wake up
  cerr << "Called broadcast" << endl;
  delete args;
- 
+
  return (THREAD_RETURN)0;
  }
- 
+
  THREAD_RETURN ( THREAD_TYPE Chuck_IO_File::readFloat_thread ) ( void *data )
  {
  // not yet implemented
@@ -2246,20 +2258,20 @@ void Chuck_IO_File::write( const std::string & val )
         EM_error3( "[chuck](via FileIO): cannot write: no file open" );
         return;
     }
-    
+
     if (m_io.fail()) {
         EM_error3( "[chuck](via FileIO): cannot write: I/O stream failed" );
         return;
     }
-    
+
     if ( m_dir )
     {
         EM_error3( "[chuck](via FileIO): cannot write to a directory" );
         return;
     }
-    
+
     m_io.write( val.c_str(), val.size() );
-    
+
     if (m_io.fail()) { // check both before and after write if stream is ok
         EM_error3( "[chuck](via FileIO): cannot write: I/O stream failed" );
     }
@@ -2279,18 +2291,18 @@ void Chuck_IO_File::write( t_CKINT val )
         EM_error3( "[chuck](via FileIO): cannot write: no file open" );
         return;
     }
-    
+
     if (m_io.fail()) {
         EM_error3( "[chuck](via FileIO): cannot write: I/O stream failed" );
         return;
     }
-    
+
     if ( m_dir )
     {
         EM_error3( "[chuck](via FileIO): cannot write on directory" );
         return;
     }
-    
+
     if (m_flags & TYPE_ASCII) {
         m_io << val;
     } else if (m_flags & TYPE_BINARY) {
@@ -2298,7 +2310,7 @@ void Chuck_IO_File::write( t_CKINT val )
     } else {
         EM_error3( "[chuck](via FileIO): write error: invalid ASCII/binary flag" );
     }
-    
+
     if (m_io.fail()) { // check both before and after write if stream is ok
         EM_error3( "[chuck](via FileIO): cannot write: I/O stream failed" );
     }
@@ -2318,18 +2330,18 @@ void Chuck_IO_File::write( t_CKFLOAT val )
         EM_error3( "[chuck](via FileIO): cannot write: no file open" );
         return;
     }
-    
+
     if (m_io.fail()) {
         EM_error3( "[chuck](via FileIO): cannot write: I/O stream failed" );
         return;
     }
-    
+
     if ( m_dir )
     {
         EM_error3( "[chuck](via FileIO): cannot write to a directory" );
         return;
     }
-    
+
     if (m_flags & TYPE_ASCII) {
         m_io << val;
     } else if (m_flags & TYPE_BINARY) {
@@ -2337,15 +2349,14 @@ void Chuck_IO_File::write( t_CKFLOAT val )
     } else {
         EM_error3( "[chuck](via FileIO): write error: invalid ASCII/binary flag" );
     }
-    
+
     if (m_io.fail()) { // check both before and after write if stream is ok
         EM_error3( "[chuck](via FileIO): cannot write: I/O stream failed" );
     }
 }
 
 
-
-
+#ifndef __EMSCRIPTEN__
 // static helper functions for writing asynchronously
 THREAD_RETURN ( THREAD_TYPE Chuck_IO_File::writeStr_thread ) ( void *data )
 {
@@ -2354,7 +2365,7 @@ THREAD_RETURN ( THREAD_TYPE Chuck_IO_File::writeStr_thread ) ( void *data )
     Chuck_Event *e = args->fileio_obj->m_asyncEvent;
     delete args;
     e->broadcast(); // wake up
-    
+
     return (THREAD_RETURN)0;
 }
 
@@ -2364,7 +2375,7 @@ THREAD_RETURN ( THREAD_TYPE Chuck_IO_File::writeInt_thread ) ( void *data )
     args->fileio_obj->write ( args->intArg );
     args->fileio_obj->m_asyncEvent->broadcast(); // wake up
     delete args;
-    
+
     return (THREAD_RETURN)0;
 }
 
@@ -2374,9 +2385,10 @@ THREAD_RETURN ( THREAD_TYPE Chuck_IO_File::writeFloat_thread ) ( void *data )
     args->fileio_obj->write ( args->floatArg );
     args->fileio_obj->m_asyncEvent->broadcast(); // wake up
     delete args;
-    
+
     return (THREAD_RETURN)0;
 }
+#endif
 
 Chuck_IO_Chout::Chuck_IO_Chout() { }
 Chuck_IO_Chout::~Chuck_IO_Chout() { }
@@ -2503,4 +2515,3 @@ void Chuck_IO_Cherr::write( t_CKINT val )
 
 void Chuck_IO_Cherr::write( t_CKFLOAT val )
 { cerr << val; }
-

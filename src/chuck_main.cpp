@@ -21,7 +21,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
   U.S.A.
 -----------------------------------------------------------------------------*/
-  
+
 //-----------------------------------------------------------------------------
 // file: chuck_main.cpp
 // desc: chuck entry point
@@ -51,7 +51,9 @@
 
 #include "util_math.h"
 #include "util_string.h"
+#ifndef __EMSCRIPTEN__
 #include "util_thread.h"
+#endif
 #include "util_network.h"
 #include "ulib_machine.h"
 #include "hidio_sdl.h"
@@ -79,10 +81,12 @@
   t_CKINT g_priority_low = 0x7fffffff;
 #endif
 
+#ifndef __EMSCRIPTEN__
 // thread id for otf thread
 CHUCK_THREAD g_tid_otf = 0;
 // thread id for shell
 CHUCK_THREAD g_tid_shell = 0;
+#endif
 
 // default destination host name
 char g_host[256] = "127.0.0.1";
@@ -114,6 +118,7 @@ extern "C" void signal_int( int sig_num )
             all_detach();
         }
 
+#ifndef __EMSCRIPTEN__
         // things don't work so good on windows...
 #if !defined(__PLATFORM_WIN32__) || defined(__WINDOWS_PTHREAD__)
         // pthread_kill( g_tid_otf, 2 );
@@ -123,6 +128,7 @@ extern "C" void signal_int( int sig_num )
 #else
         // close handle
         if( g_tid_otf ) CloseHandle( g_tid_otf );
+#endif
 #endif
         // will this work for windows?
         SAFE_DELETE( vm );
@@ -134,7 +140,7 @@ extern "C" void signal_int( int sig_num )
 #if !defined(__PLATFORM_WIN32__) || defined(__WINDOWS_PTHREAD__)
     // pthread_join( g_tid_otf, NULL );
 #endif
-    
+
     exit(2);
 }
 
@@ -244,7 +250,7 @@ static void version()
 #else
     platform = "uh... unknown";
 #endif
-    
+
     fprintf( stderr, "   %s : %ld-bit\n", platform.c_str(), machine_intsize() );
     fprintf( stderr, "   http://chuck.cs.princeton.edu/\n" );
     fprintf( stderr, "   http://chuck.stanford.edu/\n\n" );
@@ -284,12 +290,12 @@ static void usage()
 #else
   extern "C" int chuck_main( int argc, const char ** argv )
 #endif
-{    
+{
     Chuck_Compiler * compiler = NULL;
     Chuck_VM * vm = NULL;
     Chuck_VM_Code * code = NULL;
     Chuck_VM_Shred * shred = NULL;
-    
+
     t_CKBOOL enable_audio = TRUE;
     t_CKBOOL vm_halt = TRUE;
     t_CKUINT srate = SAMPLING_RATE_DEFAULT;
@@ -352,7 +358,7 @@ static void usage()
     t_CKUINT files = 0;
     t_CKUINT count = 1;
     t_CKINT i;
-    
+
     // set log level
     EM_setlog( log_level );
 
@@ -413,7 +419,7 @@ static void usage()
                 const char * str = argv[i]+6;
                 char * endptr = NULL;
                 long dev = strtol(str, &endptr, 10);
-                
+
                 // check if arg was a number (added 1.3.0.0)
                 if( endptr != NULL && *endptr == '\0' )
                 {
@@ -443,7 +449,7 @@ static void usage()
                 const char * str = argv[i]+6;
                 char * endptr = NULL;
                 long dev = strtol(str, &endptr, 10);
-                
+
                 // check if arg was a number (added 1.3.0.0)
                 if( endptr != NULL && *endptr == '\0' )
                 {
@@ -605,7 +611,7 @@ static void usage()
                 // do it
                 if( otf_send_cmd( argc, argv, i, g_host, g_port, &is_otf ) )
                     exit( 0 );
-                    
+
                 // is otf
                 if( is_otf ) exit( 1 );
 
@@ -639,11 +645,11 @@ static void usage()
 #endif  // __DISABLE_MIDI__
 
         // HidInManager::probeHidIn();
-        
+
         // exit
         exit( 0 );
     }
-    
+
     // check buffer size
     buffer_size = ensurepow2( buffer_size );
     // check mode and blocking
@@ -686,7 +692,7 @@ static void usage()
         fprintf( stderr, "[chuck]: '--empty' can only be used with shell...\n" );
         exit( 1 );
     }
-    
+
     // find dac_name if appropriate (added 1.3.0.0)
     if( dac_name.size() > 0 )
     {
@@ -703,7 +709,7 @@ static void usage()
             exit( 1 );
         }
     }
-    
+
     // find adc_name if appropriate (added 1.3.0.0)
     if( adc_name.size() > 0 )
     {
@@ -720,7 +726,7 @@ static void usage()
             exit( 1 );
         }
     }
-    
+
     // allocate the vm - needs the type system
     vm = g_vm = new Chuck_VM;
     if( !vm->initialize( enable_audio, vm_halt, srate, buffer_size,
@@ -730,7 +736,7 @@ static void usage()
         fprintf( stderr, "[chuck]: %s\n", vm->last_error() );
         exit( 1 );
     }
-    
+
     // if chugin load is off, then clear the lists (added 1.3.0.0 -- TODO: refactor)
     if( chugin_load == 0 )
     {
@@ -738,7 +744,7 @@ static void usage()
         dl_search_path.clear();
         named_dls.clear();
     }
-    
+
     // allocate the compiler
     compiler = g_compiler = new Chuck_Compiler;
     // initialize the compiler (search_apth and named_dls added 1.3.0.0 -- TODO: refactor)
@@ -786,7 +792,7 @@ static void usage()
 
     // reset count
     count = 1;
-    
+
     // figure out current working directory (added 1.3.0.0)
     std::string cwd;
     {
@@ -809,22 +815,22 @@ static void usage()
         // log
         EM_log( CK_LOG_SEVERE, "pre-loading ChucK libs..." );
         EM_pushlog();
-        
+
         // iterate over list of ck files that the compiler found
         for( std::list<std::string>::iterator j = compiler->m_cklibs_to_preload.begin();
              j != compiler->m_cklibs_to_preload.end(); j++)
         {
             // the filename
             std::string filename = *j;
-            
+
             // log
             EM_log( CK_LOG_SEVERE, "preloading '%s'...", filename.c_str() );
             // push indent
             EM_pushlog();
-            
+
             // SPENCERTODO: what to do for full path
             std::string full_path = filename;
-            
+
             // parse, type-check, and emit
             if( compiler->go( filename, NULL, NULL, full_path ) )
             {
@@ -839,25 +845,25 @@ static void usage()
                 // spork it
                 shred = vm->spork( code, NULL );
             }
-            
+
             // pop indent
             EM_poplog();
         }
-        
+
         // clear the list of chuck files to preload
         compiler->m_cklibs_to_preload.clear();
-        
+
         // pop log
         EM_poplog();
     }
-    
+
     compiler->env->load_user_namespace();
-    
+
     // log
     EM_log( CK_LOG_SEVERE, "starting compilation..." );
     // push indent
     EM_pushlog();
-    
+
     // loop through and process each file
     for( i = 1; i < argc; i++ )
     {
@@ -891,7 +897,7 @@ static void usage()
         // construct full path to be associated with the file so me.sourceDir() works
         // (added 1.3.0.0)
         std::string full_path = get_full_path(filename);
-        
+
         // parse, type-check, and emit (full_path added 1.3.0.0)
         if( !compiler->go( filename, NULL, NULL, full_path ) )
             return 1;
@@ -956,11 +962,13 @@ static void usage()
         }
         else
         {
+#ifndef __EMSCRIPTEN__
     #if !defined(__PLATFORM_WIN32__) || defined(__WINDOWS_PTHREAD__)
             pthread_create( &g_tid_otf, NULL, otf_cb, NULL );
     #else
             g_tid_otf = CreateThread( NULL, 0, (LPTHREAD_START_ROUTINE)otf_cb, NULL, 0, 0 );
     #endif
+#endif
         }
 #endif // __DISABLE_OTF_SERVER__
     }
@@ -973,10 +981,12 @@ static void usage()
     // start shell on separate thread
     if( enable_shell )
     {
+#ifndef __EMSCRIPTEN__
 #if !defined(__PLATFORM_WIN32__) || defined(__WINDOWS_PTHREAD__)
         pthread_create( &g_tid_shell, NULL, shell_cb, g_shell );
 #else
         g_tid_shell = CreateThread( NULL, 0, (LPTHREAD_START_ROUTINE)shell_cb, g_shell, 0, 0 );
+#endif
 #endif
     }
 

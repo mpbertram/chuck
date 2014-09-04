@@ -29,6 +29,7 @@
 // author: Spencer Salazar (spencer@ccrma.stanford.edu)
 // date: Autumn 2005
 //-----------------------------------------------------------------------------
+#ifndef __EMSCRIPTEN__
 #include "util_console.h"
 #include "chuck_errmsg.h"
 #include <stdio.h>
@@ -51,45 +52,46 @@ char * io_readline( const char * prompt )
     // insert our hack
     char * buf=(char *)malloc( CONSOLE_INPUT_BUFFER_SIZE * sizeof(char) );
     char * result;
-    
+
     fputs( prompt, stdout );
-    
+
 	result = fgets( buf, CONSOLE_INPUT_BUFFER_SIZE, stdin );
-	
+
 	if( result == NULL )
 	{
 		free( buf );
 		return NULL;
 	}
-	
+
 	for( int i=0; i < CONSOLE_INPUT_BUFFER_SIZE; i++ )
 		if(buf[i] == '\n' )
 		{
 			buf[i] = 0;
 			break;
 		}
-	
+
 	return buf;
-	
+
 #endif
 }
 
 void io_addhistory( const char * addme )
 {
 #ifdef __USE_READLINE__
-	
+
 	add_history( addme );
-	
+
 #else
-	
+
 	//do nothing
-	
+
 #endif
 }
 
 
 // code thanks to Luke Lin (wdlin@CCCA.NCTU.edu.tw)
 // kb hit
+#ifndef __EMSCRIPTEN__
 #ifndef __PLATFORM_WIN32__
   #include <string.h>
 #ifdef __PLATFORM_MACOSX__
@@ -104,6 +106,7 @@ void io_addhistory( const char * addme )
   #include <sys/ioctl.h>
 #else
   #include <conio.h>
+#endif
 #endif
 
 
@@ -126,7 +129,7 @@ t_CKBOOL kb_initscr()
     struct termio term;
     if( ioctl( 0, TCGETA, &term ) == -1 )
 #endif
-    { 
+    {
         EM_log( CK_LOG_SEVERE, "(kbhit disabled): standard input not a tty!");
         return FALSE;
     }
@@ -135,12 +138,12 @@ t_CKBOOL kb_initscr()
     EM_log( CK_LOG_INFO, "starting kb hit immediate mode..." );
 
     g_save = term;
-                
+
     term.c_lflag &= ~ICANON;
     term.c_lflag &= ~ECHO;
 
     term.c_cc[VMIN] = 0;
-    term.c_cc[VTIME]=0;  
+    term.c_cc[VTIME]=0;
 
 #ifdef __PLATFORM_MACOSX__
     ioctl( 0, TIOCSETA, &term );
@@ -207,4 +210,4 @@ t_CKBOOL kb_ready()
 {
     return g_init;
 }
-
+#endif

@@ -213,30 +213,30 @@ string rtrim( const string & val )
 // name: extract_args()
 // desc: extract argument from format filename:arg1:arg2:etc
 //-----------------------------------------------------------------------------
-t_CKBOOL extract_args( const string & token, 
+t_CKBOOL extract_args( const string & token,
                        string & filename, vector<string> & args )
 {
     // clear vector
     args.clear();
     // clear filename
     filename = "";
-    
+
     // last : found pos
     t_CKINT prev_pos = 0;
     // curr : pos
     t_CKINT i = 0;
-    
+
     string tmp;
-    
+
     // copy and trim
     string s = trim( token );
-    
+
     // ignore second character as arg separator if its : on Windows
     t_CKBOOL ignoreSecond = FALSE;
 #ifdef __PLATFORM_WIN32__
 	ignoreSecond = TRUE;
 #endif // __PLATFORM_WIN32__
-    
+
     // detect
     t_CKBOOL scan = FALSE;
     t_CKBOOL ret = TRUE;
@@ -248,14 +248,14 @@ t_CKBOOL extract_args( const string & token,
             scan = TRUE;
             break;
         }
-    
+
     // mad...
     if( scan )
     {
         mask = new char[s.length()];
         // zero
         memset(mask, 0, s.length()*sizeof(char));
-        
+
         // loop through
         for( i = 0; i < s.length(); i++ )
         {
@@ -266,7 +266,7 @@ t_CKBOOL extract_args( const string & token,
             //     mask[i] = 1;
             //     break; // added 1.3.1.1
             // }
-            
+
             // 1.3.2.0: spencer and ge fixed this, requiring \ to escape :
             if( s[i] == '\\' && (i+1) < s.length() )
             {
@@ -313,15 +313,15 @@ t_CKBOOL extract_args( const string & token,
                 ret = FALSE;
                 goto done;
             }
-            
+
             // copy
             if( filename == "" )
                 filename = tmp;
             else
                 args.push_back( tmp );
-            
+
             tmp = "";
-            
+
             // update
             prev_pos = i + 1;
         }
@@ -329,11 +329,11 @@ t_CKBOOL extract_args( const string & token,
         {
             tmp.append(1, s[i]);
         }
-        
+
         // reset
         ignoreNext = FALSE;
     }
-    
+
     // get the remainder, if any
     if( tmp.length() )
     {
@@ -343,7 +343,7 @@ t_CKBOOL extract_args( const string & token,
         else
             args.push_back( tmp );
     }
-    
+
     // testing code - spencer 1.3.2.0
 //    fprintf(stderr, "INPUT: %s\n", token.c_str());
 //    fprintf(stderr, "FILENAME: %s\n", filename.c_str());
@@ -360,6 +360,7 @@ done:
 
 /* from http://developer.apple.com/library/mac/#qa/qa1549/_index.html */
 
+#ifndef __EMSCRIPTEN__
 #ifndef __PLATFORM_WIN32__
 
 #include <glob.h>
@@ -369,47 +370,47 @@ char* CreatePathByExpandingTildePath(const char* path)
     glob_t globbuf;
     char **v;
     char *expandedPath = NULL, *result = NULL;
-    
+
     assert(path != NULL);
-    
+
     if (glob(path, GLOB_TILDE, NULL, &globbuf) == 0) //success
     {
         v = globbuf.gl_pathv; //list of matched pathnames
         expandedPath = v[0]; //number of matched pathnames, gl_pathc == 1
-        
+
         result = (char*)calloc(1, strlen(expandedPath) + 1); //the extra char is for the null-termination
         if(result)
             strncpy(result, expandedPath, strlen(expandedPath) + 1); //copy the null-termination as well
-        
+
         globfree(&globbuf);
     }
-    
+
     return result;
 }
 
 #endif // __PLATFORM_WIN32__
-
+#endif
 
 // get full path to file
 std::string get_full_path( const std::string & fp )
 {
 #ifndef __PLATFORM_WIN32__
-    
+
     char buf[PATH_MAX];
-    
+
     char * result = realpath(fp.c_str(), buf);
-    
+
     // try with .ck extension
     if(result == NULL && !str_endsin(fp.c_str(), ".ck"))
         result = realpath((fp + ".ck").c_str(), buf);
-    
+
     if(result == NULL)
         return fp;
     else
         return buf;
-    
+
 #else //
-    
+
 	char buf[MAX_PATH];
 
 	DWORD result = GetFullPathName(fp.c_str(), MAX_PATH, buf, NULL);
@@ -429,22 +430,22 @@ std::string get_full_path( const std::string & fp )
 
 std::string expand_filepath( std::string & fp )
 {
-#if defined(__WINDOWS_DS__) || defined(__WINDOWS_ASIO__)
+#if defined(__WINDOWS_DS__) || defined(__WINDOWS_ASIO__) || defined(__EMSCRIPTEN__)
     // no expansion in Windows systems
     return fp;
 #else
-    
+
     char * expanded_cstr = CreatePathByExpandingTildePath( fp.c_str() );
-    
+
     if(expanded_cstr == NULL)
         return fp;
-    
+
     std::string expanded_stdstr = expanded_cstr;
-    
+
     free(expanded_cstr);
-    
+
     return expanded_stdstr;
-    
+
 #endif
 }
 
@@ -452,19 +453,19 @@ std::string expand_filepath( std::string & fp )
 std::string extract_filepath_dir(std::string &filepath)
 {
     char path_separator = '/';
-    
+
 //#ifdef __WINDOWS_DS__
 //    path_separator = '\\';
 //#else
 //    path_separator = '/';
 //#endif
-    
+
     // if the last character is a slash, skip it
     int i = filepath.rfind(path_separator);
-    
+
     if(i == std::string::npos)
         return std::string();
-    
+
     // change spencer 2014-7-17: include trailing slash
     return std::string(filepath, 0, i+1);
 }
@@ -481,7 +482,7 @@ string dir_go_up( const string & dir, t_CKINT numUp )
     // if there is already a trailing slash, add extra up
     if( dir.length() > 0 && dir[dir.length()-1] == path_separator )
         numUp++;
-    
+
     // pos
     size_t pos = dir.length();
 
@@ -490,7 +491,7 @@ string dir_go_up( const string & dir, t_CKINT numUp )
     {
         // find the last slash
         pos = dir.rfind( path_separator, pos-1 );
-        
+
         // not there
         if( pos == string::npos )
             return "";
@@ -503,8 +504,8 @@ string dir_go_up( const string & dir, t_CKINT numUp )
         // decrement
         numUp--;
     }
-    
-    
+
+
     // otherwise
     // change spencer 2014-7-17: include trailing slash
     string str = string( dir, 0, pos );
@@ -524,13 +525,13 @@ void parse_path_list( std::string & str, std::list<std::string> & lst )
     const char separator = ':';
 #endif
     std::string::size_type i = 0, last = 0;
-    while( last < str.size() && 
+    while( last < str.size() &&
           ( i = str.find( separator, last ) ) != std::string::npos )
     {
         lst.push_back( str.substr( last, i - last ) );
         last = i + 1;
     }
-    
+
     lst.push_back( str.substr( last, str.size() - last ) );
 }
 
@@ -556,6 +557,6 @@ int str_endsin(const char *str, const char *end)
 {
     size_t len = strlen(str);
     size_t endlen = strlen(end);
-    
+
     return strncmp(str+(len-endlen), end, endlen) == 0;
 }

@@ -36,7 +36,9 @@
 #define __UTIL_BUFFERS_H__
 
 #include "chuck_oo.h"
+#ifndef __EMSCRIPTEN__
 #include "util_thread.h"
+#endif
 #include <vector>
 #include <queue>
 
@@ -96,9 +98,11 @@ protected:
     SINT__   m_write_offset;
     SINT__   m_max_elem;
 
+#ifndef __EMSCRIPTEN__
     // TODO: necessary?
     XMutex m_mutex;
-    
+#endif
+
     CBufferSimple * m_event_buffer;
 };
 
@@ -197,7 +201,7 @@ template<typename T>
 class CircularBuffer
 {
 public:
-    
+
     CircularBuffer(size_t numElements) :
     m_read(0),
     m_write(0),
@@ -205,7 +209,7 @@ public:
     {
         m_elements = new T[m_numElements];
     }
-    
+
     ~CircularBuffer()
     {
         if(m_elements != NULL)
@@ -214,7 +218,7 @@ public:
             m_elements = NULL;
         }
     }
-    
+
     // put one element
     // returns number of elements successfully put
     size_t put(T element)
@@ -224,14 +228,14 @@ public:
             // no space
             return 0;
         }
-        
+
         m_elements[m_write] = element;
-        
+
         m_write = (m_write+1)%m_numElements;
-        
+
         return 1;
     }
-    
+
     // get one element
     // returns number of elements successfully got
     size_t get(T &element)
@@ -241,14 +245,14 @@ public:
             // nothing to get
             return 0;
         }
-        
+
         element = m_elements[m_read];
-        
+
         m_read = (m_read+1)%m_numElements;
-        
+
         return 1;
     }
-    
+
     // peek at element i without removing it
     // i = 1 would correspond to the least recently put element;
     // i = -1 would correspond to the most recent
@@ -258,21 +262,21 @@ public:
     {
         if(i == 0)
             return 0;
-        
+
         if(i > 0)
             element = m_elements[(m_read+(i-1))%m_numElements];
-        
+
         return 1;
     }
-    
+
     void clear() { m_write = m_read; }
-    
+
     // return maximum number of elements that can be held
     size_t maxElements() { return m_numElements-1; }
-    
+
     // return if buffer is full
     bool atMaximum() { return (m_write + 1)%m_numElements == m_read; }
-    
+
     // return number of valid elements in the buffer
     size_t numElements()
     {
@@ -283,7 +287,7 @@ public:
         else
             return m_numElements - m_read + m_write;
     }
-    
+
 private:
     T * m_elements;
     size_t m_read, m_write;
@@ -303,17 +307,17 @@ class FastCircularBuffer
 public:
     FastCircularBuffer();
     ~FastCircularBuffer();
-    
+
 public:
     t_CKUINT initialize( t_CKUINT num_elem, t_CKUINT width );
     void cleanup();
-    
+
 public:
     t_CKUINT get( void * data, t_CKUINT num_elem );
     t_CKUINT put( void * data, t_CKUINT num_elem );
     inline bool hasMore() { return (m_read_offset != m_write_offset); }
     inline void clear() { m_read_offset = m_write_offset = 0; }
-    
+
 protected:
     t_CKBYTE * m_data;
     t_CKUINT   m_data_width;

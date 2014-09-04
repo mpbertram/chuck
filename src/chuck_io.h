@@ -33,7 +33,9 @@
 #define __CHUCK_IO_H__
 
 #include "chuck_oo.h"
+#ifndef __EMSCRIPTEN__
 #include "util_thread.h"
+#endif
 #include "util_buffers.h"
 #include <list>
 
@@ -49,27 +51,27 @@ struct Chuck_IO_Serial : public Chuck_IO
 public:
     Chuck_IO_Serial();
     virtual ~Chuck_IO_Serial();
-    
+
     static void shutdown();
 
 public:
     // meta
     virtual t_CKBOOL open( const t_CKUINT i, t_CKINT flags, t_CKUINT baud = CK_BAUD_9600 );
     virtual t_CKBOOL open( const std::string & path, t_CKINT flags, t_CKUINT baud = CK_BAUD_9600 );
-    
+
     virtual t_CKBOOL good();
     virtual void close();
     virtual void flush();
     virtual t_CKINT mode();
     virtual void mode( t_CKINT flag );
-    
+
     // reading
     virtual Chuck_String * readLine();
     virtual t_CKINT readInt( t_CKINT flags );
     virtual t_CKFLOAT readFloat();
     virtual t_CKBOOL readString( std::string & str );
     virtual t_CKBOOL eof();
-    
+
     // writing
     virtual void write( const std::string & val );
     virtual void write( t_CKINT val );
@@ -80,7 +82,7 @@ public:
     // serial stuff
     virtual t_CKBOOL setBaudRate( t_CKUINT rate );
     virtual t_CKUINT getBaudRate();
-    
+
     // async reading
     virtual t_CKBOOL readAsync( t_CKUINT type, t_CKUINT num );
     virtual Chuck_String * getLine();
@@ -89,8 +91,8 @@ public:
     virtual Chuck_Array * getInts();
     virtual Chuck_Array * getFloats();
     virtual Chuck_String * getString();
-    
-    static const t_CKUINT TYPE_NONE; 
+
+    static const t_CKUINT TYPE_NONE;
     static const t_CKUINT TYPE_BYTE;
     static const t_CKUINT TYPE_WORD;
     static const t_CKUINT TYPE_INT;
@@ -98,14 +100,14 @@ public:
     static const t_CKUINT TYPE_STRING;
     static const t_CKUINT TYPE_LINE;
     static const t_CKUINT TYPE_WRITE;
-    
+
     struct Request
     {
         t_CKUINT m_type; // type
         t_CKUINT m_num; // how many
         t_CKUINT m_status;
         t_CKUINT m_val; // ISSUE: 64-bit
-        
+
         enum Status
         {
             RQ_STATUS_PENDING,
@@ -115,9 +117,9 @@ public:
             RQ_STATUS_EOF,
         };
     };
-    
+
     virtual t_CKBOOL ready();
-    
+
     // available baud rates
     static const t_CKUINT CK_BAUD_2400;
     static const t_CKUINT CK_BAUD_4800;
@@ -133,20 +135,22 @@ public:
     static const t_CKUINT CK_BAUD_230400;
 
 protected:
-    
+
     void start_read_thread();
+#ifndef __EMSCRIPTEN__
     XThread * m_read_thread;
+#endif
     static void *shell_read_cb(void *);
     void read_cb();
 
-    
+
     void close_int();
 
     t_CKBOOL get_buffer(t_CKINT timeout_ms = 1);
     t_CKINT peek_buffer();
     t_CKINT pull_buffer();
     t_CKINT buffer_bytes_to_tmp(t_CKINT num_bytes);
-    
+
     t_CKBOOL handle_line(Request &);
     t_CKBOOL handle_string(Request &);
     t_CKBOOL handle_float_ascii(Request &);
@@ -154,33 +158,33 @@ protected:
     t_CKBOOL handle_byte(Request &);
     t_CKBOOL handle_float_binary(Request &);
     t_CKBOOL handle_int_binary(Request &);
-    
+
     bool m_do_read_thread;
-    
+
     CircularBuffer<Request> m_asyncRequests;
     CircularBuffer<Request> m_asyncResponses;
     CircularBuffer<char> m_writeBuffer;
     CBufferSimple * m_event_buffer;
-    
+
     int m_fd;
     FILE * m_cfd;
-    
+
     std::string m_path;
-    
+
     char * m_io_buf;
     t_CKUINT m_io_buf_max;
     t_CKUINT m_io_buf_available;
     t_CKUINT m_io_buf_pos;
-    
+
     char * m_tmp_buf;
     t_CKUINT m_tmp_buf_max;
-    
+
     t_CKINT m_flags;
     t_CKINT m_iomode; // SYNC or ASYNC
     t_CKBOOL m_eof;
-    
+
     t_CKBOOL m_do_exit;
-    
+
     static std::list<Chuck_IO_Serial *> s_serials;
 };
 

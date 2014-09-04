@@ -44,9 +44,10 @@
 #elif defined(__MACOSX_CORE__)
 #elif defined(__WINDOWS_DS__)
 #elif defined(__WINDOWS_ASIO__)
+#elif defined(__EMSCRIPTEN__)
 #else
 #error "must define one:\
-__LINUX_ALSA__ __UNIX_JACK__ __LINUX_JACK__ __LINUX_PULSE__ __MACOSX_CORE__ __WINDOWS_DS__"
+__LINUX_ALSA__ __UNIX_JACK__ __LINUX_JACK__ __LINUX_PULSE__ __MACOSX_CORE__ __WINDOWS_DS__ __EMSCRIPTEN__"
 #endif
 
 struct Chuck_VM;
@@ -91,7 +92,7 @@ public:
     DigitalIn  * digi_in();
     MidiOut    * midi_out( DWORD__ index = 0 );
     MidiIn     * midi_in( DWORD__ index = 0 );
-    
+
 public:
     DWORD__    in_count( DWORD__ index = 0 )
     { return index < m_max_midi_device ? m_in_count[index] : 0; }

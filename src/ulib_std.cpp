@@ -37,7 +37,9 @@
 #include "util_console.h"
 #include "util_math.h"
 #include "util_string.h"
+#ifndef __EMSCRIPTEN__
 #include "util_thread.h"
+#endif
 #include "chuck_type.h"
 #include "chuck_instr.h"
 #include "chuck_globals.h"
@@ -60,7 +62,9 @@ int setenv( const char *n, const char *v, int i )
 // for ConsoleInput and StringTokenizer
 #include <sstream>
 #include <iostream>
+#ifndef __EMSCRIPTEN__
 #include "util_thread.h"
+#endif
 using namespace std;
 
 
@@ -163,19 +167,19 @@ DLL_QUERY libstd_query( Chuck_DL_Query * QUERY )
     // add abs
     QUERY->add_sfun( QUERY, abs_impl, "int", "abs" );
     QUERY->add_arg( QUERY, "int", "value" );
-    
+
     // add fabs
     QUERY->add_sfun( QUERY, fabs_impl, "float", "fabs" );
     QUERY->add_arg( QUERY, "float", "value" );
 
     // add rand
     QUERY->add_sfun( QUERY, rand_impl, "int", "rand"); //! return int between 0 and RAND_MAX
-    
+
     // add rand2
     QUERY->add_sfun( QUERY, rand2_impl, "int", "rand2" ); //! integer between [min,max]
-    QUERY->add_arg( QUERY, "int", "min" ); 
-    QUERY->add_arg( QUERY, "int", "max" ); 
-    
+    QUERY->add_arg( QUERY, "int", "min" );
+    QUERY->add_arg( QUERY, "int", "max" );
+
     // add rand
     QUERY->add_sfun( QUERY, randf_impl, "float", "randf" ); //! rand between -1.0,1.0
 
@@ -183,7 +187,7 @@ DLL_QUERY libstd_query( Chuck_DL_Query * QUERY )
     QUERY->add_sfun( QUERY, rand2f_impl, "float", "rand2f" ); //! rand between min and max
     QUERY->add_arg( QUERY, "float", "min" );
     QUERY->add_arg( QUERY, "float", "max" );
-    
+
     // add srand
     QUERY->add_sfun( QUERY, srand_impl, "void", "srand" );
     QUERY->add_arg( QUERY, "int", "seed" );
@@ -213,11 +217,11 @@ DLL_QUERY libstd_query( Chuck_DL_Query * QUERY )
     QUERY->add_sfun( QUERY, ftoa_impl, "string", "ftoa" ); //! float to string
     QUERY->add_arg( QUERY, "float", "f" );
     QUERY->add_arg( QUERY, "int", "precision" );
-    
+
     // add ftoi
     QUERY->add_sfun( QUERY, ftoi_impl, "int", "ftoi" ); //! float to int
     QUERY->add_arg( QUERY, "float", "f" );
-    
+
     // add getenv
     QUERY->add_sfun( QUERY, getenv_impl, "string", "getenv" ); //! fetch environment variable
     QUERY->add_arg( QUERY, "string", "value" );
@@ -237,7 +241,7 @@ DLL_QUERY libstd_query( Chuck_DL_Query * QUERY )
     QUERY->add_arg( QUERY, "float", "value" );
 
     // add powtodb
-    QUERY->add_sfun( QUERY, powtodb_impl, "float", "powtodb" ); //! linear power to decibel 
+    QUERY->add_sfun( QUERY, powtodb_impl, "float", "powtodb" ); //! linear power to decibel
     QUERY->add_arg( QUERY, "float", "value" );
 
     // add rmstodb
@@ -247,31 +251,31 @@ DLL_QUERY libstd_query( Chuck_DL_Query * QUERY )
     // add dbtopow
     QUERY->add_sfun( QUERY, dbtopow_impl, "float", "dbtopow" ); //! decibel to linear
     QUERY->add_arg( QUERY, "float", "value" );
-    
+
     // add dbtorms
     QUERY->add_sfun( QUERY, dbtorms_impl, "float", "dbtorms" ); //! decibel to rms
     QUERY->add_arg( QUERY, "float", "value" );
-    
+
     // add dbtolin
     QUERY->add_sfun( QUERY, dbtolin_impl, "float", "dbtolin" ); //! decibel to linear
     QUERY->add_arg( QUERY, "float", "value" );
-    
+
     // add lintodb
     QUERY->add_sfun( QUERY, lintodb_impl, "float", "lintodb" ); //! linear to decibel
     QUERY->add_arg( QUERY, "float", "value" );
-    
+
     // add clamp
     QUERY->add_sfun( QUERY, clamp_impl, "int", "clamp" ); //! clamp to range (int)
     QUERY->add_arg( QUERY, "int", "value" );
     QUERY->add_arg( QUERY, "int", "min" );
     QUERY->add_arg( QUERY, "int", "max" );
-    
+
     // add clampf
     QUERY->add_sfun( QUERY, clampf_impl, "float", "clampf" ); //! clamp to range (float)
     QUERY->add_arg( QUERY, "float", "value" );
     QUERY->add_arg( QUERY, "float", "min" );
     QUERY->add_arg( QUERY, "float", "max" );
-    
+
     // add scalef
     QUERY->add_sfun( QUERY, scalef_impl, "float", "scalef" ); //! scale from source range to dest range (float)
     QUERY->add_arg( QUERY, "float", "value" );
@@ -287,7 +291,7 @@ DLL_QUERY libstd_query( Chuck_DL_Query * QUERY )
     srand( time( NULL ) );
 
     Chuck_DL_Func * func = NULL;
-    
+
 #ifndef __DISABLE_KBHIT__
     // KBHit
     // begin class (KBHit)
@@ -534,17 +538,17 @@ error:
 
     // end the class import
     type_engine_import_class_end( env );
-    
+
     return FALSE;
 }
 
 
 #define RAND_INV_RANGE(r) (RAND_MAX / (r))
 
-int irand_exclusive ( int max ) { 
+int irand_exclusive ( int max ) {
   int x = ::rand();
-  
-  while (x >= max * RAND_INV_RANGE (max)) 
+
+  while (x >= max * RAND_INV_RANGE (max))
     x = ::rand();
 
   x /= RAND_INV_RANGE (max);
@@ -591,22 +595,22 @@ CK_DLL_SFUN( rand2_impl ) // inclusive.
 {
     // 1.3.1.0: converted int to t_CKINT for 64-bit compatibility
     t_CKINT min = *(t_CKINT *)ARGS, max = *((t_CKINT *)ARGS + 1);
-    t_CKINT range = max - min; 
+    t_CKINT range = max - min;
     if ( range == 0 )
     {
         RETURN->v_int = min;
     }
-    //else if ( range < RAND_MAX / 2 ) { 
+    //else if ( range < RAND_MAX / 2 ) {
     //  RETURN->v_int = ( range > 0 ) ? min + irand_exclusive(1 + range) : max + irand_exclusive ( -range + 1 ) ;
     //}
     else
     {
         if( range > 0 )
-        { 
+        {
             RETURN->v_int = min + (t_CKINT)( (1.0 + range) * ( ::rand()/(RAND_MAX+1.0) ) );
         }
         else
-        { 
+        {
             RETURN->v_int = min - (t_CKINT)( (-range + 1.0) * ( ::rand()/(RAND_MAX+1.0) ) );
         }
     }
@@ -786,7 +790,7 @@ CK_DLL_SFUN( clamp_impl )
     t_CKINT v = GET_NEXT_INT(ARGS);
     t_CKINT min = GET_NEXT_INT(ARGS);
     t_CKINT max = GET_NEXT_INT(ARGS);
-    
+
     if(v < min) RETURN->v_int = min;
     else if( v > max) RETURN->v_int = max;
     else RETURN->v_int = v;
@@ -797,7 +801,7 @@ CK_DLL_SFUN( clampf_impl )
     t_CKFLOAT v = GET_NEXT_FLOAT(ARGS);
     t_CKFLOAT min = GET_NEXT_FLOAT(ARGS);
     t_CKFLOAT max = GET_NEXT_FLOAT(ARGS);
-    
+
     if(v < min) RETURN->v_float = min;
     else if( v > max) RETURN->v_float = max;
     else RETURN->v_float = v;
@@ -810,7 +814,7 @@ CK_DLL_SFUN( scalef_impl )
     t_CKFLOAT srcmax = GET_NEXT_FLOAT(ARGS);
     t_CKFLOAT dstmin = GET_NEXT_FLOAT(ARGS);
     t_CKFLOAT dstmax = GET_NEXT_FLOAT(ARGS);
-    
+
     RETURN->v_float = dstmin + (dstmax-dstmin) * ((v-srcmin)/(srcmax-srcmin));
 }
 
@@ -876,9 +880,10 @@ t_CKBOOL KBHitManager::init()
 
     the_onoff = 0;
     the_init = TRUE;
+#ifndef __EMSCRIPTEN__
     the_thread = new XThread;
     the_thread->start( kb_loop, NULL );
-
+#endif
 
     return TRUE;
 }
@@ -1123,10 +1128,12 @@ protected:
 // global variables
 t_CKBOOL g_le_launched = FALSE;
 t_CKBOOL g_le_wait = TRUE;
+#ifndef __EMSCRIPTEN__
 // CHUCK_THREAD g_tid_le = 0;
 extern CHUCK_THREAD g_tid_whatever;
-map<LineEvent *, LineEvent *> g_le_map;
 XMutex g_le_mutex;
+#endif
+map<LineEvent *, LineEvent *> g_le_map;
 string g_le_what;
 extern Chuck_VM * g_vm;
 
@@ -1151,8 +1158,10 @@ void * le_cb( void * p )
         cout.flush();
         if( !cin.getline( line, 2048 ) ) break;
 
+#ifndef __EMSCRIPTEN__
         // lock
         g_le_mutex.acquire();
+#endif
         // go through
         for( iter = g_le_map.begin(); iter != g_le_map.end(); iter++ )
         {
@@ -1163,13 +1172,15 @@ void * le_cb( void * p )
             // broadcast it
             le->SELF->queue_broadcast();
         }
+#ifndef __EMSCRIPTEN__
         // unlock
         g_le_mutex.release();
+#endif
 
         // reset wait
         g_le_wait = TRUE;
     }
-    
+
     return NULL;
 }
 
@@ -1179,21 +1190,27 @@ LineEvent::LineEvent( Chuck_Event * SELF )
     // launch the cb
     if( !g_le_launched )
     {
+#ifndef __EMSCRIPTEN__
 #if !defined(__PLATFORM_WIN32__) || defined(__WINDOWS_PTHREAD__)
         pthread_create( &g_tid_whatever, NULL, le_cb, NULL );
 #else
         g_tid_whatever = CreateThread( NULL, 0, (LPTHREAD_START_ROUTINE)le_cb, NULL, 0, 0 );
 #endif
+#endif
         g_le_launched = TRUE;
     }
 
+#ifndef __EMSCRIPTEN__
     // lock
     g_le_mutex.acquire();
+#endif
     // add
     g_le_map[this] = this;
     this->SELF = SELF;
+#ifndef __EMSCRIPTEN__
     // unlock
     g_le_mutex.release();
+#endif
 }
 
 LineEvent::~LineEvent()
@@ -1220,8 +1237,10 @@ string LineEvent::getLine()
 {
     string ret;
 
+#ifndef __EMSCRIPTEN__
     // lock
     g_le_mutex.acquire();
+#endif
     // get next line
     if( m_q.size() )
     {
@@ -1234,8 +1253,10 @@ string LineEvent::getLine()
     {
         ret = "[ERROR -> getLine() called on empty Skot]";
     }
+#ifndef __EMSCRIPTEN__
     // unlock
     g_le_mutex.release();
+#endif
 
     return ret;
 }
@@ -1342,7 +1363,7 @@ void StrTok::set( const string & line )
     reset();
     m_tokens.clear();
     while( (*m_ss) >> s )
-        m_tokens.push_back( s );    
+        m_tokens.push_back( s );
 }
 
 void StrTok::reset()
@@ -1460,7 +1481,7 @@ public:
     virtual ~ColumnReader();
 
     bool init( const string & filename, long col );
-    
+
     bool reset() { if( !fin.good() ) return false; where = 0; return true; }
     bool seek( long pos ) { if( pos < 0 || pos >= values.size() ) return false; where = pos; return true; }
     bool more() { return where < values.size(); }
@@ -1500,7 +1521,7 @@ ColumnReader::ColumnReader()
 ColumnReader::~ColumnReader()
 {
     // close file
-    if( fin.good() ) 
+    if( fin.good() )
         fin.close();
 }
 
@@ -1585,7 +1606,7 @@ bool ColumnReader::get_double( double & out )
 {
     assert( column > 0 );
     long c = 1;
-    
+
     char * start = line;
     char * curr = start;
 
@@ -1614,7 +1635,7 @@ bool ColumnReader::get_double( double & out )
     *curr = '\0';
 
     out = atof( start );
-    
+
     return true;
 }
 
@@ -1623,7 +1644,7 @@ bool ColumnReader::get_str( string & out )
 {
     assert( column > 0 );
     long c = 1;
-    
+
     char * start = line;
     char * curr = start;
 
@@ -1652,7 +1673,7 @@ bool ColumnReader::get_str( string & out )
     *curr = '\0';
 
     out = start;
-    
+
     return true;
 }
 
@@ -1770,15 +1791,15 @@ t_CKBOOL Serial::open( char * port, t_CKUINT baudrate )
 							 OPEN_EXISTING,
 							 FILE_ATTRIBUTE_NORMAL,
 							 0 );
-	if( serialFile == INVALID_HANDLE_VALUE ) 
+	if( serialFile == INVALID_HANDLE_VALUE )
 	{
-		if( GetLastError() == ERROR_FILE_NOT_FOUND ) 
+		if( GetLastError() == ERROR_FILE_NOT_FOUND )
 		{
             EM_log( CK_LOG_SYSTEM, "error: cannot open serial port '%s'...", port );
 		}
         else
         {
-            EM_log( CK_LOG_SYSTEM, "error opening serial port '%s'...", port ); 
+            EM_log( CK_LOG_SYSTEM, "error opening serial port '%s'...", port );
         }
 
         return FALSE;
@@ -1787,7 +1808,7 @@ t_CKBOOL Serial::open( char * port, t_CKUINT baudrate )
 	// set params
 	DCB dcbSerialParams = {0};
 	dcbSerialParams.DCBlength = sizeof( dcbSerialParams );
-	if( !GetCommState( serialFile, &dcbSerialParams) ) 
+	if( !GetCommState( serialFile, &dcbSerialParams) )
 	{
         EM_log( CK_LOG_SYSTEM, "error getting serial state..." );
         close();

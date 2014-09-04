@@ -1,3 +1,5 @@
 CC=emcc
 CXX=em++
 LD=emcc
+
+OBJS=$(COBJS) $(CXXOBJS)

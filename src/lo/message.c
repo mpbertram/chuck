@@ -156,10 +156,12 @@ int lo_message_add_varargs_internal(lo_message msg, const char *types,
 	    lo_message_add_int64(msg, i64);
 	    break;
 
+#ifndef __EMSCRIPTEN__
 	case LO_TIMETAG:
 	    tt = va_arg(ap, lo_timetag);
 	    lo_message_add_timetag(msg, tt);
 	    break;
+#endif
 
 	case LO_DOUBLE:
 	    d = va_arg(ap, double);
@@ -257,7 +259,7 @@ int lo_message_add(lo_message msg, const char *types, ...)
 
 	return ret;
 }
-	
+
 int lo_message_add_int32(lo_message m, int32_t a)
 {
     lo_pcast32 b;
@@ -270,7 +272,7 @@ int lo_message_add_int32(lo_message m, int32_t a)
     *nptr = b.nl;
     return 0;
 }
-    
+
 int lo_message_add_float(lo_message m, float a)
 {
     lo_pcast32 b;
@@ -930,7 +932,7 @@ void lo_arg_pp_internal(lo_type type, void *data, int bigendian)
     case LO_INT32:
 	printf("%d", val32.i);
 	break;
-    
+
     case LO_FLOAT:
 	printf("%f", val32.f);
 	break;
@@ -956,15 +958,15 @@ void lo_arg_pp_internal(lo_type type, void *data, int bigendian)
     case LO_INT64:
 	printf("%lld", (long long int)val64.i);
 	break;
-    
+
     case LO_TIMETAG:
 	printf("%08x.%08x", val64.tt.sec, val64.tt.frac);
 	break;
-    
+
     case LO_DOUBLE:
 	printf("%f", val64.f);
 	break;
-    
+
     case LO_SYMBOL:
 	printf("'%s", (char *)data);
 	break;

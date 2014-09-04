@@ -8,3 +8,5 @@ src/chuck.tab.h
 src/chuck.yy.c
 
 .DS_Store
+
+*.xcodeproj/

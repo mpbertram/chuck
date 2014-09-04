@@ -61,7 +61,7 @@ public:
     t_CKBOOL send( const HidMsg * msg );
     t_CKBOOL close();
     std::string name();
-    
+
     t_CKBOOL query_element( HidMsg * query );
 
     t_CKBOOL register_client( HidIn * client );
@@ -70,10 +70,10 @@ public:
 public:
     CBufferAdvance * cbuf;
 
-protected:    
+protected:
     t_CKINT device_type;
     t_CKUINT device_num;
-    
+
     std::vector< HidIn * > clients;
 };
 
@@ -91,7 +91,9 @@ struct PhyHidDevOut
 #define BUFFER_SIZE 1024
 
 std::vector< std::vector<PhyHidDevIn *> > HidInManager::the_matrix;
+#ifndef __EMSCRIPTEN__
 XThread * HidInManager::the_thread = NULL;
+#endif
 t_CKBOOL HidInManager::thread_going = FALSE;
 t_CKBOOL HidInManager::has_init = FALSE;
 CBufferSimple * HidInManager::msg_buffer = NULL;
@@ -137,33 +139,33 @@ t_CKBOOL PhyHidDevIn::open( t_CKINT type, t_CKUINT number )
         EM_log( CK_LOG_WARNING, "PhyHidDevIn: open() failed -> already open!" );
         return FALSE;
     }
-    
+
     if( type <= CK_HID_DEV_NONE || type >= CK_HID_DEV_COUNT )
     {
         // log
-        EM_log( CK_LOG_WARNING, 
-                "PhyHidDevIn: open() failed -> invalid device type %d", 
+        EM_log( CK_LOG_WARNING,
+                "PhyHidDevIn: open() failed -> invalid device type %d",
                 type );
         return FALSE;
     }
-    
+
     if( !default_drivers[type].open )
     {
-        EM_log( CK_LOG_WARNING, 
+        EM_log( CK_LOG_WARNING,
                 "PhyHidDevIn: open() failed -> %s does not support open",
                 default_drivers[type].driver_name );
         return FALSE;
     }
-    
+
     if( default_drivers[type].open( ( int ) number ) )
     {
-        EM_log( CK_LOG_WARNING, 
+        EM_log( CK_LOG_WARNING,
                 "PhyHidDevIn: open() failed -> invalid %s number %d",
                 default_drivers[type].driver_name,
                 number );
         return FALSE;
     }
-    
+
     // allocate the buffer
     cbuf = new CBufferAdvance;
     if( !cbuf->initialize( BUFFER_SIZE, sizeof(HidMsg), HidInManager::m_event_buffer ) )
@@ -188,22 +190,22 @@ t_CKBOOL PhyHidDevIn::read( t_CKINT element_type, t_CKINT element_num, HidMsg * 
 {
     if( !default_drivers[device_type].read )
     {
-        EM_log( CK_LOG_WARNING, 
+        EM_log( CK_LOG_WARNING,
                 "PhyHidDevIn: read() failed -> %s does not support read",
                 default_drivers[device_type].driver_name );
         return FALSE;
     }
-    
-    if( default_drivers[device_type].read( device_num, element_type, 
+
+    if( default_drivers[device_type].read( device_num, element_type,
                                            element_num, msg ) )
     {
-        EM_log( CK_LOG_WARNING, 
+        EM_log( CK_LOG_WARNING,
                 "PhyHidDevIn: read() failed for %s %i, element type %i, element number %i",
-                default_drivers[device_type].driver_name, device_num, 
+                default_drivers[device_type].driver_name, device_num,
                 element_type, element_num );
         return FALSE;
     }
-    
+
     return TRUE;
 }
 
@@ -215,20 +217,20 @@ t_CKBOOL PhyHidDevIn::send( const HidMsg * msg )
 {
     if( !default_drivers[device_type].send )
     {
-        EM_log( CK_LOG_WARNING, 
+        EM_log( CK_LOG_WARNING,
                 "PhyHidDevIn: send() failed -> %s does not support send",
                 default_drivers[device_type].driver_name );
         return FALSE;
     }
-    
+
     if( default_drivers[device_type].send( device_num, msg ) )
     {
-        EM_log( CK_LOG_WARNING, 
+        EM_log( CK_LOG_WARNING,
                 "PhyHidDevIn: send() failed for %s %i",
                 default_drivers[device_type].driver_name, device_num );
         return FALSE;
     }
-    
+
     return TRUE;
 }
 
@@ -249,29 +251,29 @@ t_CKBOOL PhyHidDevIn::close()
     if( device_type <= CK_HID_DEV_NONE || device_type >= CK_HID_DEV_COUNT )
     {
         // log
-        EM_log( CK_LOG_WARNING, 
-                "PhyHidDevIn: close() failed -> invalid device type %d", 
+        EM_log( CK_LOG_WARNING,
+                "PhyHidDevIn: close() failed -> invalid device type %d",
                 device_type );
         return FALSE;
     }
-    
+
     if( !default_drivers[device_type].close )
     {
-        EM_log( CK_LOG_WARNING, 
+        EM_log( CK_LOG_WARNING,
                 "PhyHidDevIn: close() failed -> %s does not support close",
                 default_drivers[device_type].driver_name );
         return FALSE;
     }
-    
+
     if( default_drivers[device_type].close( ( int ) device_num ) )
     {
-        EM_log( CK_LOG_WARNING, 
+        EM_log( CK_LOG_WARNING,
                 "PhyHidDevIn: close() failed -> invalid %s number %d",
                 default_drivers[device_type].driver_name,
                 device_num );
         return FALSE;
     }
-    
+
     device_type = CK_HID_DEV_NONE;
     device_num = 0;
 
@@ -286,30 +288,30 @@ string PhyHidDevIn::name()
 {
     if( device_type == CK_HID_DEV_NONE )
         return " ";
-    
+
     if( device_type <= CK_HID_DEV_NONE || device_type >= CK_HID_DEV_COUNT )
     {
         // log
-        EM_log( CK_LOG_WARNING, 
-                "PhyHidDevIn: name() failed -> invalid device type %d", 
+        EM_log( CK_LOG_WARNING,
+                "PhyHidDevIn: name() failed -> invalid device type %d",
                 device_type );
         return " ";
     }
-    
+
     if( !default_drivers[device_type].name )
         return default_drivers[device_type].driver_name;
-    
+
     const char * _name;
-    
+
     if( !( _name = default_drivers[device_type].name( ( int ) device_num ) ) )
     {
-        EM_log( CK_LOG_WARNING, 
+        EM_log( CK_LOG_WARNING,
                 "PhyHidDevIn: name() failed -> invalid %s number %d",
                 default_drivers[device_type].driver_name,
                 device_num );
         return " ";
     }
-    
+
     return _name;
 }
 
@@ -348,7 +350,7 @@ HidOut::~HidOut()
 t_CKUINT HidOut::send( const HidMsg * msg )
 {
     if( !m_valid ) return 0;
-    
+
     return 0;
 }
 
@@ -431,7 +433,7 @@ t_CKBOOL HidIn::open( t_CKINT device_type, t_CKINT device_num )
     // close if already opened
     if( m_valid )
         this->close();
-    
+
     // open
     return m_valid = HidInManager::open( this, device_type, device_num );
 }
@@ -448,7 +450,7 @@ t_CKBOOL HidIn::open( std::string & name, t_CKUINT device_type )
     // close if already opened
     if( m_valid )
         this->close();
-    
+
     // open
     return m_valid = HidInManager::open( this, device_type, name );
 }
@@ -465,7 +467,7 @@ void HidInManager::init()
         EM_pushlog();
 
         init_default_drivers();
-        
+
         // allocate the matrix
         the_matrix.resize( CK_HID_DEV_COUNT );
         // resize each vector
@@ -474,20 +476,20 @@ void HidInManager::init()
             // allocate
             the_matrix[i].resize( CK_MAX_HID_DEVICES );
         }
-        
+
         msg_buffer = new CBufferSimple;
         msg_buffer->initialize( 1000, sizeof( HidMsg ) );
-        
+
 #ifndef __MACOSX_CORE__
         Hid_init();
 #endif // __MACOSX_CORE__
-        
+
         for( size_t j = 0; j < CK_HID_DEV_COUNT; j++ )
         {
             if( default_drivers[j].init )
                 default_drivers[j].init();
         }
-        
+
 #ifdef __MACOSX_CORE__
         // start thread
         if( the_thread == NULL )
@@ -500,9 +502,9 @@ void HidInManager::init()
             the_thread->start( cb_hid_input, NULL );
         }
 #endif
-        
+
         has_init = TRUE;
-        
+
         EM_poplog();
     }
 }
@@ -510,9 +512,9 @@ void HidInManager::init()
 void HidInManager::init_default_drivers()
 {
     default_drivers = new Chuck_Hid_Driver[CK_HID_DEV_COUNT];
-    
+
     memset( default_drivers, 0, CK_HID_DEV_COUNT * sizeof( Chuck_Hid_Driver ) );
-    
+
     default_drivers[CK_HID_DEV_JOYSTICK].init = Joystick_init;
     default_drivers[CK_HID_DEV_JOYSTICK].quit = Joystick_quit;
     default_drivers[CK_HID_DEV_JOYSTICK].count = Joystick_count;
@@ -521,7 +523,7 @@ void HidInManager::init_default_drivers()
     default_drivers[CK_HID_DEV_JOYSTICK].close = Joystick_close;
     default_drivers[CK_HID_DEV_JOYSTICK].name = Joystick_name;
     default_drivers[CK_HID_DEV_JOYSTICK].driver_name = "joystick";
-    
+
     default_drivers[CK_HID_DEV_MOUSE].init = Mouse_init;
     default_drivers[CK_HID_DEV_MOUSE].quit = Mouse_quit;
     default_drivers[CK_HID_DEV_MOUSE].count = Mouse_count;
@@ -530,7 +532,7 @@ void HidInManager::init_default_drivers()
     default_drivers[CK_HID_DEV_MOUSE].close = Mouse_close;
     default_drivers[CK_HID_DEV_MOUSE].name = Mouse_name;
     default_drivers[CK_HID_DEV_MOUSE].driver_name = "mouse";
-    
+
     default_drivers[CK_HID_DEV_KEYBOARD].init = Keyboard_init;
     default_drivers[CK_HID_DEV_KEYBOARD].quit = Keyboard_quit;
     default_drivers[CK_HID_DEV_KEYBOARD].count = Keyboard_count;
@@ -540,7 +542,7 @@ void HidInManager::init_default_drivers()
     default_drivers[CK_HID_DEV_KEYBOARD].send = Keyboard_send;
     default_drivers[CK_HID_DEV_KEYBOARD].name = Keyboard_name;
     default_drivers[CK_HID_DEV_KEYBOARD].driver_name = "keyboard";
-    
+
     default_drivers[CK_HID_DEV_WIIREMOTE].init = WiiRemote_init;
     default_drivers[CK_HID_DEV_WIIREMOTE].quit = WiiRemote_quit;
     default_drivers[CK_HID_DEV_WIIREMOTE].count = WiiRemote_count;
@@ -549,7 +551,7 @@ void HidInManager::init_default_drivers()
     default_drivers[CK_HID_DEV_WIIREMOTE].send = WiiRemote_send;
     default_drivers[CK_HID_DEV_WIIREMOTE].name = WiiRemote_name;
     default_drivers[CK_HID_DEV_WIIREMOTE].driver_name = "wii remote";
-    
+
     default_drivers[CK_HID_DEV_TILTSENSOR].init = TiltSensor_init;
     default_drivers[CK_HID_DEV_TILTSENSOR].quit = TiltSensor_quit;
     default_drivers[CK_HID_DEV_TILTSENSOR].count = TiltSensor_count;
@@ -558,7 +560,7 @@ void HidInManager::init_default_drivers()
     default_drivers[CK_HID_DEV_TILTSENSOR].read = TiltSensor_read;
     default_drivers[CK_HID_DEV_TILTSENSOR].name = TiltSensor_name;
     default_drivers[CK_HID_DEV_TILTSENSOR].driver_name = "tilt sensor";
-    
+
     default_drivers[CK_HID_DEV_MULTITOUCH].init = MultiTouchDevice_init;
     default_drivers[CK_HID_DEV_MULTITOUCH].quit = MultiTouchDevice_quit;
     default_drivers[CK_HID_DEV_MULTITOUCH].count = MultiTouchDevice_count;
@@ -572,9 +574,9 @@ void HidInManager::cleanup()
 {
     // log
     EM_log( CK_LOG_INFO, "shutting down HID..." );
-    
+
     if( has_init )
-    {    
+    {
         // loop
         for( vector<vector<PhyHidDevIn *> >::size_type i = 0; i < the_matrix.size(); i++ )
         {
@@ -584,37 +586,39 @@ void HidInManager::cleanup()
                 // deallocate devices
                 SAFE_DELETE( the_matrix[i][j] );
             }
-        }    
-        
+        }
+
         // flag
         thread_going = FALSE;
-        
+
         // break Hid_poll();
         Hid_quit();
-        
+
+#ifndef __EMSCRIPTEN__
         // clean up
         if( the_thread != NULL )
             SAFE_DELETE( the_thread );
-        
+#endif
+
         // clean up subsystems
         for( size_t j = 0; j < CK_HID_DEV_COUNT; j++ )
         {
             if( default_drivers[j].quit )
                 default_drivers[j].quit();
         }
-        
+
         if( msg_buffer )
         {
             msg_buffer->cleanup();
             SAFE_DELETE( msg_buffer );
         }
-        
+
         if(m_event_buffer)
         {
             if(g_vm) g_vm->destroy_event_buffer(m_event_buffer);
             m_event_buffer = NULL;
         }
-        
+
         // init
         has_init = FALSE;
         //*/
@@ -629,7 +633,7 @@ t_CKBOOL HidInManager::open( HidIn * hin, t_CKINT device_type, t_CKINT device_nu
     {
         init();
     }
-    
+
     if(m_event_buffer == NULL)
     {
         m_event_buffer = g_vm->create_event_buffer();
@@ -639,11 +643,12 @@ t_CKBOOL HidInManager::open( HidIn * hin, t_CKINT device_type, t_CKINT device_nu
     if( device_type < 1 || device_type >= CK_HID_DEV_COUNT )
     {
         // log
-        EM_log( CK_LOG_WARNING, "HidInManager: open() failed -> invalid type '%d'...", 
+        EM_log( CK_LOG_WARNING, "HidInManager: open() failed -> invalid type '%d'...",
             device_type );
         return FALSE;
     }
-    
+
+#ifndef __EMSCRIPTEN__
     // start thread
     if( the_thread == NULL )
     {
@@ -654,7 +659,8 @@ t_CKBOOL HidInManager::open( HidIn * hin, t_CKINT device_type, t_CKINT device_nu
         // start
         the_thread->start( cb_hid_input, NULL );
     }
-    
+#endif
+
     // get the vector
     vector<PhyHidDevIn *> & v = the_matrix[device_type];
 
@@ -668,7 +674,7 @@ t_CKBOOL HidInManager::open( HidIn * hin, t_CKINT device_type, t_CKINT device_nu
         {
             // log
             // should this use EM_log instead, with a higher log level?
-            EM_error2( 0, "HidIn: couldn't open %s %d...", 
+            EM_error2( 0, "HidIn: couldn't open %s %d...",
                        default_drivers[device_type].driver_name, device_num );
             SAFE_DELETE( phin );
             return FALSE;
@@ -690,7 +696,7 @@ t_CKBOOL HidInManager::open( HidIn * hin, t_CKINT device_type, t_CKINT device_nu
     hin->phin = v[device_num];
     // found
     hin->m_buffer = v[device_num]->cbuf;
-    // get an index into your (you are min here) own buffer, 
+    // get an index into your (you are min here) own buffer,
     // and a free ticket to your own workshop
     hin->m_read_index = hin->m_buffer->join( (Chuck_Event *)hin->SELF );
     hin->m_device_num = (t_CKUINT)device_num;
@@ -708,71 +714,71 @@ t_CKBOOL HidInManager::open( HidIn * hin, t_CKINT device_type, std::string & dev
     {
         init();
     }
-    
+
     if(m_event_buffer == NULL)
     {
         m_event_buffer = g_vm->create_event_buffer();
     }
-    
+
     t_CKINT device_type_start = 1;
     t_CKINT device_type_finish = CK_HID_DEV_COUNT;
-    
+
     if(device_type != CK_HID_DEV_COUNT)
     {
         // check type
         if( device_type < 1 || device_type >= CK_HID_DEV_COUNT )
         {
             // log
-            EM_log( CK_LOG_WARNING, "HidInManager: open() failed -> invalid type '%d'...", 
+            EM_log( CK_LOG_WARNING, "HidInManager: open() failed -> invalid type '%d'...",
                     device_type );
             return FALSE;
         }
-        
+
         device_type_start = device_type;
         device_type_finish = device_type + 1;
     }
-    
+
     for(t_CKINT i = device_type_start; i < device_type_finish; i++)
     {
         if(default_drivers[i].count == NULL)
             continue;
-        
+
         t_CKINT max_devices = default_drivers[i].count();
-        
+
         for(t_CKINT j = 0; j < max_devices; j++)
         {
             const char * _name = NULL;
-            
+
             if( !default_drivers[i].name )
                 _name = default_drivers[i].driver_name;
             else
             {
                 _name = default_drivers[i].name( ( int ) j );
             }
-            
+
             if(!_name)
             {
                 continue;
             }
-            
+
             std::string name = _name;
-            
+
 //            PhyHidDevIn * phyHid = devices[j];
 //            if(!phyHid)
 //                continue;
-//            
+//
 //            std::string name = phyHid->name();
-            
+
             if(name == device_name)
             {
                 return open( hin, i, j );
             }
         }
     }
-    
-    EM_log( CK_LOG_WARNING, "HidInManager: open() failed -> no device named '%s'...", 
+
+    EM_log( CK_LOG_WARNING, "HidInManager: open() failed -> no device named '%s'...",
             device_name.c_str() );
-    
+
     return FALSE;
 }
 
@@ -803,7 +809,7 @@ t_CKBOOL HidIn::close()
         m_read_index = UINT_MAX;
         m_buffer = NULL;
     }
-    
+
     // close
     HidInManager::close( this );
 
@@ -843,7 +849,7 @@ t_CKBOOL HidIn::read( t_CKINT type, t_CKINT num, HidMsg * msg )
 {
     if( !m_valid || !phin )
         return FALSE;
-    
+
     // do read
     return phin->read( type, num, msg );
 }
@@ -856,7 +862,7 @@ t_CKBOOL HidIn::send( const HidMsg * msg )
 {
     if( !m_valid || !phin )
         return FALSE;
-    
+
     // do send
     return phin->send( msg );
 }
@@ -901,7 +907,7 @@ extern "C" void push_message( HidMsg msg )
 void * HidInManager::cb_hid_input( void * stuff )
 #else
 unsigned __stdcall HidInManager::cb_hid_input( void * stuff )
-#endif 
+#endif
 {
 #ifdef __MACOSX_CORE__
     Hid_init();
@@ -912,7 +918,7 @@ unsigned __stdcall HidInManager::cb_hid_input( void * stuff )
     {
         Hid_poll();
     }
-    
+
     // log
     EM_log( CK_LOG_INFO, "HID thread exiting..." );
 
@@ -926,22 +932,22 @@ unsigned __stdcall HidInManager::cb_hid_input( void * stuff )
 void HidInManager::probeHidIn()
 {
     t_CKBOOL do_cleanup = !has_init;
-    
+
     init();
-    
+
     for( size_t i = 0; i < CK_HID_DEV_COUNT; i++ )
     {
         if( !default_drivers[i].count )
             continue;
-        
+
         int count = default_drivers[i].count();
         if( count == 0 )
             continue;
-        
-        EM_error2b( 0, "------( chuck -- %i %s device%s )------", 
+
+        EM_error2b( 0, "------( chuck -- %i %s device%s )------",
                     count, default_drivers[i].driver_name,
                     count > 1 ? "s" : "" );
-        
+
         for( int j = 0; j < count; j++ )
         {
             const char * name;
@@ -949,13 +955,13 @@ void HidInManager::probeHidIn()
                 name = default_drivers[i].name( j );
             if( !name )
                 name = "(no name)";
-            
+
             EM_error2b( 0, "    [%i] : \"%s\"", j, name );
         }
-        
+
         EM_error2b( 0, "" );
     }
-    
+
     if( do_cleanup )
     {
         cleanup();
@@ -968,7 +974,7 @@ void HidInManager::probeHidIn()
 //-----------------------------------------------------------------------------
 void HidInManager::probeHidOut()
 {
-    
+
 }
 
 HidOutManager::HidOutManager()
@@ -1010,5 +1016,3 @@ t_CKBOOL HidOutManager::open( HidOut * hout, t_CKINT device_num )
     // done
     return TRUE;
 }
-
-
