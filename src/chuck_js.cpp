@@ -57,6 +57,7 @@
 // default destination host name
 char g_host[256] = "127.0.0.1";
 
+extern "C" {
 void chuckMain()
 {
     Chuck_Compiler * compiler = NULL;
@@ -643,4 +644,5 @@ void chuckMain()
     vm = NULL; SAFE_DELETE( g_vm );
     // free the compiler
     compiler = NULL; SAFE_DELETE( g_compiler );
+}
 }

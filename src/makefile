@@ -129,7 +129,7 @@ chuck: $(OBJS)
 
 chuck.js: $(OBJS)
 	emcc -o chuck.bc $(OBJS)
-	emcc -o chuck.js chuck.bc
+	emcc -s EXPORTED_FUNCTIONS='["chuckMain"]' -o chuck.js chuck.bc
 
 chuck.tab.c chuck.tab.h: chuck.y
 	$(YACC) -dv -b chuck chuck.y
