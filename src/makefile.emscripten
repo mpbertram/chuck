@@ -2,4 +2,4 @@ CC=emcc
 CXX=em++
 LD=emcc
 
-OBJS=$(COBJS) $(CXXOBJS)
+OBJS=$(COBJS) $(CXXOBJS) chuck_js.o

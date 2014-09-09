@@ -40,7 +40,7 @@ CXXSRCS+= chuck_absyn.cpp chuck_parse.cpp chuck_errmsg.cpp \
 	chuck_frame.cpp chuck_symbol.cpp chuck_table.cpp chuck_utils.cpp \
 	chuck_vm.cpp chuck_instr.cpp chuck_scan.cpp chuck_type.cpp chuck_emit.cpp \
 	chuck_compile.cpp chuck_dl.cpp chuck_oo.cpp chuck_lang.cpp chuck_ugen.cpp \
-	chuck_main.cpp chuck_otf.cpp chuck_stats.cpp chuck_bbq.cpp chuck_shell.cpp \
+	chuck_otf.cpp chuck_stats.cpp chuck_bbq.cpp chuck_shell.cpp \
 	chuck_console.cpp chuck_globals.cpp chuck_io.cpp \
     digiio_rtaudio.cpp hidio_sdl.cpp \
 	midiio_rtmidi.cpp RtAudio/RtAudio.cpp rtmidi.cpp ugen_osc.cpp ugen_filter.cpp \
@@ -54,7 +54,7 @@ LO_CSRCS+= lo/address.c lo/blob.c lo/bundle.c lo/message.c lo/method.c \
 COBJS=$(CSRCS:.c=.o)
 CXXOBJS=$(CXXSRCS:.cpp=.o)
 LO_COBJS=$(LO_CSRCS:.c=.o)
-OBJS=$(COBJS) $(CXXOBJS) $(LO_COBJS)
+OBJS=$(COBJS) $(CXXOBJS) chuck_main.o $(LO_COBJS)
 
 LO_CFLAGS=-DHAVE_CONFIG_H -I.
 
@@ -153,6 +153,10 @@ $(LO_COBJS): %.o: %.c
 	@$(CC) -MM -MQ "$@" $(CFLAGSDEPEND) $(LO_CFLAGS) $< > $*.d
 
 $(CXXOBJS): %.o: %.cpp
+	$(CXX) $(CFLAGS) $(ARCHOPTS) -c $< -o $@
+	@$(CXX) -MM -MQ "$@" $(CFLAGSDEPEND) $< > $*.d
+
+chuck_main.o: chuck_main.cpp
 	$(CXX) $(CFLAGS) $(ARCHOPTS) -c $< -o $@
 	@$(CXX) -MM -MQ "$@" $(CFLAGSDEPEND) $< > $*.d
 
