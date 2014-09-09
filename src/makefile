@@ -18,7 +18,8 @@ endif
 endif
 
 .PHONY: osx linux-pulse linux-jack linux-alsa cygwin osx-rl
-osx linux-pulse linux-jack linux-alsa cygwin osx-rl emscripten: chuck
+osx linux-pulse linux-jack linux-alsa cygwin osx-rl: chuck
+emscripten: chuck.js
 
 win32:
 	make -f makefile.win32
@@ -126,6 +127,10 @@ endif
 chuck: $(OBJS)
 	$(LD) -o chuck $(OBJS) $(LDFLAGS) $(ARCHOPTS)
 
+chuck.js: $(OBJS)
+	emcc -o chuck.bc $(OBJS)
+	emcc -o chuck.js chuck.bc
+
 chuck.tab.c chuck.tab.h: chuck.y
 	$(YACC) -dv -b chuck chuck.y
 
@@ -152,7 +157,7 @@ $(CXXOBJS): %.o: %.cpp
 	@$(CXX) -MM -MQ "$@" $(CFLAGSDEPEND) $< > $*.d
 
 clean:
-	@rm -rf $(wildcard chuck chuck.exe) *.o *.d $(OBJS) \
+	@rm -rf $(wildcard chuck chuck.exe) *.o *.d *.map *.js *.bc $(OBJS) \
          $(patsubst %.o,%.d,$(OBJS)) *~ chuck.output chuck.tab.h chuck.tab.c \
          chuck.yy.c $(DIST_DIR){,.tgz,.zip} Release Debug
 

@@ -1,5 +1,8 @@
 *.d
 *.o
+*.bc
+*.js
+*.map
 
 src/chuck
 src/chuck.output
