@@ -2,9 +2,11 @@
 
 var LibraryRtAudio = {
     $RTAUDIO: {
-        RtAudio: function (api) {
+        rtaudio_initialize: function (numChannels) {
+            console.log('Initializing RtAudio with ' + numChannels + ' channels')
         }
     }
 };
 
-mergeInto(LibraryManager.library, LibraryRtAudio);
+autoAddDeps(LibraryRtAudio, '$RTAUDIO')
+mergeInto(LibraryManager.library, LibraryRtAudio)
