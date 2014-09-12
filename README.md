@@ -10,7 +10,9 @@ http://chuck.stanford.edu/
 
 ## BUILDING
 ### JavaScript
-To build the JavaScript port of ChucK, enter the src directory and run `make emscripten`.
-This will generate a JavaScript library with the help of [Emscripten](http://emscripten.org/),
-chuck.js. You can test chuck.js by opening the HTML document emscripten/chuck.html. For now,
-chuck.html does nothing, but you can look for errors in the JavaScript console of your browser.
+To build the JavaScript port of ChucK, first source the [Emscripten](http://emscripten.org/) SDK,
+then enter the src directory and run `make emscripten`.
+
+This will generate a JavaScript library with the help of Emscripten, chuck.js. You can test chuck.js
+by opening the HTML document emscripten/chuck.html. For now, chuck.html does nothing, but you can look
+for errors in the JavaScript console of your browser.
