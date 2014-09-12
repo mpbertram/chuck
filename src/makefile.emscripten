@@ -2,4 +2,5 @@ CC=emcc
 CXX=em++
 LD=emcc
 
+CXXOBJS:=$(filter-out RtAudio/RtAudio.o,$(CXXOBJS))
 OBJS=$(COBJS) $(CXXOBJS) chuck_js.o

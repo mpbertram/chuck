@@ -30,29 +30,18 @@
 //-----------------------------------------------------------------------------
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
 
 #include "chuck_compile.h"
 #include "chuck_vm.h"
 #include "chuck_bbq.h"
-#include "chuck_errmsg.h"
 #include "chuck_lang.h"
-#include "chuck_otf.h"
-#include "chuck_shell.h"
-#include "chuck_console.h"
 #include "chuck_globals.h"
 
 #include "util_math.h"
 #include "util_string.h"
-#include "util_network.h"
-#include "ulib_machine.h"
 #include "hidio_sdl.h"
 
-#include <signal.h>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/param.h>   // added 1.3.0.0
+using namespace std;
 
 // default destination host name
 char g_host[256] = "127.0.0.1";
