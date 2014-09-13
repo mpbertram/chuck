@@ -47,7 +47,7 @@ CXXSRCS+= chuck_absyn.cpp chuck_parse.cpp chuck_errmsg.cpp \
 	ugen_stk.cpp ugen_xxx.cpp ulib_machine.cpp ulib_math.cpp ulib_std.cpp \
 	ulib_opsc.cpp ulib_regex.cpp util_buffers.cpp util_console.cpp \
 	util_string.cpp util_thread.cpp util_opsc.cpp util_serial.cpp \
-	util_hid.cpp uana_xform.cpp uana_extract.cpp rtaudio_c.cpp
+	util_hid.cpp uana_xform.cpp uana_extract.cpp
 LO_CSRCS+= lo/address.c lo/blob.c lo/bundle.c lo/message.c lo/method.c \
     lo/pattern_match.c lo/send.c lo/server.c lo/server_thread.c lo/timetag.c
 
@@ -129,7 +129,8 @@ chuck: $(OBJS)
 
 chuck.js: $(OBJS)
 	emcc -o chuck.bc $(OBJS)
-	emcc -s EXPORTED_FUNCTIONS='["_chuckMain"]' -s DEMANGLE_SUPPORT=1 --js-library emscripten/shims/rtaudio.js -o chuck.js chuck.bc
+	emcc -s EXPORTED_FUNCTIONS='["_chuckMain"]' -s DEMANGLE_SUPPORT=1 --js-library \
+	emscripten/shims/webaudio.js -o chuck.js chuck.bc
 
 chuck.tab.c chuck.tab.h: chuck.y
 	$(YACC) -dv -b chuck chuck.y

@@ -33,8 +33,12 @@
 #ifndef __CHUCK_BBQ_H__
 #define __CHUCK_BBQ_H__
 
+#ifndef __EMSCRIPTEN__
 // currently ChucK uses RtAudio | __CHUCK_NATIVE_AUDIO__ not in use
 #include "digiio_rtaudio.h"
+#else
+#include "digiio_webaudio.h"
+#endif
 #include "midiio_rtmidi.h"
 
 #if defined(__LINUX_ALSA__)

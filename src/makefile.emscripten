@@ -3,5 +3,6 @@ CXX=em++
 LD=emcc
 
 CXXOBJS:=$(filter-out RtAudio/RtAudio.o,$(CXXOBJS))
-CXXOBJS:=$(filter-out rtaudio_c.o,$(CXXOBJS))
+CXXOBJS:=$(filter-out digiio_rtaudio.o,$(CXXOBJS))
+CXXOBJS+=digiio_webaudio.o
 OBJS=$(COBJS) $(CXXOBJS) chuck_js.o

@@ -24,7 +24,7 @@
 
 //-----------------------------------------------------------------------------
 // file: chuck_js.cpp
-// desc: chuck javascript logic
+// desc: chuck JavaScript logic
 //
 // author: Arve Knudsen (arve.knudsen@gmail.com)
 //-----------------------------------------------------------------------------

@@ -54,8 +54,6 @@
 #include <sys/time.h>
 #endif
 
-extern "C" bool rtaudio_initialize(int num_channels);
-
 // extern "C" void signal_int( int );
 
 // static
@@ -150,7 +148,7 @@ void Digitalio::probe()
 #ifndef __DISABLE_RTAUDIO__
     RtAudio * rta = NULL;
     RtAudio::DeviceInfo info;
-
+    
     // allocate RtAudio
     try { rta = new RtAudio( ); }
     catch( RtError err )
@@ -160,13 +158,13 @@ void Digitalio::probe()
         return;
     }
 
-    // get count
+    // get count    
     int devices = rta->getDeviceCount();
     EM_error2b( 0, "found %d device(s) ...", devices );
     // EM_error2( 0, "--------------------------" );
-
+    
     EM_reset_msg();
-
+    
     // loop
     for( int i = 0; i < devices; i++ )
     {
@@ -176,13 +174,13 @@ void Digitalio::probe()
             error.printMessage();
             break;
         }
-
+        
         // print
         EM_error2b( 0, "------( audio device: %d )---------------", i+1 );
         print( info );
         // skip
         if( i < devices ) EM_error2( 0, "" );
-
+        
         EM_reset_msg();
     }
 
@@ -204,7 +202,7 @@ DWORD__ Digitalio::device_named( const std::string & name, t_CKBOOL needs_dac, t
 #ifndef __DISABLE_RTAUDIO__
     RtAudio * rta = NULL;
     RtAudio::DeviceInfo info;
-
+    
     // allocate RtAudio
     try { rta = new RtAudio( ); }
     catch( RtError err )
@@ -213,11 +211,11 @@ DWORD__ Digitalio::device_named( const std::string & name, t_CKBOOL needs_dac, t
         EM_error2b( 0, "%s", err.getMessage().c_str() );
         return -1;
     }
-
-    // get count
+    
+    // get count    
     int devices = rta->getDeviceCount();
     int device_no = -1;
-
+    
     // loop
     for( int i = 0; i < devices; i++ )
     {
@@ -227,14 +225,14 @@ DWORD__ Digitalio::device_named( const std::string & name, t_CKBOOL needs_dac, t
             error.printMessage();
             break;
         }
-
+        
         if( info.name.compare(name) == 0 )
         {
             device_no = i+1;
             break;
         }
     }
-
+    
     if( device_no == -1 )
     {
         // no exact match found; try partial match
@@ -246,7 +244,7 @@ DWORD__ Digitalio::device_named( const std::string & name, t_CKBOOL needs_dac, t
                 error.printMessage();
                 break;
             }
-
+            
             if( info.name.find(name) != std::string::npos )
             {
                 if( (needs_dac && info.outputChannels == 0) ||
@@ -260,18 +258,17 @@ DWORD__ Digitalio::device_named( const std::string & name, t_CKBOOL needs_dac, t
 
     // clean up
     SAFE_DELETE( rta );
-
+    
     // done
     return device_no;
-
+    
 #endif // __DISABLE_RTAUDIO__
-
+    
     return -1;
 }
 
 
 
-#ifndef __EMSCRIPTEN__
 #if !defined(__PLATFORM_WIN32__) || defined(__WINDOWS_PTHREAD__)
 //-----------------------------------------------------------------------------
 // name: set_priority()
@@ -286,7 +283,7 @@ static t_CKBOOL set_priority( CHUCK_THREAD tid, t_CKINT priority )
     EM_log( CK_LOG_FINE, "setting thread priority to: %ld...", priority );
 
     // get for thread
-    if( pthread_getschedparam( tid, &policy, &param) )
+    if( pthread_getschedparam( tid, &policy, &param) ) 
         return FALSE;
 
     // priority
@@ -319,7 +316,6 @@ static t_CKBOOL set_priority( CHUCK_THREAD tid, t_CKINT priority )
     return TRUE;
 }
 #endif
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -337,18 +333,16 @@ static t_CKFLOAT get_current_time( t_CKBOOL fresh = TRUE )
     if( fresh ) gettimeofday(&t,NULL);
     return t.tv_sec + (t_CKFLOAT)t.tv_usec/1000000;
 #endif
-
+        
     return 0;
 }
 
 
-#ifndef __EMSCRIPTEN__
 // watch dog globals
 static CHUCK_THREAD g_tid_synthesis = 0;
 static XThread * g_watchdog_thread = NULL;
 static t_CKBOOL g_watchdog_state = FALSE;
 static t_CKFLOAT g_watchdog_time = 0;
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -387,7 +381,6 @@ static unsigned int __stdcall watch_dog( void * )
         time = get_current_time( TRUE );
         // fprintf( stderr, "last: %f now: %f\n", g_watchdog_time, time );
 
-#ifndef __EMSCRIPTEN__
         // resting
         if( g_watchdog_state == FALSE )
         {
@@ -419,12 +412,11 @@ static unsigned int __stdcall watch_dog( void * )
                 g_watchdog_state = FALSE;
             }
         }
-#endif
-
+        
         // advance time
         usleep( 40000 );
     }
-
+    
     // log
     EM_log( CK_LOG_SEVERE, "stopping real-time watch dog process..." );
 
@@ -434,7 +426,6 @@ static unsigned int __stdcall watch_dog( void * )
 
 
 
-#ifndef __EMSCRIPTEN__
 //-----------------------------------------------------------------------------
 // name: watchdog_start()
 // desc: ...
@@ -451,9 +442,10 @@ BOOL__ Digitalio::watchdog_start()
     g_watchdog_thread = new XThread;
     // start it
     g_watchdog_thread->start( watch_dog, NULL );
-
+    
     return TRUE;
 }
+
 
 
 //-----------------------------------------------------------------------------
@@ -471,10 +463,10 @@ BOOL__ Digitalio::watchdog_stop()
     // wait a bit
     // usleep( 100000 )
     SAFE_DELETE( g_watchdog_thread );
-
+    
     return TRUE;
 }
-#endif
+
 
 
 
@@ -485,7 +477,7 @@ BOOL__ Digitalio::watchdog_stop()
 BOOL__ Digitalio::initialize( DWORD__ num_dac_channels,
                               DWORD__ num_adc_channels,
                               DWORD__ sampling_rate,
-                              DWORD__ bps, DWORD__ buffer_size,
+                              DWORD__ bps, DWORD__ buffer_size, 
                               DWORD__ num_buffers, DWORD__ block,
                               Chuck_VM * vm_ref, BOOL__ rt_audio,
                               void * callback, void * data,
@@ -513,18 +505,229 @@ BOOL__ Digitalio::initialize( DWORD__ num_dac_channels,
     EM_log( CK_LOG_FINE, "initializing RtAudio..." );
     // push indent
     EM_pushlog();
-
+        
     // if rt_audio is false, then set block to FALSE to avoid deadlock
     if( !rt_audio ) m_block = FALSE;
 
-#ifndef __DISABLE_RTAUDIO__
+#ifndef __DISABLE_RTAUDIO__    
     // if real-time audio
     if( rt_audio )
     {
-        if (!rtaudio_initialize(m_num_channels_out))
+        // allocate RtAudio
+        try { m_rtaudio = new RtAudio( ); }
+        catch( RtError err )
         {
+            // problem finding audio devices, most likely
+            EM_error2( 0, "%s", err.getMessage().c_str() );
             return m_init = FALSE;
         }
+        
+        // convert 1-based ordinal to 0-based ordinal (added 1.3.0.0)
+        // note: this is to preserve previous devices numbering after RtAudio change
+        if( m_num_channels_out > 0 )
+        {
+            // check output device number; 0 used to mean "default"
+            bool useDefault = ( m_dac_n == 0 );
+
+            // default (refactor 1.3.1.2)
+            if( useDefault )
+            {
+                // get the default
+                m_dac_n = m_rtaudio->getDefaultOutputDevice();
+            }
+            else
+            {
+                m_dac_n -= 1;
+            }
+
+            // get device info
+            RtAudio::DeviceInfo device_info = m_rtaudio->getDeviceInfo(m_dac_n);
+                
+            // ensure correct channel count if default device is requested
+            if( useDefault )
+            {
+                // check
+                if( device_info.outputChannels < m_num_channels_out )
+                {
+                    // find first device with at least the requested channel count
+                    m_dac_n = -1;
+                    int num_devices = m_rtaudio->getDeviceCount();
+                    for( int i = 0; i < num_devices; i++ )
+                    {
+                        device_info = m_rtaudio->getDeviceInfo(i);
+                        if(device_info.outputChannels >= m_num_channels_out)
+                        {
+                            m_dac_n = i;
+                            break;
+                        }
+                    }
+                    
+                    // check for error
+                    if( m_dac_n == -1 )
+                    {
+                        EM_error2( 0, "no audio output device with requested channel count (%i)...", m_num_channels_out );
+                        return m_init = FALSE;
+                    }
+                }
+            }
+
+            // index of closest sample rate
+            long closestIndex = -1;
+            // difference of closest so far
+            long closestDiff = LONG_MAX;
+            // the next highest
+            long nextHighest = -1;
+            // diff to next highest so far
+            long diffToNextHighest = LONG_MAX;
+            // check if request sample rate in support rates (added 1.3.1.2)
+            for( long i = 0; i < device_info.sampleRates.size(); i++ )
+            {
+                // difference
+                long diff = device_info.sampleRates[i] - sampling_rate;
+                // check
+                if( ::abs(diff) < closestDiff )
+                {
+                    // remember index
+                    closestIndex = i;
+                    // update diff
+                    closestDiff = ::abs(diff);
+                }
+
+                // for next highest
+                if( diff > 0 && diff < diffToNextHighest )
+                {
+                    // remember index
+                    nextHighest = i;
+                    // update diff
+                    diffToNextHighest = diff;
+                }
+            }
+            
+            // see if we found exact match (added 1.3.1.2)
+            if( closestDiff != 0 )
+            {
+                // check
+                if( force_srate )
+                {
+                    // request sample rate not found, error out
+                    EM_error2( 0, "unsupported sample rate (%d) requested...", sampling_rate );
+                    EM_error2( 0, "| (try --probe to enumerate available sample rates)" );
+                    return m_init = FALSE;
+                }
+
+                // use next highest if available
+                if( nextHighest >= 0 )
+                {
+                    // log
+                    EM_log( CK_LOG_SEVERE, "new sample rate (next highest): %d -> %d",
+                            sampling_rate, device_info.sampleRates[nextHighest] );
+                    // update sampling rate
+                    m_sampling_rate = sampling_rate = device_info.sampleRates[nextHighest];
+                }
+                else if( closestIndex >= 0 ) // nothing higher
+                {
+                    // log
+                    EM_log( CK_LOG_SEVERE, "new sample rate (closest): %d -> %d",
+                            sampling_rate, device_info.sampleRates[closestIndex] );
+                    // update sampling rate
+                    m_sampling_rate = sampling_rate = device_info.sampleRates[closestIndex];
+                }
+                else
+                {
+                    // nothing to do (will fail and throw error message when opening)
+                }
+            }
+        }
+        
+        // convert 1-based ordinal to 0-based ordinal
+        if( m_num_channels_in > 0 )
+        {
+            if( m_adc_n == 0 )
+            {
+                m_adc_n = m_rtaudio->getDefaultInputDevice();
+                
+                // ensure correct channel count if default device is requested
+                RtAudio::DeviceInfo device_info = m_rtaudio->getDeviceInfo(m_adc_n);
+                
+                // check if input channels > 0
+                if( device_info.inputChannels < m_num_channels_in )
+                {
+                    // find first device with at least the requested channel count
+                    m_adc_n = -1;
+                    int num_devices = m_rtaudio->getDeviceCount();
+                    for(int i = 0; i < num_devices; i++)
+                    {
+                        device_info = m_rtaudio->getDeviceInfo(i);
+                        if(device_info.inputChannels >= m_num_channels_in)
+                        {
+                            m_adc_n = i;
+                            break;
+                        }
+                    }
+
+                    // changed 1.3.1.2 (ge): for input, if nothing found, we just gonna try to open half-duplex
+                    if( m_adc_n == -1 )
+                    {
+                        // set to 0
+                        m_num_channels_in = 0;
+                        // problem finding audio devices, most likely
+                        // EM_error2( 0, "unable to find audio input device with requested channel count (%i)...", m_num_channels_in);
+                        // return m_init = FALSE;
+                    }
+                }
+            }
+            else
+            {
+                m_adc_n -= 1;
+            }
+        }
+
+        // open device
+        try {
+            // log
+            EM_log( CK_LOG_FINE, "trying %d input %d output...", 
+                    m_num_channels_in, m_num_channels_out );
+            
+            RtAudio::StreamParameters output_parameters;
+            output_parameters.deviceId = m_dac_n;
+            output_parameters.nChannels = m_num_channels_out;
+            output_parameters.firstChannel = 0;
+            
+            RtAudio::StreamParameters input_parameters;
+            input_parameters.deviceId = m_adc_n;
+            input_parameters.nChannels = m_num_channels_in;
+            input_parameters.firstChannel = 0;
+            
+            RtAudio::StreamOptions stream_options;
+            stream_options.flags = 0;
+            stream_options.numberOfBuffers = num_buffers;
+            stream_options.streamName = "ChucK";
+            stream_options.priority = 0;
+            
+            // open RtAudio
+            m_rtaudio->openStream(
+                m_num_channels_out > 0 ? &output_parameters : NULL, 
+                m_num_channels_in > 0 ? &input_parameters : NULL,
+                CK_RTAUDIO_FORMAT, sampling_rate, &bufsize, 
+                m_use_cb ? ( block ? &cb : &cb2 ) : NULL, vm_ref, 
+                &stream_options );
+        } catch( RtError err ) {
+            // log
+            EM_log( CK_LOG_INFO, "exception caught: '%s'...", err.getMessage().c_str() );
+            EM_error2( 0, "%s", err.getMessage().c_str() );
+            SAFE_DELETE( m_rtaudio );
+            return m_init = FALSE;
+        }
+        
+        // check bufsize
+        if( bufsize != (int)m_buffer_size )
+        {
+            EM_log( CK_LOG_SEVERE, "new buffer size: %d -> %i", m_buffer_size, bufsize );
+            m_buffer_size = bufsize;
+        }
+
+        // pop indent
+        EM_poplog();
     }
 #endif // __DISABLE_RTAUDIO__
 
@@ -538,7 +741,7 @@ BOOL__ Digitalio::initialize( DWORD__ num_dac_channels,
 
     if( m_use_cb )
     {
-        num_channels = num_dac_channels > num_adc_channels ?
+        num_channels = num_dac_channels > num_adc_channels ? 
                        num_dac_channels : num_adc_channels;
         // log
         EM_log( CK_LOG_SEVERE, "allocating buffers for %d x %d samples...",
@@ -551,7 +754,7 @@ BOOL__ Digitalio::initialize( DWORD__ num_dac_channels,
         m_read_ptr = NULL;
         m_write_ptr = NULL;
     }
-
+    
     m_in_ready = FALSE;
     m_out_ready = FALSE;
 
@@ -591,10 +794,8 @@ int Digitalio::cb( void *output_buffer, void *input_buffer,
     if( m_go >= start )
     {
         while( !m_out_ready && n-- ) usleep( 250 );
-#ifndef __EMSCRIPTEN__
         if( m_out_ready && g_do_watchdog )
             g_watchdog_time = get_current_time( TRUE );
-#endif
         // copy local buffer to be rendered
         if( m_out_ready && !m_end ) memcpy( output_buffer, m_buffer_out, len );
         // set all elements of local buffer to silence
@@ -608,10 +809,8 @@ int Digitalio::cb( void *output_buffer, void *input_buffer,
         // catch SIGINT
         // signal( SIGINT, signal_int );
 
-#ifndef __EMSCRIPTEN__
         // timestamp
         if( g_do_watchdog ) g_watchdog_time = get_current_time( TRUE );
-#endif
 
         memset( output_buffer, 0, len );
         m_go++;
@@ -656,11 +855,10 @@ int Digitalio::cb2( void *output_buffer, void *input_buffer,
 {
     DWORD__ len = buffer_size * sizeof(SAMPLE) * m_num_channels_out;
     Chuck_VM * vm_ref = (Chuck_VM *)user_data;
-
+    
     // priority boost
     if( !m_go && Chuck_VM::our_priority != 0x7fffffff )
     {
-#ifndef __EMSCRIPTEN__
 #if !defined(__PLATFORM_WIN32__) || defined(__WINDOWS_PTHREAD__)
         g_tid_synthesis = pthread_self();
 #else
@@ -678,12 +876,10 @@ int Digitalio::cb2( void *output_buffer, void *input_buffer,
 
         // TODO: close the duplicate handle?
 #endif
-#endif
         Chuck_VM::set_priority( Chuck_VM::our_priority, NULL );
         memset( output_buffer, 0, len );
         m_go = TRUE;
 
-#ifndef __EMSCRIPTEN__
         // start watchdog
         if( g_do_watchdog )
         {
@@ -692,7 +888,6 @@ int Digitalio::cb2( void *output_buffer, void *input_buffer,
             // start watchdog
             watchdog_start();
         }
-#endif
 
         // let it go the first time
         return 0;
@@ -709,10 +904,8 @@ int Digitalio::cb2( void *output_buffer, void *input_buffer,
     // check xrun
     if( m_xrun < 6 )
     {
-#ifndef __EMSCRIPTEN__
         // timestamp
         if( g_do_watchdog ) g_watchdog_time = get_current_time( TRUE );
-#endif
         // get samples from output
         vm_ref->run( buffer_size );
         // ...
@@ -818,11 +1011,11 @@ BOOL__ Digitalio::stop( )
 //            m_out_ready = TRUE;
 //            m_in_ready = TRUE;
 //        }
-//
+//        
 //        return TRUE;
 //    } catch( RtError err ){ return FALSE; }
 //#endif // __DISABLE_RTAUDIO__
-//
+//    
 //    return FALSE;
 //}
 
@@ -850,7 +1043,7 @@ void Digitalio::shutdown()
 
     m_init = FALSE;
     m_start = FALSE;
-
+    
     // stop watchdog
     watchdog_stop();
 }
@@ -900,7 +1093,7 @@ BOOL__ DigitalOut::initialize( )
     m_data_ptr_out = Digitalio::m_buffer_out;
 #endif // __DISABLE_RTAUDIO__
     // calculate the end of the buffer
-    m_data_max_out = m_data_ptr_out +
+    m_data_max_out = m_data_ptr_out + 
         Digitalio::buffer_size() * Digitalio::num_channels_out();
     // set the writer pointer to our write pointer
     Digitalio::m_write_ptr = &m_data_ptr_out;
@@ -932,7 +1125,7 @@ BOOL__ DigitalOut::stop()
 {
     // well
     Digitalio::stop();
-
+    
     return TRUE;
 }
 
@@ -955,7 +1148,7 @@ void DigitalOut::cleanup()
 // desc: 1 channel
 //-----------------------------------------------------------------------------
 BOOL__ DigitalOut::tick_out( SAMPLE sample )
-{
+{    
     if( !prepare_tick_out() )
         return FALSE;
 
@@ -1091,7 +1284,7 @@ BOOL__ DigitalIn::initialize( )
     m_data_ptr_in = m_data;
 #endif // __DISABLE_RTAUDIO__
     // calculate past buffer
-    m_data_max_in = m_data_ptr_in +
+    m_data_max_in = m_data_ptr_in + 
         Digitalio::buffer_size() * Digitalio::num_channels_in();
     // set the read pointer to the local pointer
     Digitalio::m_read_ptr = &m_data_ptr_in;
@@ -1231,7 +1424,7 @@ DWORD__ DigitalIn::capture( )
     Digitalio::m_in_ready = FALSE;
     // set pointer to the beginning - if not ready, then too late anyway
     *Digitalio::m_read_ptr = (SAMPLE *)m_data;
-
+    
     return TRUE;
 }
 
