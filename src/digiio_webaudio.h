@@ -76,7 +76,7 @@ public:
                               DWORD__ num_buffers,
                               DWORD__ block,
                               Chuck_VM * vm_ref,
-                              BOOL__ rt_audio,
+                              BOOL__ enable_audio,
                               void * callback,
                               void * data,
                               // force_srate added 1.3.1.2

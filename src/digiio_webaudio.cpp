@@ -36,7 +36,10 @@
 #include <limits.h>
 
 extern "C" {
-    void waudio_initialize();
+    BOOL__ waudio_initialize();
+    BOOL__ waudio_start();
+    BOOL__ waudio_stop();
+    BOOL__ waudio_shutdown();
 }
 
 // static
@@ -95,8 +98,7 @@ BOOL__ Digitalio::initialize( DWORD__ num_dac_channels,
                               void * callback, void * data,
                               BOOL__ force_srate )
 {
-    waudio_initialize();
-    return m_init = TRUE;
+    return waudio_initialize();
 }
 
 //-----------------------------------------------------------------------------
@@ -105,7 +107,7 @@ BOOL__ Digitalio::initialize( DWORD__ num_dac_channels,
 //-----------------------------------------------------------------------------
 BOOL__ Digitalio::start( )
 {
-    return m_start;
+    return waudio_start();
 }
 
 //-----------------------------------------------------------------------------
@@ -114,7 +116,7 @@ BOOL__ Digitalio::start( )
 //-----------------------------------------------------------------------------
 BOOL__ Digitalio::stop( )
 {
-    return !m_start;
+    return waudio_stop();
 }
 
 //-----------------------------------------------------------------------------
@@ -123,10 +125,7 @@ BOOL__ Digitalio::stop( )
 //-----------------------------------------------------------------------------
 void Digitalio::shutdown()
 {
-    if( !m_init ) return;
-
-    m_init = FALSE;
-    m_start = FALSE;
+    waudio_shutdown();
 }
 
 //-----------------------------------------------------------------------------

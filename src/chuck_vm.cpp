@@ -146,7 +146,7 @@ Chuck_VM::Chuck_VM()
     m_num_dac_channels = 0;
     m_num_adc_channels = 0;
     m_init = FALSE;
-    
+
     m_main_thread_hook = NULL;
     m_main_thread_quit = NULL;
     m_main_thread_bindle = NULL;
@@ -168,7 +168,7 @@ Chuck_VM::~Chuck_VM()
 
 
 // dac tick
-//UGEN_TICK __dac_tick( Chuck_Object * SELF, SAMPLE in, SAMPLE * out ) 
+//UGEN_TICK __dac_tick( Chuck_Object * SELF, SAMPLE in, SAMPLE * out )
 //{ *out = in; return TRUE; }
 //UGEN_TICK __bunghole_tick( Chuck_Object * SELF, SAMPLE in, SAMPLE * out )
 //{ *out = 0.0f; return TRUE; }
@@ -197,7 +197,7 @@ t_CKBOOL Chuck_VM::set_priority( t_CKINT priority, Chuck_VM * vm )
     EM_log( CK_LOG_INFO, "setting thread priority to: %ld...", priority );
 
     // get for thread
-    if( pthread_getschedparam( tid, &policy, &param) ) 
+    if( pthread_getschedparam( tid, &policy, &param) )
     {
         if( vm )
             vm->m_last_error = "could not get current scheduling parameters";
@@ -215,7 +215,7 @@ t_CKBOOL Chuck_VM::set_priority( t_CKINT priority, Chuck_VM * vm )
             vm->m_last_error = "could not set new scheduling parameters";
         return FALSE;
     }
-    
+
     return TRUE;
 }
 #else
@@ -250,7 +250,7 @@ t_CKBOOL Chuck_VM::set_priority( t_CKINT priority, Chuck_VM * vm )
 
 
 
-        
+
 //-----------------------------------------------------------------------------
 // name: initialize()
 // desc: ...
@@ -295,7 +295,7 @@ t_CKBOOL Chuck_VM::initialize( t_CKBOOL enable_audio, t_CKBOOL halt, t_CKUINT sr
 
     // probe / init (this shouldn't start audio yet - moved here 1.3.1.2)
     if( !m_bbq->initialize( m_num_dac_channels, m_num_adc_channels,
-        Digitalio::m_sampling_rate, 16, 
+        Digitalio::m_sampling_rate, 16,
         Digitalio::m_buffer_size, Digitalio::m_num_buffers,
         Digitalio::m_dac_n, Digitalio::m_adc_n,
         m_block, this, m_audio, NULL, NULL, force_srate ) )
@@ -307,7 +307,7 @@ t_CKBOOL Chuck_VM::initialize( t_CKBOOL enable_audio, t_CKBOOL halt, t_CKUINT sr
         SAFE_DELETE( m_bbq );
         return FALSE;
     }
-    
+
     // update parameters that could have been changed during probe (1.3.1.2)
     srate = Digitalio::sampling_rate();
     buffer_size = Digitalio::buffer_size();
@@ -337,7 +337,7 @@ t_CKBOOL Chuck_VM::initialize( t_CKBOOL enable_audio, t_CKBOOL halt, t_CKUINT sr
     m_event_buffer = new CBufferSimple;
     m_event_buffer->initialize( 1024, sizeof(Chuck_Event *) );
     //m_event_buffer->join(); // this should also return 0
-    
+
     // log
     EM_log( CK_LOG_SYSTEM, "behavior: %s", halt ? "HALT" : "LOOP" );
     EM_log( CK_LOG_SYSTEM, "real-time audio: %s", enable_audio ? "YES" : "NO" );
@@ -348,7 +348,7 @@ t_CKBOOL Chuck_VM::initialize( t_CKBOOL enable_audio, t_CKBOOL halt, t_CKUINT sr
     {
         EM_log( CK_LOG_SYSTEM, "num buffers: %ld", num_buffers );
         EM_log( CK_LOG_SYSTEM, "adc: %ld dac: %d", adc, dac );
-        EM_log( CK_LOG_SYSTEM, "adaptive block processing: %ld", adaptive > 1 ? adaptive : 0 ); 
+        EM_log( CK_LOG_SYSTEM, "adaptive block processing: %ld", adaptive > 1 ? adaptive : 0 );
     }
     EM_log( CK_LOG_SYSTEM, "channels in: %ld out: %ld", adc_chan, dac_chan );
 
@@ -396,7 +396,7 @@ t_CKBOOL Chuck_VM::initialize_synthesis( )
     // log
     EM_log( CK_LOG_SEVERE, "initializing 'dac'..." );
     // allocate dac and adc
-    g_t_dac->ugen_info->num_outs = 
+    g_t_dac->ugen_info->num_outs =
         g_t_dac->ugen_info->num_ins = m_num_dac_channels;
     m_dac = (Chuck_UGen *)instantiate_and_initialize_object( g_t_dac, NULL );
     // Chuck_DL_Api::Api::instance() added 1.3.0.0
@@ -409,7 +409,7 @@ t_CKBOOL Chuck_VM::initialize_synthesis( )
 
     // log
     EM_log( CK_LOG_SEVERE, "initializing 'adc'..." );
-    g_t_adc->ugen_info->num_ins = 
+    g_t_adc->ugen_info->num_ins =
         g_t_adc->ugen_info->num_outs = m_num_adc_channels;
     m_adc = (Chuck_UGen *)instantiate_and_initialize_object( g_t_adc, NULL );
     // Chuck_DL_Api::Api::instance() added 1.3.0.0
@@ -536,11 +536,11 @@ t_CKBOOL Chuck_VM::shutdown()
     SAFE_RELEASE( m_dac );
     SAFE_RELEASE( m_adc );
     SAFE_RELEASE( m_bunghole );
-    
+
     if( m_main_thread_quit )
         m_main_thread_quit( m_main_thread_bindle );
     clear_main_thread_hook();
-    
+
     m_init = FALSE;
 
     // pop indent
@@ -638,6 +638,7 @@ t_CKBOOL Chuck_VM::run( )
             // start audio
             if( !m_audio_started ) start_audio();
 
+#ifndef __EMSCRIPTEN__
             // wait
             while( m_running )
             {
@@ -646,6 +647,7 @@ t_CKBOOL Chuck_VM::run( )
                 else
                     usleep( 1000 );
             }
+#endif
         }
     }
 
@@ -707,7 +709,7 @@ t_CKBOOL Chuck_VM::compute()
         // broadcast queued events
         while( m_event_buffer->get( &event, 1 ) )
         { event->broadcast(); iterate = TRUE; }
-        
+
         // loop over thread-specific queued event buffers (added 1.3.0.0)
         for( list<CBufferSimple *>::const_iterator i = m_event_buffers.begin();
              i != m_event_buffers.end(); i++ )
@@ -724,7 +726,7 @@ t_CKBOOL Chuck_VM::compute()
         if( m_num_dumped_shreds > 0 )
             release_dump();
     }
-    
+
     return TRUE;
 }
 
@@ -760,7 +762,7 @@ t_CKBOOL Chuck_VM::run( t_CKINT num_samps )
 // vm stop here
 vm_stop:
     m_running = FALSE;
-    
+
     if( m_main_thread_quit )
         m_main_thread_quit( m_main_thread_bindle );
     clear_main_thread_hook();
@@ -799,7 +801,7 @@ t_CKBOOL Chuck_VM::stop( )
 
     m_running = FALSE;
     Digitalio::m_end = TRUE;
-    
+
     return TRUE;
 }
 
@@ -846,7 +848,7 @@ t_CKBOOL Chuck_VM::queue_msg( Chuck_Msg * msg, int count )
 // name: queue_event()
 // desc: since 1.3.0.0 a buffer is passed in associated with each thread
 //-----------------------------------------------------------------------------
-t_CKBOOL Chuck_VM::queue_event( Chuck_Event * event, int count, 
+t_CKBOOL Chuck_VM::queue_event( Chuck_Event * event, int count,
                                 CBufferSimple * buffer )
 {
     // sanity
@@ -876,7 +878,7 @@ CBufferSimple * Chuck_VM::create_event_buffer()
     CBufferSimple * buffer = new CBufferSimple;
     buffer->initialize( 1024, sizeof(Chuck_Event *) );
     m_event_buffers.push_back(buffer);
-    
+
     return buffer;
 }
 
@@ -961,7 +963,7 @@ t_CKUINT Chuck_VM::process_msg( Chuck_Msg * msg )
                        out->xid, mini(out->name.c_str()), shred->xid, mini(shred->name.c_str()) );
             this->free( out, TRUE, FALSE );
             retval = shred->xid;
-        
+
             // tracking new shred
             CK_TRACK( Chuck_Stats::instance()->add_shred( shred ) );
 
@@ -993,7 +995,7 @@ t_CKUINT Chuck_VM::process_msg( Chuck_Msg * msg )
                 xid--;
             if( xid >= 0 )
             {
-                EM_error3( "[chuck](VM): removing recent shred: %i (%s)...", 
+                EM_error3( "[chuck](VM): removing recent shred: %i (%s)...",
                            xid, mini(shred->name.c_str()) );
                 this->free( shred, TRUE );
                 retval = xid;
@@ -1033,14 +1035,14 @@ t_CKUINT Chuck_VM::process_msg( Chuck_Msg * msg )
         t_CKUINT xid = m_shred_id;
         EM_error3( "[chuck](VM): removing all (%i) shreds...", m_num_shreds );
         Chuck_VM_Shred * shred = NULL;
-        
+
         while( m_num_shreds && xid > 0 )
         {
             if( m_shreduler->remove( shred = m_shreduler->lookup( xid ) ) )
                 this->free( shred, TRUE );
             xid--;
         }
-        
+
         m_shred_id = 0;
         m_num_shreds = 0;
     }
@@ -1050,17 +1052,17 @@ t_CKUINT Chuck_VM::process_msg( Chuck_Msg * msg )
         t_CKUINT xid = m_shred_id;
         EM_error3( "[chuck](VM): removing all shreds and resetting type system" );
         Chuck_VM_Shred * shred = NULL;
-        
+
         while( m_num_shreds && xid > 0 )
         {
             if( m_shreduler->remove( shred = m_shreduler->lookup( xid ) ) )
                 this->free( shred, TRUE );
             xid--;
         }
-        
+
         // clear user type system
         Chuck_Env::instance()->clear_user_namespace();
-        
+
         m_shred_id = 0;
         m_num_shreds = 0;
     }
@@ -1265,7 +1267,7 @@ Chuck_VM_Shred * Chuck_VM::spork( Chuck_VM_Shred * shred )
 t_CKBOOL Chuck_VM::free( Chuck_VM_Shred * shred, t_CKBOOL cascade, t_CKBOOL dec )
 {
     assert( cascade );
-    
+
     // log
     EM_log( CK_LOG_FINER, "freeing shred (id==%d | ptr==%p)", shred->xid,
             (t_CKUINT)shred );
@@ -1308,7 +1310,7 @@ t_CKBOOL Chuck_VM::free( Chuck_VM_Shred * shred, t_CKBOOL cascade, t_CKBOOL dec 
     shred = NULL;
     if( dec ) m_num_shreds--;
     if( !m_num_shreds ) m_shred_id = 0;
-    
+
     return TRUE;
 }
 
@@ -1323,7 +1325,7 @@ t_CKBOOL Chuck_VM::abort_current_shred( )
 {
     // for threading
     Chuck_VM_Shred * shred = m_shreduler->m_current_shred;
-    
+
     // if there
     if( shred )
     {
@@ -1401,7 +1403,7 @@ t_CKBOOL Chuck_VM::set_main_thread_hook( f_mainthreadhook hook,
         m_main_thread_bindle = bindle;
         m_main_thread_hook = hook;
         m_main_thread_quit = quit;
-        
+
         return TRUE;
     }
     else
@@ -1422,7 +1424,7 @@ t_CKBOOL Chuck_VM::clear_main_thread_hook()
     m_main_thread_bindle = NULL;
     m_main_thread_hook = NULL;
     m_main_thread_quit = NULL;
-    
+
     return TRUE;
 }
 
@@ -1529,7 +1531,7 @@ t_CKBOOL Chuck_VM_Stack::initialize( t_CKUINT size )
 out_of_memory:
 
     // we have a problem
-    fprintf( stderr, 
+    fprintf( stderr,
         "[chuck](VM): OutOfMemory: while allocating stack\n" );
 
     // return FALSE
@@ -1606,7 +1608,7 @@ Chuck_VM_Shred::~Chuck_VM_Shred()
 // desc: ...
 //-----------------------------------------------------------------------------
 t_CKBOOL Chuck_VM_Shred::initialize( Chuck_VM_Code * c,
-                                     t_CKUINT mem_stack_size, 
+                                     t_CKUINT mem_stack_size,
                                      t_CKUINT reg_stack_size )
 {
     // allocate mem and reg
@@ -1649,12 +1651,12 @@ t_CKBOOL Chuck_VM_Shred::initialize( Chuck_VM_Code * c,
 t_CKBOOL Chuck_VM_Shred::shutdown()
 {
     // spencer - March 2012 (added 1.3.0.0)
-    // can't dealloc ugens while they are still keys to a map; 
+    // can't dealloc ugens while they are still keys to a map;
     // add reference, store them in a vector, and release them after
     // SPENCERTODO: is there a better way to do this????
     std::vector<Chuck_UGen *> release_v;
     release_v.reserve(m_ugen_map.size());
-    
+
     // get iterator to our map
     map<Chuck_UGen *, Chuck_UGen *>::iterator iter = m_ugen_map.begin();
     while( iter != m_ugen_map.end() )
@@ -1662,12 +1664,12 @@ t_CKBOOL Chuck_VM_Shred::shutdown()
         // get the ugen
         Chuck_UGen * ugen = iter->first;
         // CK_GC_LOG("Chuck_VM_Shred::shutdown() disconnect: 0x%08x", ugen);
-        
+
         // store ref in array for now (added 1.3.0.0)
         release_v.push_back(ugen);
         // no need to bump reference since now ugen_map ref counts
         // ugen->add_ref();
-        
+
         // disconnect
         ugen->disconnect( TRUE );
 
@@ -1679,13 +1681,13 @@ t_CKBOOL Chuck_VM_Shred::shutdown()
     m_ugen_map.clear();
 
     // loop over vector
-    for( vector<Chuck_UGen *>::iterator rvi = release_v.begin(); 
+    for( vector<Chuck_UGen *>::iterator rvi = release_v.begin();
          rvi != release_v.end(); rvi++ )
     {
         // release it
         (*rvi)->release();
     }
-    
+
     // loop over parent object references (added 1.3.1.2)
     for( vector<Chuck_Object *>::iterator it = m_parent_objects.begin();
          it != m_parent_objects.end(); it++ )
@@ -1693,7 +1695,7 @@ t_CKBOOL Chuck_VM_Shred::shutdown()
         // release it
         (*it)->release();
     }
-    
+
     // clear the vectors (added 1.3.1.2)
     release_v.clear();
     m_parent_objects.clear();
@@ -1702,7 +1704,7 @@ t_CKBOOL Chuck_VM_Shred::shutdown()
     SAFE_DELETE( mem );
     SAFE_DELETE( reg );
     base_ref = NULL;
-    
+
     // delete temp pointer space
     // SAFE_DELETE_ARRAY( obj_array );
     // obj_array_size = 0;
@@ -1721,13 +1723,13 @@ t_CKBOOL Chuck_VM_Shred::shutdown()
             (*i)->release();
             (*i)->close();
         }
-        
+
         m_serials->clear();
         SAFE_DELETE(m_serials);
     }
-    
+
     // TODO: what to do with next and prev?
-    
+
     return TRUE;
 }
 
@@ -1745,7 +1747,7 @@ t_CKBOOL Chuck_VM_Shred::add( Chuck_UGen * ugen )
 
     // increment reference count (added 1.3.0.0)
     ugen->add_ref();
-    
+
     // RUBBISH
     // cerr << "vm add ugen: 0x" << hex << (int)ugen << endl;
 
@@ -1767,7 +1769,7 @@ t_CKBOOL Chuck_VM_Shred::remove( Chuck_UGen * ugen )
 
     // decrement reference count (added 1.3.0.0)
     ugen->release();
-    
+
     // RUBBISH
     // cerr << "vm remove ugen: 0x" << hex << (int)ugen << endl;
 
@@ -1788,10 +1790,10 @@ t_CKVOID Chuck_VM_Shred::add_parent_ref( Chuck_Object * obj )
     // sanity check
     if( !obj )
         return;
-    
+
     // reference count
     obj->add_ref();
-    
+
     // add it to vector
     m_parent_objects.push_back( obj );
 }
@@ -1818,15 +1820,15 @@ t_CKBOOL Chuck_VM_Shred::run( Chuck_VM * vm )
                             this->xid, this->code->name.c_str(), this->pc, instr[pc]->name(), instr[pc]->params()));
         CK_VM_DEBUG(t_CKBYTE * t_mem_sp = this->mem->sp);
         CK_VM_DEBUG(t_CKBYTE * t_reg_sp = this->mem->sp);
-        
+
         // execute the instruction
         instr[pc]->execute( vm, this );
-        
+
         CK_VM_DEBUG(fprintf(stderr, "CK_VM_DEBUG mem sp in: 0x%08lx out: 0x%08lx\n",
                             (unsigned long) t_mem_sp, (unsigned long) this->mem->sp));
         CK_VM_DEBUG(fprintf(stderr, "CK_VM_DEBUG reg sp in: 0x%08lx out: 0x%08lx\n",
                             (unsigned long) t_reg_sp, (unsigned long) this->reg->sp));
-        
+
         // set to next_pc;
         pc = next_pc;
         next_pc++;
@@ -1834,7 +1836,7 @@ t_CKBOOL Chuck_VM_Shred::run( Chuck_VM * vm )
         // track number of cycles
         CK_TRACK( this->stat->cycles++ );
     }
-    
+
     // check abort
     if( is_abort )
     {
@@ -1894,7 +1896,7 @@ Chuck_VM_Shreduler::Chuck_VM_Shreduler()
     m_bunghole = NULL;
     m_num_dac_channels = 0;
     m_num_adc_channels = 0;
-    
+
     set_adaptive( 0 );
 }
 
@@ -1959,7 +1961,7 @@ t_CKBOOL Chuck_VM_Shreduler::add_blocked( Chuck_VM_Shred * shred )
 {
     // add shred to map, using pointer
     blocked[shred] = shred;
-    
+
     return TRUE;
 }
 
@@ -1979,7 +1981,7 @@ t_CKBOOL Chuck_VM_Shreduler::remove_blocked( Chuck_VM_Shred * shred )
 
     // remove from event
     if( shred->event != NULL ) shred->event->remove( shred );
-    
+
     return TRUE;
 }
 
@@ -2008,7 +2010,7 @@ t_CKBOOL Chuck_VM_Shreduler::shredule( Chuck_VM_Shred * shred,
     // sanity check
     if( shred->prev || shred->next )
     {
-        // something is really wrong here - no shred can be 
+        // something is really wrong here - no shred can be
         // shreduled more than once
         EM_error3( "[chuck](VM): internal sanity check failed in shredule()" );
         EM_error3( "[chuck](VM): (shred shreduled while shreduled)" );
@@ -2067,7 +2069,7 @@ t_CKBOOL Chuck_VM_Shreduler::shredule( Chuck_VM_Shred * shred,
     if( diff < 0 ) diff = 0;
     // if( diff < m_samps_until_next )
     m_samps_until_next = diff;
-    
+
     return TRUE;
 }
 
@@ -2083,7 +2085,7 @@ void Chuck_VM_Shreduler::advance_v( t_CKINT & numLeft )
     t_CKINT i, j, numFrames;
     SAMPLE frame[128], gain[128], sum;
     BBQ * audio = this->bbq;
-    
+
     // compute number of frames to compute; update
     numFrames = ck_min( m_max_block_size, numLeft );
     if( this->m_samps_until_next >= 0 )
@@ -2107,7 +2109,7 @@ void Chuck_VM_Shreduler::advance_v( t_CKINT & numLeft )
             // cache gain
             gain[j] = m_adc->m_multi_chan[j]->m_gain;
         }
-        
+
         // adaptive block
         for( i = 0; i < numFrames; i++ )
         {
@@ -2123,7 +2125,7 @@ void Chuck_VM_Shreduler::advance_v( t_CKINT & numLeft )
             }
             m_adc->m_current_v[i] = sum / m_num_adc_channels;
         }
-        
+
         for( j = 0; j < m_num_adc_channels; j++ )
         {
             // update last
@@ -2146,7 +2148,7 @@ void Chuck_VM_Shreduler::advance_v( t_CKINT & numLeft )
     {
         for( j = 0; j < m_num_dac_channels; j++ )
             frame[j] = m_dac->m_multi_chan[j]->m_current_v[i];
-        
+
         // tick
         audio->digi_out()->tick_out( frame, m_num_dac_channels );
     }
@@ -2217,7 +2219,7 @@ void Chuck_VM_Shreduler::advance( )
     if( rt_audio )
     {
         audio->digi_in()->tick_in( frame, m_num_adc_channels );
-        
+
         // loop over channels
         for( i = 0; i < m_num_adc_channels; i++ )
         {
@@ -2269,7 +2271,7 @@ Chuck_VM_Shred * Chuck_VM_Shreduler::get( )
         shred_list = shred->next;
         shred->next = NULL;
         shred->prev = NULL;
-        
+
         if( shred_list )
         {
             shred_list->prev = NULL;
@@ -2301,7 +2303,7 @@ t_CKUINT Chuck_VM_Shreduler::highest( )
         shred = shred->next;
     }
 
-    std::map<Chuck_VM_Shred *, Chuck_VM_Shred *>::iterator iter;    
+    std::map<Chuck_VM_Shred *, Chuck_VM_Shred *>::iterator iter;
     for( iter = blocked.begin(); iter != blocked.end(); iter++ )
     {
         shred = (*iter).second;
@@ -2330,18 +2332,18 @@ t_CKBOOL Chuck_VM_Shreduler::replace( Chuck_VM_Shred * out, Chuck_VM_Shred * in 
         shred_list = in;
     else
         out->prev->next = in;
-    
+
     if( out->next )
         out->next->prev = in;
-    
+
     in->next = out->next;
     in->prev = out->prev;
-    
+
     out->next = out->prev = NULL;
 
     in->wake_time = out->wake_time;
     in->start = in->wake_time;
-    
+
     return TRUE;
 }
 
@@ -2365,15 +2367,15 @@ t_CKBOOL Chuck_VM_Shreduler::remove( Chuck_VM_Shred * out )
     // sanity check
     if( !out->prev && !out->next && out != shred_list )
         return FALSE;
-    
+
     if( !out->prev )
         shred_list = out->next;
     else
         out->prev->next = out->next;
-    
+
     if( out->next )
         out->next->prev = out->prev;
-    
+
     out->next = out->prev = NULL;
 
     return TRUE;
@@ -2411,7 +2413,7 @@ Chuck_VM_Shred * Chuck_VM_Shreduler::lookup( t_CKUINT xid )
         if( shred->xid == xid )
             return shred;
     }
-    
+
     return NULL;
 }
 
@@ -2449,13 +2451,13 @@ void Chuck_VM_Shreduler::status( Chuck_VM_Status * status )
     t_CKUINT sec = s / srate;
     s = s - (sec*(srate));
     // float millisecond = s / (float)(srate) * 1000.0f;
-    
+
     status->srate = srate;
     status->now_system = now_system;
     status->t_second = sec;
     status->t_minute = m;
     status->t_hour = h;
-    
+
     // get list of shreds
     vector<Chuck_VM_Shred *> list;
     while( shred )
@@ -2465,7 +2467,7 @@ void Chuck_VM_Shreduler::status( Chuck_VM_Status * status )
     }
 
     // get blocked
-    std::map<Chuck_VM_Shred *, Chuck_VM_Shred *>::iterator iter;    
+    std::map<Chuck_VM_Shred *, Chuck_VM_Shred *>::iterator iter;
     for( iter = blocked.begin(); iter != blocked.end(); iter++ )
     {
         shred = (*iter).second;
@@ -2487,7 +2489,7 @@ void Chuck_VM_Shreduler::status( Chuck_VM_Status * status )
         shred = list[i];
         status->list.push_back( new Chuck_VM_Shred_Status(
             shred->xid, shred->name, shred->start, shred->event != NULL ) );
-    }    
+    }
 }
 
 
@@ -2512,7 +2514,7 @@ void Chuck_VM_Shreduler::status( )
     for( t_CKUINT i = 0; i < m_status.list.size(); i++ )
     {
         shred = m_status.list[i];
-        fprintf( stdout, 
+        fprintf( stdout,
             "    [shred id]: %ld  [source]: %s  [spork time]: %.2fs ago%s\n",
             shred->xid, mini( shred->name.c_str() ),
             (m_status.now_system - shred->start) / m_status.srate,
@@ -2559,6 +2561,6 @@ void Chuck_VM_Status::clear()
     {
         SAFE_DELETE( list[i] );
     }
-    
+
     list.clear();
 }
