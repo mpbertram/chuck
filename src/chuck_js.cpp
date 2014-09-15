@@ -91,6 +91,42 @@ void load_chugins(Chuck_Compiler *compiler, Chuck_VM *vm)
     // pop log
     EM_poplog();
 }
+
+t_CKBOOL sporkCode(Chuck_Compiler* compiler, Chuck_VM* vm, const char* filename, const char* sourceCode)
+{
+    compiler->env->load_user_namespace();
+
+    // log
+    EM_log(CK_LOG_FINE, "compiling code...");
+    // push indent
+    EM_pushlog();
+
+    // parse, type-check, and emit (full_path added 1.3.0.0)
+    if (!compiler->go(filename, NULL, sourceCode, NULL))
+    {
+        EM_log(CK_LOG_SYSTEM, "compilation failed");
+        return FALSE;
+    }
+
+    EM_log(CK_LOG_FINE, "compiled successfully");
+    // get the code
+    Chuck_VM_Code* code = compiler->output();
+    // name it
+    code->name += string(filename);
+
+    // spork
+    vm->spork(code, NULL);
+    // add args
+    // (*shred)->args = args;
+
+    // pop indent
+    EM_poplog();
+
+    // reset the parser
+    reset_parse();
+
+    return TRUE;
+}
 }
 
 extern "C" {
@@ -109,7 +145,7 @@ Algorithm:
 4.2.1 If VM should be awoken, execute VM
 4.2.2 Tick DAC, to produce audio
 */
-void executeCode(const char* code)
+void executeCode(const char* fileName, const char* code)
 {
     Chuck_Compiler *compiler = NULL;
     Chuck_VM *vm = NULL;
@@ -130,7 +166,7 @@ void executeCode(const char* code)
     t_CKBOOL block = FALSE;
     t_CKBOOL no_vm = FALSE;
     t_CKINT adaptive_size = 0;
-    t_CKINT log_level = CK_LOG_SYSTEM;
+    t_CKINT log_level = CK_LOG_FINE;
     t_CKINT deprecate_level = 1; // 1 == warn
     string filename = "";
     vector <string> args;
@@ -203,27 +239,19 @@ void executeCode(const char* code)
 
     load_chugins(compiler, vm);
 
-    compiler->env->load_user_namespace();
-
-    // log
-    EM_log(CK_LOG_SEVERE, "starting compilation...");
-    // push indent
-    EM_pushlog();
-
-    // pop indent
-    EM_poplog();
-
-    // reset the parser
-    reset_parse();
+    if (!sporkCode(compiler, vm, fileName, code))
+    {
+        exit(1);
+    }
 
     // run the vm
     vm->run();
-
-    // free vm
-    vm = NULL;
-    SAFE_DELETE(g_vm);
-    // free the compiler
-    compiler = NULL;
-    SAFE_DELETE(g_compiler);
+    //
+    // // free vm
+    // vm = NULL;
+    // SAFE_DELETE(g_vm);
+    // // free the compiler
+    // compiler = NULL;
+    // SAFE_DELETE(g_compiler);
 }
 }

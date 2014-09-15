@@ -686,6 +686,7 @@ t_CKBOOL Chuck_VM::compute()
             CK_TRACK( Chuck_Stats::instance()->activate_shred( shred ) );
 
             // run the shred
+            EM_log(CK_LOG_FINE, "Running shred...");
             if( !shred->run( this ) )
             {
                 // track shred deactivation
@@ -693,7 +694,12 @@ t_CKBOOL Chuck_VM::compute()
 
                 this->free( shred, TRUE );
                 shred = NULL;
-                if( !m_num_shreds && m_halt ) return FALSE;
+                EM_log(CK_LOG_FINE, "Shred deactivated");
+                if( !m_num_shreds && m_halt )
+                {
+                    EM_log(CK_LOG_SYSTEM, "No more shreds, ending computation");
+                    return FALSE;
+                }
             }
 
             // track shred deactivation
@@ -1822,6 +1828,8 @@ t_CKBOOL Chuck_VM_Shred::run( Chuck_VM * vm )
         CK_VM_DEBUG(t_CKBYTE * t_reg_sp = this->mem->sp);
 
         // execute the instruction
+        EM_log(CK_LOG_FINE, "Shred executing instruction %s: %d, %d, %d", instr[pc]->name(),
+            *vm_running, is_running, is_abort);
         instr[pc]->execute( vm, this );
 
         CK_VM_DEBUG(fprintf(stderr, "CK_VM_DEBUG mem sp in: 0x%08lx out: 0x%08lx\n",
@@ -2069,6 +2077,7 @@ t_CKBOOL Chuck_VM_Shreduler::shredule( Chuck_VM_Shred * shred,
     if( diff < 0 ) diff = 0;
     // if( diff < m_samps_until_next )
     m_samps_until_next = diff;
+    EM_log(CK_LOG_SYSTEM, "Scheduling shred to wake at %d (%d samples)", wake_time, diff);
 
     return TRUE;
 }

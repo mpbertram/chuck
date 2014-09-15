@@ -40,7 +40,7 @@ using namespace std;
 static char g_filename[1024] = "";
 
 // external
-extern "C" { 
+extern "C" {
     extern FILE *yyin;
 }
 
@@ -78,15 +78,15 @@ FILE *win32_tmpfile()
     char tmp_path[MAX_PATH];
     char file_path[MAX_PATH];
     FILE * file = NULL;
-    
+
     if(GetTempPath(256, tmp_path) == 0)
         return NULL;
-    
+
     if(GetTempFileName(tmp_path, "mA", 0, file_path) == 0)
         return NULL;
-    
+
     file = fopen(file_path, "wb+D");
-    
+
     return file;
 }
 
@@ -148,7 +148,7 @@ t_CKBOOL chuck_parse( c_constr fname, FILE * fd, c_constr code )
 
         // parse
         if( !( yyparse() == 0 ) ) goto cleanup;
-        
+
         // delete the lexer buffer
         yy_delete_buffer( ybs );
 
@@ -157,7 +157,7 @@ t_CKBOOL chuck_parse( c_constr fname, FILE * fd, c_constr code )
 
     // remember filename
     strcpy( g_filename, fname );
-        
+
     // test it
     if( !fd ) {
         fd = open_cat_ck( g_filename );
@@ -174,19 +174,22 @@ t_CKBOOL chuck_parse( c_constr fname, FILE * fd, c_constr code )
     // if no fd, open
     if( !fd ) { fd = fopen( g_filename, "r" ); if( fd ) clo = TRUE; }
     // if still none
-    if( !fd ) { EM_error2( 0, "no such file or directory" ); goto cleanup; }
+    if( !fd ) {
+        EM_error2( 0, "no such file or directory" );
+        goto cleanup;
+     }
     // set to beginning
     else fseek( fd, 0, SEEK_SET );
 
     // reset yyin to fd
     yyrestart( fd );
-        
+
     // check
     if( yyin == NULL ) goto cleanup;
-        
+
     // TODO: clean g_program
     g_program = NULL;
-        
+
     // parse
     if( !(yyparse( ) == 0) ) goto cleanup;
 

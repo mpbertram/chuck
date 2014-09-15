@@ -36,10 +36,29 @@
 #include <limits.h>
 
 extern "C" {
-    BOOL__ waudio_initialize();
+    BOOL__ waudio_initialize(void (*callback)(float **, float **, unsigned
+      long));
     BOOL__ waudio_start();
     BOOL__ waudio_stop();
     BOOL__ waudio_shutdown();
+}
+
+namespace {
+/** Callback to Web Audio library.
+*/
+extern "C" void callback(float** input, float** output, unsigned long buffer_size)
+{
+    EM_log(CK_LOG_FINE, "Audio callback invoked for %d samples", buffer_size);
+    float* samples_left = output[0];
+    float* samples_right = output[1];
+    for (int i = 0; i < buffer_size; ++i)
+    {
+        Digitalio::m_vm->run(buffer_size);
+
+        samples_left[i] = 0;
+        samples_right[i] = 0;
+    }
+}
 }
 
 // static
@@ -67,6 +86,7 @@ DWORD__ Digitalio::m_adc_n = 0;
 DWORD__ Digitalio::m_end = 0;
 DWORD__ Digitalio::m_block = TRUE;
 DWORD__ Digitalio::m_xrun = 0;
+Chuck_VM* Digitalio::m_vm = NULL;
 
 //-----------------------------------------------------------------------------
 // name: probe()
@@ -95,10 +115,10 @@ BOOL__ Digitalio::initialize( DWORD__ num_dac_channels,
                               DWORD__ bps, DWORD__ buffer_size,
                               DWORD__ num_buffers, DWORD__ block,
                               Chuck_VM * vm_ref, BOOL__ enable_audio,
-                              void * callback, void * data,
-                              BOOL__ force_srate )
+                              void*, void*, BOOL__ force_srate )
 {
-    return waudio_initialize();
+    Digitalio::m_vm = vm_ref;
+    return waudio_initialize(&callback);
 }
 
 //-----------------------------------------------------------------------------

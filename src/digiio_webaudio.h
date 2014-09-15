@@ -136,6 +136,7 @@ public: // data
     static DWORD__ m_end;
     static DWORD__ m_block;
     static DWORD__ m_xrun;
+    static Chuck_VM* m_vm;
 
     static DWORD__ m_dac_n;
     static DWORD__ m_adc_n;
