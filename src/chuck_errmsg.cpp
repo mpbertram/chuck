@@ -306,8 +306,9 @@ void EM_log( int level, const char * message, ... )
     va_end( ap );
 
     fprintf( stderr, "\n" );
-    fflush( stderr );
 #ifndef __EMSCRIPTEN__
+    // Flushing isn't necessary under Emscripten, since printing a newline has the same effect
+    fflush( stderr );
     g_logmutex.release();
 #endif
 }

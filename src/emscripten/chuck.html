@@ -2,7 +2,7 @@
 <head>
     <script type="text/javascript" src="../chuck.js"></script>
     <script type="text/javascript">
-    Module.ccall('chuckMain')
+    Module.ccall('executeCode', null, ['string'], ['SinOsc sin => dac; 2::second => now;'])
     </script>
 </head>
 <body>
