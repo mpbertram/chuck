@@ -48,15 +48,16 @@ namespace {
 */
 extern "C" void callback(float** input, float** output, unsigned long buffer_size)
 {
-    EM_log(CK_LOG_FINE, "Audio callback invoked for %d samples", buffer_size);
-    float* samples_left = output[0];
-    float* samples_right = output[1];
-    for (int i = 0; i < buffer_size; ++i)
-    {
-        Digitalio::m_vm->run(buffer_size);
+    // EM_log(CK_LOG_FINE, "Audio callback invoked for %d samples", buffer_size);
+    // for (t_CKINT i = 0; i < Digitalio::m_num_channels_out; ++i)
+    // {
+    //     Digitalio::m_samples[i] = output[i];
+    // }
+    Digitalio::m_vm->run(buffer_size);
 
-        samples_left[i] = 0;
-        samples_right[i] = 0;
+    for (t_CKINT i = 0; i < buffer_size; ++i) {
+        output[0][i] = rand() / (float)RAND_MAX;
+        output[1][i] = rand() / (float)RAND_MAX;
     }
 }
 }
@@ -71,12 +72,7 @@ DWORD__ Digitalio::m_sampling_rate = SAMPLING_RATE_DEFAULT;
 DWORD__ Digitalio::m_bps = BITS_PER_SAMPLE_DEFAULT;
 DWORD__ Digitalio::m_buffer_size = BUFFER_SIZE_DEFAULT;
 DWORD__ Digitalio::m_num_buffers = NUM_BUFFERS_DEFAULT;
-SAMPLE * Digitalio::m_buffer_out = NULL;
-SAMPLE * Digitalio::m_buffer_in = NULL;
-SAMPLE ** Digitalio::m_write_ptr = NULL;
-SAMPLE ** Digitalio::m_read_ptr = NULL;
-SAMPLE * Digitalio::m_extern_in = NULL;
-SAMPLE * Digitalio::m_extern_out = NULL;
+float** Digitalio::m_samples = NULL;
 BOOL__ Digitalio::m_out_ready = FALSE;
 BOOL__ Digitalio::m_in_ready = FALSE;
 BOOL__ Digitalio::m_use_cb = USE_CB_DEFAULT;
@@ -118,6 +114,8 @@ BOOL__ Digitalio::initialize( DWORD__ num_dac_channels,
                               void*, void*, BOOL__ force_srate )
 {
     Digitalio::m_vm = vm_ref;
+    Digitalio::m_samples = new float*[num_dac_channels];
+    Digitalio::m_num_channels_out = num_dac_channels;
     return waudio_initialize(&callback);
 }
 
@@ -146,6 +144,7 @@ BOOL__ Digitalio::stop( )
 void Digitalio::shutdown()
 {
     waudio_shutdown();
+    delete Digitalio::m_samples;
 }
 
 //-----------------------------------------------------------------------------

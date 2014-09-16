@@ -123,12 +123,7 @@ public: // data
     static DWORD__ m_bps;
     static DWORD__ m_buffer_size;
     static DWORD__ m_num_buffers;
-    static SAMPLE * m_buffer_out;
-    static SAMPLE * m_buffer_in;
-    static SAMPLE ** m_write_ptr;
-    static SAMPLE ** m_read_ptr;
-    static SAMPLE * m_extern_in;
-    static SAMPLE * m_extern_out;
+    static float** m_samples;
     static BOOL__ m_out_ready;
     static BOOL__ m_in_ready;
     static BOOL__ m_use_cb;

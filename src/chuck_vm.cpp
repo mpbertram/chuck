@@ -745,6 +745,7 @@ t_CKBOOL Chuck_VM::compute()
 //-----------------------------------------------------------------------------
 t_CKBOOL Chuck_VM::run( t_CKINT num_samps )
 {
+    // EM_log(CK_LOG_FINE, "Running VM for %d samples", num_samps);
     // loop it
     while( num_samps )
     {
@@ -2077,7 +2078,8 @@ t_CKBOOL Chuck_VM_Shreduler::shredule( Chuck_VM_Shred * shred,
     if( diff < 0 ) diff = 0;
     // if( diff < m_samps_until_next )
     m_samps_until_next = diff;
-    EM_log(CK_LOG_SYSTEM, "Scheduling shred to wake at %d (%d samples)", wake_time, diff);
+    EM_log(CK_LOG_SYSTEM, "Scheduling shred to wake at %f (%d samples), now: %f",
+        wake_time, (int)diff, this->now_system);
 
     return TRUE;
 }
@@ -2276,6 +2278,8 @@ Chuck_VM_Shred * Chuck_VM_Shreduler::get( )
     {
         // if( shred->wake_time < this->now_system )
         //    assert( false );
+        EM_log(CK_LOG_FINE, "Waking shred since its wake time (%f) is in the past (now: %f)",
+            shred->wake_time, this->now_system+0.5);
 
         shred_list = shred->next;
         shred->next = NULL;

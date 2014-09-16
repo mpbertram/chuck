@@ -21,13 +21,14 @@ var LibraryWebAudio = {
       throw new Error('callback must be provided')
     }
     WEBAUDIO.audioContext = new AudioContext()
-    WEBAUDIO.scriptProcessor = WEBAUDIO.audioContext.createScriptProcessor(4096, 0, 2)
+    var bufLen = 4096
+    WEBAUDIO.scriptProcessor = WEBAUDIO.audioContext.createScriptProcessor(bufLen, 0, 2)
     WEBAUDIO.scriptProcessor.onaudioprocess = function (event) {
       samplesLeft = event.outputBuffer.getChannelData(0)
       samplesRight = event.outputBuffer.getChannelData(1)
 
       try {
-        callback([], [samplesLeft, samplesRight], samplesLeft.length)
+        callback([], [samplesLeft, samplesRight], bufLen)
       }
       catch (err) {
         console.error('Exception caught in audio callback: ' + err)
