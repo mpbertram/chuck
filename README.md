@@ -18,6 +18,5 @@ enabled browser, and you should hear a short sine tone.
 ## BUILDING
 ### JavaScript
 To build the JavaScript port of ChucK, first source the [Emscripten](http://emscripten.org/) SDK,
-then enter the src directory and run `make emscripten`.
-
-This will generate a JavaScript library with the help of Emscripten, chuck.js.
+then enter the src directory and run `make emscripten`. This will generate a JavaScript library with the
+help of Emscripten, chuck.js.
