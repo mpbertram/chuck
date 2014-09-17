@@ -15,7 +15,7 @@ var LibraryWebAudio = {
     }
   },
   waudio_initialize: function (callback) {
-    callback = Runtime.getFuncWrapper(callback, 'viii')
+    callback = Runtime.getFuncWrapper(callback, 'viiiii')
     console.log('Initializing Web Audio, callback: ' + callback)
     if (!callback) {
       throw new Error('callback must be provided')
@@ -24,15 +24,31 @@ var LibraryWebAudio = {
     var bufLen = 4096
     WEBAUDIO.scriptProcessor = WEBAUDIO.audioContext.createScriptProcessor(bufLen, 0, 2)
     WEBAUDIO.scriptProcessor.onaudioprocess = function (event) {
-      samplesLeft = event.outputBuffer.getChannelData(0)
-      samplesRight = event.outputBuffer.getChannelData(1)
+      var samplesLeft = event.outputBuffer.getChannelData(0)
+      var samplesRight = event.outputBuffer.getChannelData(1)
+      var numBytes = bufLen * Float32Array.BYTES_PER_ELEMENT
+      // Allocate buffers for the callback to fill
+      var pointerLeft = Module._malloc(numBytes)
+      var pointerRight = Module._malloc(numBytes)
 
       try {
-        callback([], [samplesLeft, samplesRight], bufLen)
+        try {
+          callback(0, 0, pointerLeft, pointerRight, bufLen)
+        }
+        catch (err) {
+          console.error('Exception caught in audio callback: ' + err)
+          // TODO: Terminate processing
+        }
+
+        var i, shiftage = Float32Array.BYTES_PER_ELEMENT / 2
+        for (i = 0; i < bufLen; ++i) {
+          samplesLeft[i] = HEAPF32[(pointerLeft >> shiftage) + i]
+          samplesRight[i] = HEAPF32[(pointerRight >> shiftage) + i]
+        }
       }
-      catch (err) {
-        console.error('Exception caught in audio callback: ' + err)
-        // TODO: Terminate processing
+      finally {
+        Module._free(pointerLeft)
+        Module._free(pointerRight)
       }
     }
 

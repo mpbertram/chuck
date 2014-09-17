@@ -36,8 +36,8 @@
 #include <limits.h>
 
 extern "C" {
-    BOOL__ waudio_initialize(void (*callback)(float **, float **, unsigned
-      long));
+    BOOL__ waudio_initialize(void (*callback)(float*, float*, float*, float*, unsigned
+        long));
     BOOL__ waudio_start();
     BOOL__ waudio_stop();
     BOOL__ waudio_shutdown();
@@ -46,19 +46,14 @@ extern "C" {
 namespace {
 /** Callback to Web Audio library.
 */
-extern "C" void callback(float** input, float** output, unsigned long buffer_size)
+extern "C" void callback(float* input_left, float* input_right, float* output_left,
+    float* output_right, unsigned long buffer_size)
 {
     // EM_log(CK_LOG_FINE, "Audio callback invoked for %d samples", buffer_size);
-    // for (t_CKINT i = 0; i < Digitalio::m_num_channels_out; ++i)
-    // {
-    //     Digitalio::m_samples[i] = output[i];
-    // }
+    Digitalio::m_samples_left = output_left;
+    Digitalio::m_samples_right = output_right;
+    Digitalio::m_out_pos = 0;
     Digitalio::m_vm->run(buffer_size);
-
-    for (t_CKINT i = 0; i < buffer_size; ++i) {
-        output[0][i] = rand() / (float)RAND_MAX;
-        output[1][i] = rand() / (float)RAND_MAX;
-    }
 }
 }
 
@@ -72,7 +67,8 @@ DWORD__ Digitalio::m_sampling_rate = SAMPLING_RATE_DEFAULT;
 DWORD__ Digitalio::m_bps = BITS_PER_SAMPLE_DEFAULT;
 DWORD__ Digitalio::m_buffer_size = BUFFER_SIZE_DEFAULT;
 DWORD__ Digitalio::m_num_buffers = NUM_BUFFERS_DEFAULT;
-float** Digitalio::m_samples = NULL;
+float* Digitalio::m_samples_left = NULL;
+float* Digitalio::m_samples_right = NULL;
 BOOL__ Digitalio::m_out_ready = FALSE;
 BOOL__ Digitalio::m_in_ready = FALSE;
 BOOL__ Digitalio::m_use_cb = USE_CB_DEFAULT;
@@ -114,7 +110,6 @@ BOOL__ Digitalio::initialize( DWORD__ num_dac_channels,
                               void*, void*, BOOL__ force_srate )
 {
     Digitalio::m_vm = vm_ref;
-    Digitalio::m_samples = new float*[num_dac_channels];
     Digitalio::m_num_channels_out = num_dac_channels;
     return waudio_initialize(&callback);
 }
@@ -144,7 +139,6 @@ BOOL__ Digitalio::stop( )
 void Digitalio::shutdown()
 {
     waudio_shutdown();
-    delete Digitalio::m_samples;
 }
 
 //-----------------------------------------------------------------------------
@@ -211,8 +205,6 @@ void DigitalOut::cleanup()
 //-----------------------------------------------------------------------------
 BOOL__ DigitalOut::tick_out( SAMPLE sample )
 {
-    if( !prepare_tick_out() )
-        return FALSE;
     return TRUE;
 }
 
@@ -222,9 +214,6 @@ BOOL__ DigitalOut::tick_out( SAMPLE sample )
 //-----------------------------------------------------------------------------
 BOOL__ DigitalOut::tick_out( SAMPLE sample_l, SAMPLE sample_r )
 {
-    if( !prepare_tick_out() )
-        return FALSE;
-
     return TRUE;
 }
 
@@ -234,18 +223,9 @@ BOOL__ DigitalOut::tick_out( SAMPLE sample_l, SAMPLE sample_r )
 //-----------------------------------------------------------------------------
 BOOL__ DigitalOut::tick_out( const SAMPLE * samples, DWORD__ n )
 {
-    if( !prepare_tick_out() )
-        return FALSE;
-
-    return TRUE;
-}
-
-//-----------------------------------------------------------------------------
-// name: prepare_tick_out()
-// desc: data ptr ok
-//-----------------------------------------------------------------------------
-inline BOOL__ DigitalOut::prepare_tick_out()
-{
+    Digitalio::m_samples_left[Digitalio::m_out_pos] = samples[0];
+    Digitalio::m_samples_right[Digitalio::m_out_pos] = samples[1];
+    ++Digitalio::m_out_pos;
     return TRUE;
 }
 
