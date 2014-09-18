@@ -134,16 +134,6 @@ extern "C" {
 
 The purpose of this function is to play back a piece of code, starting
 the audio engine before execution starts and shutting it down after.
-
-Algorithm:
-1. Parse source code
-2. Perform initial computation
-3. Start audio engine
-4. In audio callback, produce audio output
-4.1 If stopping, stop audio engine
-4.2 For each frame:
-4.2.1 If VM should be awoken, execute VM
-4.2.2 Tick DAC, to produce audio
 */
 void executeCode(const char* fileName, const char* code)
 {

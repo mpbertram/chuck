@@ -23,10 +23,8 @@
           if (args.length > 0) {
             console.debug("With arguments:", args);
           }
-          chuckExecute(code, args)
-              .done(function () {
-                console.log("The program finished playing");
-              });
+          Module.ccall('executeCode', null, ['string', 'string'],
+            ['{{= it.document.title}}', code])
         });
     });
   </script>
