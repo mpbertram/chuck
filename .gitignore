@@ -13,3 +13,7 @@ src/chuck.yy.c
 .DS_Store
 
 *.xcodeproj/
+
+node_modules/
+js/examples/
+js/pages/*.js
