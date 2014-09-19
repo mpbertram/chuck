@@ -80,7 +80,11 @@ var LibraryWebAudio = {
   },
   // Not implemented in Emscripten yet
   srandom: function (seed) {
-  }
+    _srand(seed)
+  },
+  random: function () {
+    return _rand()
+  },
 }
 
 autoAddDeps(LibraryWebAudio, '$WEBAUDIO')

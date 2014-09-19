@@ -26,10 +26,6 @@ module.exports = function (grunt) {
               '**/*.js', '**/*.css'
             ]
           },
-          {
-            expand: true, cwd: '../src', dest: 'examples/js',
-            src: ['chuck.js']
-          },
         ]
       }
     },
