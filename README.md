@@ -20,3 +20,12 @@ enabled browser, and you should hear a short sine tone.
 To build the JavaScript port of ChucK, first source the [Emscripten](http://emscripten.org/) SDK,
 then enter the src directory and run `make emscripten`. This will generate a JavaScript library with the
 help of Emscripten, chuck.js.
+
+### JavaScript Demos
+To build the JavaScript demo HTML pages, first make sure you have [NPM](https://www.npmjs.org/) installed.
+Also, install grunt (`npm install -g grunt-cli`) if you don't have it. Then, enter the js directory, and
+if you haven't done so already, run `npm install` to install the JavaScript dependencies.
+
+To build the demo pages, in js/examples/, enter the js/ directory and execute `grunt`. This'll build a
+number of standalone HTML pages in the js/examples/ directory, each of which you can open to see/hear a
+certain demo of ChucK.
