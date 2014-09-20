@@ -139,7 +139,6 @@ void executeCode(const char* fileName, const char* code)
 {
     Chuck_Compiler *compiler = NULL;
     Chuck_VM *vm = NULL;
-    Chuck_VM_Shred *shred = NULL;
 
     t_CKBOOL vm_halt = TRUE;
     t_CKUINT srate = SAMPLING_RATE_DEFAULT;
@@ -151,10 +150,8 @@ void executeCode(const char* fileName, const char* code)
     t_CKUINT dac_chans = 2;
     t_CKUINT adc_chans = 2;
     t_CKBOOL dump = FALSE;
-    t_CKBOOL set_priority = FALSE;
     t_CKBOOL auto_depend = FALSE;
     t_CKBOOL block = FALSE;
-    t_CKBOOL no_vm = FALSE;
     t_CKINT adaptive_size = 0;
     t_CKINT log_level = CK_LOG_FINE;
     t_CKINT deprecate_level = 1; // 1 == warn
@@ -181,9 +178,7 @@ void executeCode(const char* fileName, const char* code)
     // list of individually named chug-ins (added 1.3.0.0)
     std::list <std::string> named_dls;
 
-    t_CKUINT files = 0;
     t_CKUINT count = 1;
-    t_CKINT i;
 
     // set log level
     EM_setlog(log_level);
