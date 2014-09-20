@@ -3446,7 +3446,6 @@ void Chuck_Instr_Func_Call_Member::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
         // make copies
         t_CKUINT * reg_sp2 = reg_sp;
         t_CKUINT * mem_sp2 = mem_sp;
-        EM_log(CK_LOG_FINE, "mem_sp2: %d, mem_sp: %d", mem_sp2, mem_sp);
 
         // need this
         if( func->need_this )
@@ -3454,7 +3453,6 @@ void Chuck_Instr_Func_Call_Member::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
             EM_log(CK_LOG_FINE, "Function requires 'this' pointer (%d)", *(reg_sp2 + stack_depth - 1));
             // copy this from end of arguments to the front
             *mem_sp2++ = *(reg_sp2 + stack_depth - 1);
-            EM_log(CK_LOG_FINE, "mem_sp2: %d, mem_sp: %d", mem_sp2, mem_sp);
             // one less word to copy
             stack_depth--;
         }
@@ -3463,12 +3461,13 @@ void Chuck_Instr_Func_Call_Member::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
         for( t_CKUINT i = 0; i < stack_depth; i++ )
         {
             *mem_sp2++ = *reg_sp2++;
-            EM_log(CK_LOG_FINE, "mem_sp2: %d, mem_sp: %d", mem_sp2, mem_sp);
         }
         // REMOVE ME
-        EM_log(CK_LOG_FINE, "mem_sp2: %d, mem_sp: %d", mem_sp2, mem_sp+3);
-//        assert(mem_sp2 == mem_sp+3);
-        assert(GET_CK_FLOAT(mem_sp+1) == 440.0);
+        if( func->native_func_type != Chuck_VM_Code::NATIVE_CTOR )
+        {
+            EM_log(CK_LOG_FINE, "Freq is now %f", GET_CK_FLOAT(mem_sp+1));
+            assert(GET_CK_FLOAT(mem_sp+1) == 440.0);
+        }
     }
 
     // detect overflow/underflow
