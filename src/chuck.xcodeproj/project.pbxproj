@@ -414,6 +414,7 @@
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		74C2BADD19CD9A4900606D45 /* digiio_webaudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = digiio_webaudio.cpp; sourceTree = "<group>"; };
 		74C2BADF19CD9A6700606D45 /* digiio_webaudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = digiio_webaudio.h; sourceTree = "<group>"; };
+		74C2BAE019CD9DE800606D45 /* chuck_logpusher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = chuck_logpusher.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -812,6 +813,7 @@
 				090B4B1A0C4F038E00DF5577 /* uana_xform.cpp */,
 				090B4B1B0C4F038E00DF5577 /* uana_xform.h */,
 				098061AD0AA15BDB00915136 /* chuck_main.cpp */,
+				74C2BAE019CD9DE800606D45 /* chuck_logpusher.h */,
 				09A40B060A9A54DA007604EA /* chuck_absyn.cpp */,
 				09A40B070A9A54DA007604EA /* chuck_absyn.h */,
 				09A40B080A9A54DA007604EA /* chuck_bbq.cpp */,

@@ -34,6 +34,7 @@
 #include "chuck_vm.h"
 #include "chuck_errmsg.h"
 #include "chuck_instr.h"
+#include "chuck_logpusher.h"
 
 using namespace std;
 
@@ -360,6 +361,8 @@ t_CKBOOL emit_engine_emit_stmt( Chuck_Emitter * emit, a_Stmt stmt, t_CKBOOL pop 
     switch( stmt->s_type )
     {
         case ae_stmt_exp:  // expression statement
+            EM_log(CK_LOG_FINE, "Emitting statement expression");
+            EM_pushlog();
             // emit it
             ret = emit_engine_emit_exp( emit, stmt->stmt_exp );
             if( !ret )
@@ -403,6 +406,7 @@ t_CKBOOL emit_engine_emit_stmt( Chuck_Emitter * emit, a_Stmt stmt, t_CKBOOL pop 
                     exp = exp->next;
                 }
             }
+            EM_poplog();
             break;
 
         case ae_stmt_if:  // if statement
@@ -1392,14 +1396,14 @@ t_CKBOOL emit_engine_emit_exp( Chuck_Emitter * emit, a_Exp exp, t_CKBOOL doAddRe
 }
 
 
-
-
 //-----------------------------------------------------------------------------
 // name: emit_engine_emit_exp_binary()
 // desc: ...
 //-----------------------------------------------------------------------------
 t_CKBOOL emit_engine_emit_exp_binary( Chuck_Emitter * emit, a_Exp_Binary binary )
 {
+    EM_log(CK_LOG_FINE, "Emitting binary expression");
+    LogPusher logPusher;
     // sanity
     assert( binary->self->emit_var == FALSE );
 
@@ -1480,7 +1484,9 @@ t_CKBOOL emit_engine_emit_exp_binary( Chuck_Emitter * emit, a_Exp_Binary binary 
     }
 
     // emit (doRef added 1.3.0.2)
+    EM_log(CK_LOG_FINE, "Emitting LHS");
     left = emit_engine_emit_exp( emit, binary->lhs, doRef );
+    EM_log(CK_LOG_FINE, "Emitting RHS");
     right = emit_engine_emit_exp( emit, binary->rhs );
 
     // check
@@ -1488,6 +1494,7 @@ t_CKBOOL emit_engine_emit_exp_binary( Chuck_Emitter * emit, a_Exp_Binary binary 
         return FALSE;
 
     // emit the op
+    EM_log(CK_LOG_FINE, "Emitting operator");
     if( !emit_engine_emit_op( emit, binary->op, binary->lhs, binary->rhs, binary ) )
         return FALSE;
 
@@ -2266,6 +2273,8 @@ t_CKBOOL emit_engine_emit_op( Chuck_Emitter * emit, ae_Operator op, a_Exp lhs, a
 //-----------------------------------------------------------------------------
 t_CKBOOL emit_engine_emit_op_chuck( Chuck_Emitter * emit, a_Exp lhs, a_Exp rhs, a_Exp_Binary binary )
 {
+    EM_log(CK_LOG_FINE, "Emitting chuck operator");
+    LogPusher logPusher;
     // any implicit cast happens before this
     Chuck_Type * left = lhs->cast_to ? lhs->cast_to : lhs->type;
     Chuck_Type * right = rhs->cast_to ? rhs->cast_to : rhs->type;
@@ -2345,6 +2354,7 @@ t_CKBOOL emit_engine_emit_op_chuck( Chuck_Emitter * emit, a_Exp lhs, a_Exp rhs, 
         assert( binary->ck_func != NULL );
         
         // emit
+        EM_log(CK_LOG_FINE, "It's a function call");
         return emit_engine_emit_exp_func_call( emit, binary->ck_func, binary->self->type, binary->linepos );
     }
 
@@ -2519,6 +2529,8 @@ t_CKBOOL emit_engine_emit_op_at_chuck( Chuck_Emitter * emit, a_Exp lhs, a_Exp rh
 //-----------------------------------------------------------------------------
 t_CKBOOL emit_engine_emit_exp_unary( Chuck_Emitter * emit, a_Exp_Unary unary )
 {
+    EM_log(CK_LOG_FINE, "Emitting unary expression");
+    LogPusher logPusher;
     if( unary->op != ae_op_spork && !emit_engine_emit_exp( emit, unary->exp ) )
         return FALSE;
 
@@ -2663,6 +2675,8 @@ t_CKBOOL emit_engine_emit_exp_unary( Chuck_Emitter * emit, a_Exp_Unary unary )
 //-----------------------------------------------------------------------------
 t_CKBOOL emit_engine_emit_exp_primary( Chuck_Emitter * emit, a_Exp_Primary exp )
 {
+    EM_log(CK_LOG_FINE, "Emitting primary expression");
+    LogPusher logPusher;
     t_CKUINT temp;
     t_CKDUR dur;
     Chuck_String * str = NULL;
@@ -2965,6 +2979,9 @@ t_CKBOOL emit_engine_emit_cast( Chuck_Emitter * emit,
 //-----------------------------------------------------------------------------
 t_CKBOOL emit_engine_emit_exp_postfix( Chuck_Emitter * emit, a_Exp_Postfix postfix )
 {
+    EM_log(CK_LOG_FINE, "Emitting postfix expression");
+    LogPusher logPusher;
+    
     // emit the exp
     if( !emit_engine_emit_exp( emit, postfix->exp ) )
         return FALSE;
@@ -3015,6 +3032,8 @@ t_CKBOOL emit_engine_emit_exp_postfix( Chuck_Emitter * emit, a_Exp_Postfix postf
 //-----------------------------------------------------------------------------
 t_CKBOOL emit_engine_emit_exp_dur( Chuck_Emitter * emit, a_Exp_Dur dur )
 {
+    EM_log(CK_LOG_FINE, "Emitting dur expression");
+    LogPusher logPusher;
     // emit base
     if( !emit_engine_emit_exp( emit, dur->base ) )
         return FALSE;
@@ -3042,6 +3061,8 @@ t_CKBOOL emit_engine_emit_exp_dur( Chuck_Emitter * emit, a_Exp_Dur dur )
 //-----------------------------------------------------------------------------
 t_CKBOOL emit_engine_emit_exp_array( Chuck_Emitter * emit, a_Exp_Array array )
 {
+    EM_log(CK_LOG_FINE, "Emitting array expression");
+    LogPusher logPusher;
     Chuck_Type * type = NULL, * base_type = NULL;
     t_CKUINT depth = 0;
     a_Array_Sub sub = NULL;
@@ -3148,6 +3169,15 @@ t_CKBOOL emit_engine_emit_exp_func_call( Chuck_Emitter * emit,
 {
     // is a member?
     t_CKBOOL is_member = func->is_member;
+    if (is_member)
+    {
+        EM_log(CK_LOG_FINE, "Emitting method call for '%s'", func->name.c_str());
+    }
+    else
+    {
+        EM_log(CK_LOG_FINE, "Emitting function call for '%s'", func->name.c_str());
+    }
+    LogPusher logPusher;
 
     // if member
     //if( is_member )
@@ -3157,9 +3187,12 @@ t_CKBOOL emit_engine_emit_exp_func_call( Chuck_Emitter * emit,
     //}
 
     // translate to code
+    EM_log(CK_LOG_FINE, "Emitting func_to_code");
     emit->append( new Chuck_Instr_Func_To_Code );
     // emit->append( new Chuck_Instr_Reg_Push_Imm( (t_CKUINT)func->code ) );
     // push the local stack depth - local variables
+    EM_log(CK_LOG_FINE, "Emitting reg_push_imm for function's local stack depth (%d)",
+           emit->code->frame->curr_offset);
     emit->append( new Chuck_Instr_Reg_Push_Imm( emit->code->frame->curr_offset ) );
 
     // TODO: member functions and static functions
@@ -3173,9 +3206,15 @@ t_CKBOOL emit_engine_emit_exp_func_call( Chuck_Emitter * emit,
         {
             // is member (1.3.1.0: changed to use kind instead of size)
             if( is_member )
+            {
+                EM_log(CK_LOG_FINE, "Emitting func_call_member");
                 emit->append( new Chuck_Instr_Func_Call_Member( kind ) );
+            }
             else
+            {
+                EM_log(CK_LOG_FINE, "Emitting func_call_static");
                 emit->append( new Chuck_Instr_Func_Call_Static( kind ) );
+            }
         }
         else
         {
@@ -3187,6 +3226,7 @@ t_CKBOOL emit_engine_emit_exp_func_call( Chuck_Emitter * emit,
     }
     else
     {
+        EM_log(CK_LOG_FINE, "Emitting func_call");
         emit->append( new Chuck_Instr_Func_Call );
     }
 
@@ -3225,6 +3265,8 @@ t_CKBOOL emit_engine_emit_exp_func_call( Chuck_Emitter * emit,
                                          a_Exp_Func_Call func_call,
                                          t_CKBOOL spork )
 {
+    EM_log(CK_LOG_FINE, "Emitting func_call expression");
+    LogPusher logPusher;
     // note: spork situations are now taken care in exp_spork...
     // please look at that one before modifying this one!
 
@@ -3258,6 +3300,8 @@ t_CKBOOL emit_engine_emit_exp_func_call( Chuck_Emitter * emit,
 t_CKBOOL emit_engine_emit_exp_dot_member( Chuck_Emitter * emit,
                                           a_Exp_Dot_Member member )
 {
+    EM_log(CK_LOG_FINE, "Emitting dot_member expression");
+    LogPusher logPusher;
     // the type of the base
     Chuck_Type * t_base = NULL;
     // whether to emit addr or value
@@ -3466,6 +3510,8 @@ t_CKBOOL emit_engine_emit_exp_dot_member( Chuck_Emitter * emit,
 //-----------------------------------------------------------------------------
 t_CKBOOL emit_engine_emit_exp_if( Chuck_Emitter * emit, a_Exp_If exp_if )
 {
+    EM_log(CK_LOG_FINE, "Emitting if expression");
+    LogPusher logPusher;
     t_CKBOOL ret = TRUE;
     Chuck_Instr_Branch_Op * op = NULL, * op2 = NULL;
 
@@ -3634,6 +3680,8 @@ t_CKBOOL emit_engine_instantiate_object( Chuck_Emitter * emit, Chuck_Type * type
 t_CKBOOL emit_engine_emit_exp_decl( Chuck_Emitter * emit, a_Exp_Decl decl,
                                     t_CKBOOL first_exp )
 {
+    EM_log(CK_LOG_FINE, "Emitting decl expression");
+    LogPusher logPusher;
     a_Var_Decl_List list = decl->var_decl_list;
     a_Var_Decl var_decl = NULL;
     Chuck_Value * value = NULL;

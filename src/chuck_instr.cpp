@@ -3472,6 +3472,7 @@ void Chuck_Instr_Func_Call_Member::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
         // cast to right type
         f_ctor f = (f_ctor)func->native_func;
         // call (added 1.3.0.0 -- Chuck_DL_Api::Api::instance())
+        EM_log(CK_LOG_FINE, "Calling constructor");
         f( (Chuck_Object *)(*mem_sp), mem_sp + 1, shred, Chuck_DL_Api::Api::instance() );
     }
     else
@@ -3479,6 +3480,7 @@ void Chuck_Instr_Func_Call_Member::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
         // cast to right type
         f_mfun f = (f_mfun)func->native_func;
         // call the function (added 1.3.0.0 -- Chuck_DL_Api::Api::instance())
+        EM_log(CK_LOG_FINE, "Calling function");
         f( (Chuck_Object *)(*mem_sp), mem_sp + 1, &retval, shred, Chuck_DL_Api::Api::instance() );
     }
     // pop (TODO: check if this is right)
