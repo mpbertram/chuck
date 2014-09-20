@@ -3920,7 +3920,7 @@ t_CKBOOL type_engine_check_func_def( Chuck_Env * env, a_Func_Def f )
         // set the stack depth?
         func->code->stack_depth = f->stack_depth;
         // if member add room for this
-        // done: if( func->is_member ) func->code->stack_depth += sizeof(t_CKUINT);
+        // done: if( func->is_member ) func->code->stack_depth += sz_DWORD;
     }
 
     // pop the value stack
@@ -4757,7 +4757,7 @@ Chuck_Type * type_engine_import_class_begin( Chuck_Env * env, Chuck_Type * type,
         // specify that we need this
         type->info->pre_ctor->need_this = TRUE;
         // no arguments to preconstructor other than self
-        type->info->pre_ctor->stack_depth = sizeof(t_CKUINT);
+        type->info->pre_ctor->stack_depth = sz_DWORD;
     }
 
     // if destructor
@@ -4774,7 +4774,7 @@ Chuck_Type * type_engine_import_class_begin( Chuck_Env * env, Chuck_Type * type,
         // specify that we need this
         type->info->dtor->need_this = TRUE;
         // no arguments to destructor other than self
-        type->info->dtor->stack_depth = sizeof(t_CKUINT);
+        type->info->dtor->stack_depth = sz_DWORD;
     }
 
     // set the beginning of the data segment after parent

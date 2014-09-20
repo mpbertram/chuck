@@ -2566,7 +2566,7 @@ t_CKBOOL type_engine_scan2_func_def( Chuck_Env * env, a_Func_Def f )
     // count
     count = 1;
     // make room for 'this'
-    f->stack_depth = func->is_member ? sizeof(void *) : 0;
+    f->stack_depth = func->is_member ? sz_DWORD : 0;
     // loop over arguments
     while( arg_list )
     {
@@ -2658,7 +2658,7 @@ t_CKBOOL type_engine_scan2_func_def( Chuck_Env * env, a_Func_Def f )
 
         // stack
         v->offset = f->stack_depth;
-        f->stack_depth += arg_list->type->size;
+        f->stack_depth += sz_DWORD;
 
         // remember
         arg_list->var_decl->value = v;

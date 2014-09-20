@@ -1831,7 +1831,9 @@ t_CKBOOL Chuck_VM_Shred::run( Chuck_VM * vm )
         // execute the instruction
         EM_log(CK_LOG_FINE, "Shred executing instruction %s: %d, %d, %d", instr[pc]->name(),
             *vm_running, is_running, is_abort);
+        EM_pushlog();
         instr[pc]->execute( vm, this );
+        EM_poplog();
 
         CK_VM_DEBUG(fprintf(stderr, "CK_VM_DEBUG mem sp in: 0x%08lx out: 0x%08lx\n",
                             (unsigned long) t_mem_sp, (unsigned long) this->mem->sp));

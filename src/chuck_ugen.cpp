@@ -39,6 +39,8 @@
 #include "chuck_vm.h"
 #include "chuck_lang.h"
 #include "chuck_errmsg.h"
+#include "chuck_logpusher.h"
+
 using namespace std;
 
 
@@ -401,12 +403,15 @@ Chuck_UGen *Chuck_UGen::dst_for_src_chan( t_CKUINT chan )
 //-----------------------------------------------------------------------------
 t_CKBOOL Chuck_UGen::add( Chuck_UGen * src, t_CKBOOL isUpChuck )
 {
+    EM_log(CK_LOG_FINE, "Adding UGen '%s' to UGen '%s'", src->type_ref->name.c_str(), this->type_ref->name.c_str());
+    LogPusher logPusher;
     // spencer 2012: chubgraph handling (added 1.3.0.0)
     if( m_is_subgraph )
     {
         // sanity check
         assert( inlet() != NULL );
         // add src to this inlet
+        EM_log(CK_LOG_FINE, "Destination is subgraph, calling add on its inlet");
         return inlet()->add( src, isUpChuck );
     }
     else if( src->m_is_subgraph ) // (added 1.3.0.0)
@@ -414,6 +419,7 @@ t_CKBOOL Chuck_UGen::add( Chuck_UGen * src, t_CKBOOL isUpChuck )
         // sanity check
         assert( src->outlet() != NULL );
         // call add on the src's outlet instead
+        EM_log(CK_LOG_FINE, "Source is subgraph, calling add on its outlet");
         return add( src->outlet(), isUpChuck );
     }
     

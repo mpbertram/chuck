@@ -16,7 +16,7 @@ var LibraryWebAudio = {
   },
   waudio_initialize: function (callback) {
     callback = Runtime.getFuncWrapper(callback, 'viiiii')
-    console.log('Initializing Web Audio, callback: ' + callback)
+    console.log('Initializing Web Audio')
     if (!callback) {
       throw new Error('callback must be provided')
     }

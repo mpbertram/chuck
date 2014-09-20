@@ -1437,7 +1437,7 @@ done:
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Reg_Push_Imm::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // push val into reg stack
     EM_log(CK_LOG_FINE, "Pushing value %d onto regular stack", m_val);
@@ -1485,7 +1485,7 @@ void Chuck_Instr_Reg_Push_Imm4::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Reg_Dup_Last::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // dup val into reg stack
     EM_log(CK_LOG_FINE, "Pushing copy of stack top to regular stack");
@@ -1625,11 +1625,11 @@ void Chuck_Instr_Reg_Push_Deref2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred
 void Chuck_Instr_Reg_Push_Mem::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKBYTE *& mem_sp = (t_CKBYTE *&)(base?shred->base_ref->stack:shred->mem->sp);
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // push mem stack content into reg stack
-    EM_log(CK_LOG_FINE, "Pushing %d onto regular stack", *((t_CKUINT *)(mem_sp + m_val)));
-    push_( reg_sp, *((t_CKUINT *)(mem_sp + m_val)) );
+    EM_log(CK_LOG_FINE, "Pushing %d onto regular stack", *((t_CKDWORD *)(mem_sp + m_val)));
+    push_( reg_sp, *((t_CKDWORD *)(mem_sp + m_val)) );
 }
 
 
@@ -1642,10 +1642,10 @@ void Chuck_Instr_Reg_Push_Mem::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 void Chuck_Instr_Reg_Push_Mem2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKBYTE *& mem_sp = (t_CKBYTE *&)(base?shred->base_ref->stack:shred->mem->sp);
-    t_CKFLOAT *& reg_sp = (t_CKFLOAT *&)shred->reg->sp;
+    t_CKDOUBLE *& reg_sp = (t_CKDOUBLE *&)shred->reg->sp;
 
     // push mem stack content into reg stack
-    push_( reg_sp, *((t_CKFLOAT *)(mem_sp + m_val)) );
+    push_( reg_sp, *((t_CKDOUBLE *)(mem_sp + m_val)) );
 }
 
 
@@ -1674,10 +1674,10 @@ void Chuck_Instr_Reg_Push_Mem4::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 void Chuck_Instr_Reg_Push_Mem_Addr::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKBYTE *& mem_sp = (t_CKBYTE *&)(base?shred->base_ref->stack:shred->mem->sp);
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // push mem stack addr into reg stack
-    push_( reg_sp, (t_CKUINT)(mem_sp + m_val) );
+    push_( reg_sp, (t_CKDWORD)(mem_sp + m_val) );
 }
 
 
@@ -1690,12 +1690,12 @@ void Chuck_Instr_Reg_Push_Mem_Addr::execute( Chuck_VM * vm, Chuck_VM_Shred * shr
 void Chuck_Instr_Reg_Pop_Mem::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKBYTE *& mem_sp = (t_CKBYTE *&)shred->mem->sp;
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // pop word from reg stack
     pop_( reg_sp, 2 );
     // copy popped value into mem stack
-    *((t_CKUINT *)(mem_sp + *(reg_sp+1) )) = *reg_sp;
+    *((t_CKDWORD *)(mem_sp + *(reg_sp+1) )) = *reg_sp;
 }
 
 
@@ -1707,7 +1707,7 @@ void Chuck_Instr_Reg_Pop_Mem::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Reg_Pop_Word::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // pop word from reg stack
     pop_( reg_sp, 1 );
@@ -1722,7 +1722,7 @@ void Chuck_Instr_Reg_Pop_Word::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Reg_Pop_Word2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& reg_sp = (t_CKFLOAT *&)shred->reg->sp;
+    t_CKDOUBLE *& reg_sp = (t_CKDOUBLE *&)shred->reg->sp;
 
     // pop word from reg stack
     pop_( reg_sp, 1 );
@@ -1754,8 +1754,8 @@ void Chuck_Instr_Reg_Pop_Word4::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKBYTE *& reg_sp = (t_CKBYTE *&)shred->reg->sp;
 
-    // pop word from reg stack (changed 1.3.1.0 to use sz_WORD)
-    pop_( reg_sp, m_val * sz_WORD );
+    // pop dword from reg stack
+    pop_( reg_sp, m_val * sz_DWORD );
 }
 
 
@@ -1770,7 +1770,7 @@ void Chuck_Instr_Reg_Pop_Word4::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Mem_Set_Imm::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT * mem_sp = (t_CKUINT *)(shred->mem->sp + m_offset);
+    t_CKDWORD * mem_sp = (t_CKDWORD *)(shred->mem->sp + m_offset);
 
     // set
     *(mem_sp) = m_val;
@@ -1785,7 +1785,7 @@ void Chuck_Instr_Mem_Set_Imm::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Mem_Set_Imm2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT * mem_sp = (t_CKFLOAT *)(shred->mem->sp + m_offset);
+    t_CKDOUBLE * mem_sp = (t_CKDOUBLE *)(shred->mem->sp + m_offset);
 
     // set
     *(mem_sp) = m_val;
@@ -1800,9 +1800,8 @@ void Chuck_Instr_Mem_Set_Imm2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Mem_Push_Imm::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& mem_sp = (t_CKUINT *&)shred->mem->sp;
+    t_CKDWORD *& mem_sp = (t_CKDWORD *&)shred->mem->sp;
 
-    // pop word from reg stack
     push_( mem_sp, m_val );
 }
 
@@ -1815,7 +1814,7 @@ void Chuck_Instr_Mem_Push_Imm::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Mem_Push_Imm2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& mem_sp = (t_CKFLOAT *&)shred->mem->sp;
+    t_CKDOUBLE *& mem_sp = (t_CKDOUBLE *&)shred->mem->sp;
 
     // pop word from reg stack
     EM_log(CK_LOG_FINE, "Pushing value %f onto memory stack", m_val);
@@ -1831,7 +1830,7 @@ void Chuck_Instr_Mem_Push_Imm2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Mem_Pop_Word::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& mem_sp = (t_CKUINT *&)shred->mem->sp;
+    t_CKDWORD *& mem_sp = (t_CKDWORD *&)shred->mem->sp;
 
     // pop word from reg stack
     pop_( mem_sp, 1 );
@@ -1846,7 +1845,7 @@ void Chuck_Instr_Mem_Pop_Word::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Mem_Pop_Word2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& mem_sp = (t_CKFLOAT *&)shred->mem->sp;
+    t_CKDOUBLE *& mem_sp = (t_CKDOUBLE *&)shred->mem->sp;
 
     // pop word from reg stack
     pop_( mem_sp, 1 );
@@ -1861,7 +1860,7 @@ void Chuck_Instr_Mem_Pop_Word2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Mem_Pop_Word3::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& mem_sp = (t_CKUINT *&)shred->mem->sp;
+    t_CKDWORD *& mem_sp = (t_CKDWORD *&)shred->mem->sp;
 
     // pop word from reg stack
     pop_( mem_sp, m_val );
@@ -2570,12 +2569,13 @@ void Chuck_Instr_EOC::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 void Chuck_Instr_Alloc_Word::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKBYTE *& mem_sp = (t_CKBYTE *&)shred->mem->sp;
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
 
     // zero out the memory stack
-    *( (t_CKUINT *)(mem_sp + m_val) ) = 0;
+    *( (t_CKDWORD *)(mem_sp + m_val) ) = 0;
     // push addr onto operand stack
-    push_( reg_sp, (t_CKUINT)(mem_sp + m_val) );
+    EM_log(CK_LOG_FINE, "Pushing memory stack address %p onto stack", (mem_sp + m_val));
+    push_( reg_sp, (t_CKDWORD)(mem_sp + m_val) );
 }
 
 
@@ -2588,12 +2588,12 @@ void Chuck_Instr_Alloc_Word::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 void Chuck_Instr_Alloc_Word2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKBYTE *& mem_sp = (t_CKBYTE *&)shred->mem->sp;
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // zero out the memory stack
     *( (t_CKFLOAT *)(mem_sp + m_val) ) = 0.0;
     // push addr onto operand stack
-    push_( reg_sp, (t_CKUINT)(mem_sp + m_val) );
+    push_( reg_sp, (t_CKDWORD)(mem_sp + m_val) );
 }
 
 
@@ -2606,13 +2606,13 @@ void Chuck_Instr_Alloc_Word2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 void Chuck_Instr_Alloc_Word4::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKBYTE *& mem_sp = (t_CKBYTE *&)shred->mem->sp;
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // zero out the memory stack
     ( (t_CKCOMPLEX *)(mem_sp + m_val) )->re = 0.0;
     ( (t_CKCOMPLEX *)(mem_sp + m_val) )->im = 0.0;
     // push addr onto operand stack
-    push_( reg_sp, (t_CKUINT)(mem_sp + m_val) );
+    push_( reg_sp, (t_CKDWORD)(mem_sp + m_val) );
 }
 
 
@@ -2624,15 +2624,15 @@ void Chuck_Instr_Alloc_Word4::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Alloc_Member_Word::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& mem_sp = (t_CKUINT *&)shred->mem->sp;
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& mem_sp = (t_CKDWORD *&)shred->mem->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // get the object
     Chuck_Object * obj = (Chuck_Object *)*(mem_sp);
     // zero out the memory stack
-    *( (t_CKUINT *)(obj->data + m_val) ) = 0;
+    *( (t_CKDWORD *)(obj->data + m_val) ) = 0;
     // push addr onto operand stack
-    push_( reg_sp, (t_CKUINT)(obj->data + m_val) );
+    push_( reg_sp, (t_CKDWORD)(obj->data + m_val) );
 }
 
 
@@ -2652,7 +2652,7 @@ void Chuck_Instr_Alloc_Member_Word2::execute( Chuck_VM * vm, Chuck_VM_Shred * sh
     // zero out the memory stack
     *( (t_CKFLOAT *)(obj->data + m_val) ) = 0.0;
     // push addr onto operand stack
-    push_( reg_sp, (t_CKUINT)(obj->data + m_val) );
+    push_( reg_sp, (t_CKDWORD)(obj->data + m_val) );
 }
 
 
@@ -2664,8 +2664,8 @@ void Chuck_Instr_Alloc_Member_Word2::execute( Chuck_VM * vm, Chuck_VM_Shred * sh
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Alloc_Member_Word4::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& mem_sp = (t_CKUINT *&)shred->mem->sp;
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& mem_sp = (t_CKDWORD *&)shred->mem->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // get the object
     Chuck_Object * obj = (Chuck_Object *)*(mem_sp);
@@ -2673,7 +2673,7 @@ void Chuck_Instr_Alloc_Member_Word4::execute( Chuck_VM * vm, Chuck_VM_Shred * sh
     ( (t_CKCOMPLEX *)(obj->data + m_val) )->re = 0.0;
     ( (t_CKCOMPLEX *)(obj->data + m_val) )->im = 0.0;
     // push addr onto operand stack
-    push_( reg_sp, (t_CKUINT)(obj->data + m_val) );
+    push_( reg_sp, (t_CKDWORD)(obj->data + m_val) );
 }
 
 
@@ -2690,7 +2690,7 @@ static Chuck_Instr_Func_Call_Member g_func_call_member( 0 );
 inline void call_pre_constructor( Chuck_VM * vm, Chuck_VM_Shred * shred,
                                   Chuck_VM_Code * pre_ctor, t_CKUINT stack_offset )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // sanity
     assert( pre_ctor != NULL );
@@ -2698,7 +2698,7 @@ inline void call_pre_constructor( Chuck_VM * vm, Chuck_VM_Shred * shred,
     // first duplicate the top of the stack, which should be object pointer
     push_( reg_sp, *(reg_sp-1) );
     // push the pre constructor
-    push_( reg_sp, (t_CKUINT)pre_ctor );
+    push_( reg_sp, (t_CKDWORD)pre_ctor );
     // push the stack offset
     push_( reg_sp, stack_offset );
 
@@ -2730,6 +2730,7 @@ void Chuck_Instr_Pre_Constructor::execute( Chuck_VM * vm, Chuck_VM_Shred * shred
 //-----------------------------------------------------------------------------
 t_CKBOOL initialize_object( Chuck_Object * object, Chuck_Type * type )
 {
+    EM_log(CK_LOG_FINE, "Initializing object of type %s", type->name.c_str());
     // sanity
     assert( type != NULL );
     assert( type->info != NULL );
@@ -2770,6 +2771,8 @@ t_CKBOOL initialize_object( Chuck_Object * object, Chuck_Type * type )
         // allocate multi chan
         ugen->alloc_multi_chan( type->ugen_info->num_ins,
                                 type->ugen_info->num_outs );
+        EM_log(CK_LOG_FINE, "UGen has %d in(s)", ugen->m_num_ins);
+        EM_log(CK_LOG_FINE, "UGen has %d out(s)", ugen->m_num_outs);
         // allocate the channels
         for( t_CKUINT i = 0; i < ugen->m_multi_chan_size; i++ )
         {
@@ -2850,6 +2853,7 @@ Chuck_Object * instantiate_and_initialize_object( Chuck_Type * type, Chuck_VM_Sh
         }
         else
         {
+            EM_log(CK_LOG_FINE, "Instantiating UGen");
             object = ugen = new Chuck_UGen;
             ugen->alloc_v( vm_ref->shreduler()->m_max_block_size );
         }
@@ -2895,14 +2899,14 @@ error:
 inline void instantiate_object( Chuck_VM * vm, Chuck_VM_Shred * shred,
                                 Chuck_Type * type )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // allocate the VM object
     Chuck_Object * object = instantiate_and_initialize_object( type, shred );
     if( !object ) goto error;
 
     // push the pointer on the operand stack
-    push_( reg_sp, (t_CKUINT)object );
+    push_( reg_sp, (t_CKDWORD)object );
 
     // call preconstructor
     // call_pre_constructor( vm, shred, object, type, stack_offset );
@@ -3098,17 +3102,19 @@ void Chuck_Instr_Assign_Primitive4::execute( Chuck_VM * vm, Chuck_VM_Shred * shr
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Assign_Object::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
     Chuck_VM_Object ** obj = NULL, * done = NULL;
 
-    // pop word from reg stack
+    // pop from reg stack
     pop_( reg_sp, 2 );
     // the previous reference
     obj = (Chuck_VM_Object **)(*(reg_sp+1));
+    EM_log(CK_LOG_FINE, "Previous reference: %p", *obj);
     // save the reference (release should come after, in case same object)
     done = *obj;
     // copy popped value into memory
-    *obj = (Chuck_VM_Object *)(*(reg_sp));
+    *obj = (Chuck_VM_Object *)(*reg_sp);
+    EM_log(CK_LOG_FINE, "New reference: %p", *obj);
     // add reference
     if( *obj ) (*obj)->add_ref();
     // release
@@ -3119,7 +3125,7 @@ void Chuck_Instr_Assign_Object::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     // copy
     // memcpy( (void *)*(reg_sp+1), *obj, sizeof(t_CKUINT) );
     // push the reference value to reg stack
-    push_( reg_sp, (t_CKUINT)*obj );
+    push_( reg_sp, (t_CKDWORD)*obj );
 }
 
 
@@ -3311,7 +3317,7 @@ void Chuck_Instr_Release_Object2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred
 void Chuck_Instr_Func_To_Code::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     // ISSUE: 64-bit?
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // get func
     Chuck_Func * func = (Chuck_Func *)*(reg_sp-1);
@@ -3319,7 +3325,7 @@ void Chuck_Instr_Func_To_Code::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     assert( func != NULL );
     // code
     EM_log(CK_LOG_FINE, "Replacing func on top of regular stack with its code: %d", func->code);
-    *(reg_sp-1) = (t_CKUINT)func->code;
+    *(reg_sp-1) = (t_CKDWORD)func->code;
 }
 
 
@@ -3407,45 +3413,48 @@ error_overflow:
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Func_Call_Member::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& mem_sp = (t_CKUINT *&)shred->mem->sp;
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& mem_sp = (t_CKDWORD *&)shred->mem->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
     Chuck_DL_Return retval;
     EM_log(CK_LOG_FINE, "Calling member function");
     EM_pushlog();
 
-    // pop word
+    // pop function/local depth
     pop_( reg_sp, 2 );
     EM_log(CK_LOG_FINE, "Popped function and local depth off regular stack");
     // get the function to be called as code
     Chuck_VM_Code * func = (Chuck_VM_Code *)*reg_sp;
-    EM_log(CK_LOG_FINE, "Function code address: %d", func);
+    EM_log(CK_LOG_FINE, "Function code address: %p", func);
+        EM_log(CK_LOG_FINE, "Function name: %s", func->name.c_str());
+    EM_log(CK_LOG_FINE, "Function stack depth: %d", func->stack_depth);
     // get the function to be called
     // MOVED TO BELOW: f_mfun f = (f_mfun)func->native_func;
     // get the local stack depth - caller local variables
-    t_CKUINT local_depth = *(reg_sp+1);
-    // convert to number of int's (was: 4-byte words), extra partial word counts as additional word
-    local_depth = ( local_depth / sz_INT ) + ( local_depth & 0x3 ? 1 : 0 ); // ISSUE: 64-bit (fixed 1.3.1.0)
+    t_CKDWORD local_depth = *(reg_sp+1);
+    // convert to number of DWORDs (was: 4-byte words), extra partial word counts as additional word
+    // TODO: Make sure local depth is represented in terms of DWORDs instead of integer
+    local_depth = ( local_depth / sz_INT) + ( local_depth & 0x3 ? 1 : 0 ); // ISSUE: 64-bit (fixed 1.3.1.0)
     EM_log(CK_LOG_FINE, "Local stack depth (as integers): %d", local_depth);
     // get the stack depth of the callee function args
-    t_CKUINT stack_depth = ( func->stack_depth / sz_INT ) + ( func->stack_depth & 0x3 ? 1 : 0 ); // ISSUE: 64-bit (fixed 1.3.1.0)
+    t_CKDWORD stack_depth = ( func->stack_depth / sz_DWORD ) + ( func->stack_depth & 0x3 ? 1 : 0 ); // ISSUE: 64-bit (fixed 1.3.1.0)
     // UNUSED: get the previous stack depth - caller function args
-    // UNUSED: t_CKUINT prev_stack = ( *(mem_sp-1) >> 2 ) + ( *(mem_sp-1) & 0x3 ? 1 : 0 );
+    // UNUSED: t_CKDWORD prev_stack = ( *(mem_sp-1) >> 2 ) + ( *(mem_sp-1) & 0x3 ? 1 : 0 );
     // the amount to push in 4-byte words
-    t_CKUINT push = local_depth;
+    t_CKDWORD push = local_depth;
     // push the mem stack past the current function variables and arguments
     mem_sp += push;
 
-    EM_log(CK_LOG_FINE, "Stack depth of function args (as integers): %d", stack_depth);
+    EM_log(CK_LOG_FINE, "Stack depth of function args (as DWORDs): %d", stack_depth);
     // pass args
     if( stack_depth )
     {
         // pop the arguments for pass to callee function
         reg_sp -= stack_depth;
-        EM_log(CK_LOG_FINE, "Popped %d integers off regular stack", stack_depth);
+        EM_log(CK_LOG_FINE, "Popped %d argument(s) off regular stack", stack_depth);
 
         // make copies
-        t_CKUINT * reg_sp2 = reg_sp;
-        t_CKUINT * mem_sp2 = mem_sp;
+        t_CKDWORD * reg_sp2 = reg_sp;
+        t_CKDWORD * mem_sp2 = mem_sp;
 
         // need this
         if( func->need_this )
@@ -3503,7 +3512,7 @@ void Chuck_Instr_Func_Call_Member::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
     else if( m_val == kindof_FLOAT ) // ISSUE: 64-bit (fixed 1.3.1.0)
     {
         // push the return args
-        t_CKFLOAT *& sp_double = (t_CKFLOAT *&)reg_sp;
+        t_CKDOUBLE *& sp_double = (t_CKDOUBLE *&)reg_sp;
         push_( sp_double, retval.v_float );
     }
     else if( m_val == kindof_COMPLEX ) // ISSUE: 64-bit (fixed 1.3.1.0)
@@ -4778,7 +4787,7 @@ error:
 void Chuck_Instr_Dot_Member_Func::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     // register stack pointer
-    t_CKUINT *& sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& sp = (t_CKDWORD *&)shred->reg->sp;
     // the pointer
     t_CKUINT data;
 
@@ -5002,10 +5011,10 @@ void Chuck_Instr_Cast_double2int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Cast_int2double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
-    t_CKFLOAT *& sp_double = (t_CKFLOAT *&)sp;
+    t_CKDWORD *& sp = (t_CKDWORD *&)shred->reg->sp;
+    t_CKDOUBLE *& sp_double = (t_CKDOUBLE *&)sp;
     pop_( sp, 1 );
-    push_( sp_double, (t_CKFLOAT)(*sp) );
+    push_( sp_double, (t_CKDOUBLE)(*sp) );
 }
 
 
@@ -5300,16 +5309,21 @@ Chuck_Instr_UGen_Link::Chuck_Instr_UGen_Link( t_CKBOOL isUpChuck )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_UGen_Link::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    Chuck_UGen **& sp = (Chuck_UGen **&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
 
     // pop
     pop_( sp, 2 );
+    Chuck_UGen* lhs = (Chuck_UGen*)*sp;
+    Chuck_UGen* rhs = (Chuck_UGen*)*(sp+1);
     // check for null
-    if( !*(sp+1) || !(*sp) ) goto null_pointer;
+    if (!lhs || !rhs) goto null_pointer;
     // go for it
-    (*(sp + 1))->add( *sp, m_isUpChuck );
+    EM_log(CK_LOG_FINE, "Adding them");
+    EM_log(CK_LOG_FINE, "RHS (type '%s') has %d in(s)", rhs->type_ref->name.c_str(), rhs->m_num_ins);
+    EM_log(CK_LOG_FINE, "LHS (type '%s') has %d out(s)", lhs->type_ref->name.c_str(), lhs->m_num_outs);
+    rhs->add(lhs, m_isUpChuck);
     // push the second
-    push_( sp, *(sp + 1) );
+    push_(sp, *(sp + 1));
 
     return;
 

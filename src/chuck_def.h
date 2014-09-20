@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <assert.h>
+#include <stdint.h>
 
 
 // types
@@ -50,6 +51,7 @@
 #define t_CKBYTE                    unsigned char
 #define t_CKVOID                    void
 #define t_CKVOIDPTR                 void *
+#define t_CKDWORD                   uint64_t
 
 // complex type
 typedef struct { t_CKFLOAT re ; t_CKFLOAT im ; } t_CKCOMPLEX;
@@ -71,6 +73,7 @@ typedef struct { t_CKFLOAT modulus ; t_CKFLOAT phase ; } t_CKPOLAR;
 #define sz_POLAR                    sizeof(t_CKPOLAR)
 #define sz_VOID                     0
 #define sz_WORD                     4
+#define sz_DWORD                    8
 
 // kinds (added 1.3.1.0 to faciliate 64-bit support)
 // to differentiate in case int and float have same size

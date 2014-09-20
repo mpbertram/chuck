@@ -3988,7 +3988,7 @@ t_CKBOOL emit_engine_emit_func_def( Chuck_Emitter * emit, a_Func_Def func_def )
     if( func->is_member )
     {
         // get the size
-        emit->code->stack_depth += sizeof(t_CKUINT);
+        emit->code->stack_depth += sz_DWORD;
         // add this
         // ge: added FALSE to the 'is_obj' argument, 2012 april (added 1.3.0.0)
         if( !emit->alloc_local( sizeof(t_CKUINT), "this", TRUE, FALSE ) )
@@ -4014,7 +4014,7 @@ t_CKBOOL emit_engine_emit_func_def( Chuck_Emitter * emit, a_Func_Def func_def )
         // get ref
         is_ref = a->type_decl->ref;
         // get the size
-        emit->code->stack_depth += type->size;
+        emit->code->stack_depth += sz_DWORD;
         // allocate a place on the local stack
         // ge: added 'is_obj' 2012 april
         local = emit->alloc_local( type->size, value->name, is_ref, is_obj );
@@ -4135,7 +4135,7 @@ t_CKBOOL emit_engine_emit_class_def( Chuck_Emitter * emit, a_Class_Def class_def
     emit->code->filename = emit->context->full_path;
  
     // get the size
-    emit->code->stack_depth += sizeof(t_CKUINT);
+    emit->code->stack_depth += sz_DWORD;
     // add this
     // ge: added TRUE to the 'is_obj' argument, 2012 april (added 1.3.0.0)
     // TODO: verify this is right, and not over-ref counted / cleaned up?
