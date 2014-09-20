@@ -77,7 +77,7 @@ namespace Chuck_DL_Api { struct Api; }
 
 
 // param conversion - to extract values from ARGS to functions
-#define GET_CK_FLOAT(ptr)      (*(t_CKFLOAT *)ptr)
+#define GET_CK_FLOAT(ptr)      (*(t_CKFLOAT *)(ptr))
 #define GET_CK_SINGLE(ptr)     (*(float *)ptr)
 #define GET_CK_DOUBLE(ptr)     (*(double *)ptr)
 #define GET_CK_INT(ptr)        (*(t_CKINT *)ptr)
