@@ -3461,6 +3461,8 @@ void Chuck_Instr_Func_Call_Member::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
         {
             *mem_sp2++ = *reg_sp2++;
         }
+        // REMOVE ME
+        assert(GET_CK_FLOAT(mem_sp+1) == 440.0);
     }
 
     // detect overflow/underflow
