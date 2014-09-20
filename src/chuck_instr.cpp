@@ -322,10 +322,11 @@ void Chuck_Instr_Divide_int_Reverse::execute( Chuck_VM * vm, Chuck_VM_Shred * sh
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Add_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKDWORD *& sp = (t_CKDWORD*&)shred->reg->sp;
+    t_CKDOUBLE *& sp = (t_CKDOUBLE*&)shred->reg->sp;
     pop_( sp, 2 );
     t_CKDOUBLE lhs = (t_CKDOUBLE)*sp;
     t_CKDOUBLE rhs = (t_CKDOUBLE)*(sp+1);
+    EM_log(CK_LOG_FINE, "Adding %f to %f = %f", lhs, rhs, lhs+rhs);
     push_(sp, lhs + rhs);
 }
 
@@ -366,10 +367,11 @@ void Chuck_Instr_Minus_double_Reverse::execute( Chuck_VM * vm, Chuck_VM_Shred * 
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Times_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKDWORD *& sp = (t_CKDWORD*&)shred->reg->sp;
+    t_CKDOUBLE *& sp = (t_CKDOUBLE*&)shred->reg->sp;
     pop_( sp, 2 );
     t_CKDOUBLE lhs = (t_CKDOUBLE)*sp;
     t_CKDOUBLE rhs = (t_CKDOUBLE)*(sp+1);
+    EM_log(CK_LOG_FINE, "Multiplying %f with %f = %f", lhs, rhs, lhs * rhs);
     push_(sp, lhs * rhs);
 
 }
@@ -383,16 +385,12 @@ void Chuck_Instr_Times_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Divide_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKDWORD *& sp = (t_CKDWORD*&)shred->reg->sp;
+    t_CKDOUBLE *& sp = (t_CKDOUBLE*&)shred->reg->sp;
     pop_( sp, 2 );
     t_CKDOUBLE lhs = (t_CKDOUBLE)*sp;
     t_CKDOUBLE rhs = (t_CKDOUBLE)*(sp+1);
     push_(sp, lhs / rhs);
 }
-
-
-
-
 
 //-----------------------------------------------------------------------------
 // name: execute()
@@ -1453,7 +1451,7 @@ void Chuck_Instr_Reg_Push_Imm::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 
     // push val into reg stack
     EM_log(CK_LOG_FINE, "Pushing value %d onto regular stack", m_val);
-    push_( reg_sp, m_val );
+    push_( reg_sp, (t_CKDWORD)m_val );
 }
 
 
@@ -1465,7 +1463,7 @@ void Chuck_Instr_Reg_Push_Imm::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Reg_Push_Imm2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& reg_sp = (t_CKFLOAT *&)shred->reg->sp;
+    t_CKDOUBLE*& reg_sp = (t_CKDOUBLE*&)shred->reg->sp;
 
     // push val into reg stack
     EM_log(CK_LOG_FINE, "Pushing value %f onto regular stack", m_val);
@@ -1481,7 +1479,7 @@ void Chuck_Instr_Reg_Push_Imm2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Reg_Push_Imm4::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& reg_sp = (t_CKFLOAT *&)shred->reg->sp;
+    t_CKDOUBLE *& reg_sp = (t_CKDOUBLE*&)shred->reg->sp;
 
     // push val into reg stack
     push_( reg_sp, m_val );
@@ -1528,10 +1526,11 @@ void Chuck_Instr_Reg_Dup_Last2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Reg_Push_Now::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
+    t_CKDOUBLE*& reg_sp = (t_CKDOUBLE*&)shred->reg->sp;
 
+    EM_log(CK_LOG_FINE, "Pushing now: %f", shred->now);
     // push val into reg stack
-    push_( reg_sp, (t_CKDWORD)shred->now );
+    push_( reg_sp, shred->now );
 }
 
 
@@ -1795,7 +1794,7 @@ void Chuck_Instr_Mem_Set_Imm::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Mem_Set_Imm2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKDWORD* mem_sp = (t_CKDWORD*)(shred->mem->sp + m_offset);
+    t_CKDOUBLE* mem_sp = (t_CKDOUBLE*)(shred->mem->sp + m_offset);
     *(mem_sp) = m_val;
 }
 
@@ -2007,7 +2006,7 @@ void Chuck_Instr_Negate_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Negate_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKDWORD *& sp = (t_CKDWORD *&)shred->reg->sp;
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
     t_CKDOUBLE val = *(t_CKDOUBLE*)(sp-1);
     *(sp-1) = -val;
 }
@@ -3759,12 +3758,12 @@ void Chuck_Instr_Spork::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Time_Advance::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
 
-    // pop word from reg stack
     pop_( sp, 1 );
-    
     t_CKTIME time = (t_CKTIME)*sp;
+    assert(time >= 0);
+    EM_log(CK_LOG_FINE, "Advancing time to %f sample(s)", time);
     if( time < shred->now )
     {
         // we have a problem
@@ -5025,9 +5024,10 @@ void Chuck_Instr_Cast_double2int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred
 void Chuck_Instr_Cast_int2double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKDWORD *& sp = (t_CKDWORD *&)shred->reg->sp;
-    t_CKDOUBLE *& sp_double = (t_CKDOUBLE *&)sp;
     pop_( sp, 1 );
-    push_( sp_double, (t_CKDOUBLE)(*sp) );
+    t_CKDOUBLE val = (t_CKDOUBLE)*sp;
+    EM_log(CK_LOG_FINE, "Cast to double: %f", val);
+    push_( sp, val);
 }
 
 
