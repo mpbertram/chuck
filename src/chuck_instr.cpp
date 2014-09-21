@@ -1882,10 +1882,16 @@ void Chuck_Instr_Mem_Pop_Word3::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Branch_Lt_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    if( val_(sp) < val_(sp+1) )
+    t_CKDWORD lhs = *sp;
+    t_CKDWORD rhs = *(sp+1);
+    EM_log(CK_LOG_FINE, "Checking if %d < %d", lhs, rhs);
+    if( lhs < rhs )
+    {
+        EM_log(CK_LOG_FINE, "Jumping to instruction #%d", m_jmp);
         shred->next_pc = m_jmp;
+    }
 }
 
 
@@ -1897,10 +1903,16 @@ void Chuck_Instr_Branch_Lt_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Branch_Gt_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    if( val_(sp) > val_(sp+1) )
+    t_CKDWORD lhs = *sp;
+    t_CKDWORD rhs = *(sp+1);
+    EM_log(CK_LOG_FINE, "Checking if %d > %d", lhs, rhs);
+    if( lhs > rhs )
+    {
+        EM_log(CK_LOG_FINE, "Jumping to instruction #%d", m_jmp);
         shred->next_pc = m_jmp;
+    }
 }
 
 
@@ -1912,10 +1924,16 @@ void Chuck_Instr_Branch_Gt_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Branch_Le_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    if( val_(sp) <= val_(sp+1) )
+    t_CKDWORD lhs = *sp;
+    t_CKDWORD rhs = *(sp+1);
+    EM_log(CK_LOG_FINE, "Checking if %d <= %d", lhs, rhs);
+    if( lhs <= rhs )
+    {
+        EM_log(CK_LOG_FINE, "Jumping to instruction #%d", m_jmp);
         shred->next_pc = m_jmp;
+    }
 }
 
 
@@ -1927,10 +1945,16 @@ void Chuck_Instr_Branch_Le_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Branch_Ge_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    if( val_(sp) >= val_(sp+1) )
+    t_CKDWORD lhs = *sp;
+    t_CKDWORD rhs = *(sp+1);
+    EM_log(CK_LOG_FINE, "Checking if %d >= %d", lhs, rhs);
+    if( lhs >= rhs )
+    {
+        EM_log(CK_LOG_FINE, "Jumping to instruction #%d", m_jmp);
         shred->next_pc = m_jmp;
+    }
 }
 
 
@@ -1946,8 +1970,12 @@ void Chuck_Instr_Branch_Eq_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     pop_( sp, 2 );
     t_CKINT lhs = *(t_CKINT*)sp;
     t_CKINT rhs = *(t_CKINT*)(sp+1);
+    EM_log(CK_LOG_FINE, "Checking if %d == %d", lhs, rhs);
     if (lhs == rhs)
+    {
+        EM_log(CK_LOG_FINE, "Jumping to instruction #%d", m_jmp);
         shred->next_pc = m_jmp;
+    }
 }
 
 
@@ -1963,8 +1991,12 @@ void Chuck_Instr_Branch_Neq_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred 
     pop_( sp, 2 );
     t_CKINT lhs = *(t_CKINT*)sp;
     t_CKINT rhs = *(t_CKINT*)(sp+1);
+    EM_log(CK_LOG_FINE, "Checking if %d != %d", lhs, rhs);
     if (lhs != rhs)
+    {
+        EM_log(CK_LOG_FINE, "Jumping to instruction #%d", m_jmp);
         shred->next_pc = m_jmp;
+    }
 }
 
 
@@ -2018,10 +2050,16 @@ void Chuck_Instr_Negate_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Branch_Lt_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& sp = (t_CKFLOAT *&)shred->reg->sp;
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
     pop_( sp, 2 );
-    if( val_(sp) < val_(sp+1) )
+    t_CKDOUBLE lhs = *(t_CKDOUBLE*)sp;
+    t_CKDOUBLE rhs = *(t_CKDOUBLE*)(sp+1);
+    EM_log(CK_LOG_FINE, "Checking if %f < %f", lhs, rhs);
+    if (lhs < rhs)
+    {
+        EM_log(CK_LOG_FINE, "Jumping to instruction #%d", m_jmp);
         shred->next_pc = m_jmp;
+    }
 }
 
 
@@ -2033,11 +2071,17 @@ void Chuck_Instr_Branch_Lt_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Branch_Gt_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& sp = (t_CKFLOAT *&)shred->reg->sp;
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
     pop_( sp, 2 );
-    if( val_(sp) > val_(sp+1) )
+    t_CKDOUBLE lhs = *(t_CKDOUBLE*)sp;
+    t_CKDOUBLE rhs = *(t_CKDOUBLE*)(sp+1);
+    EM_log(CK_LOG_FINE, "Checking if %f > %f", lhs, rhs);
+    if (lhs > rhs)
+    {
+        EM_log(CK_LOG_FINE, "Jumping to instruction #%d", m_jmp);
         shred->next_pc = m_jmp;
-}
+    }
+ }
 
 
 
@@ -2048,10 +2092,16 @@ void Chuck_Instr_Branch_Gt_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Branch_Le_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& sp = (t_CKFLOAT *&)shred->reg->sp;
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
     pop_( sp, 2 );
-    if( val_(sp) <= val_(sp+1) )
+    t_CKDOUBLE lhs = *(t_CKDOUBLE*)sp;
+    t_CKDOUBLE rhs = *(t_CKDOUBLE*)(sp+1);
+    EM_log(CK_LOG_FINE, "Checking if %f <= %f", lhs, rhs);
+    if (lhs <= rhs)
+    {
+        EM_log(CK_LOG_FINE, "Jumping to instruction #%d", m_jmp);
         shred->next_pc = m_jmp;
+    }
 }
 
 
@@ -2063,10 +2113,16 @@ void Chuck_Instr_Branch_Le_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Branch_Ge_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& sp = (t_CKFLOAT *&)shred->reg->sp;
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
     pop_( sp, 2 );
-    if( val_(sp) >= val_(sp+1) )
+    t_CKDOUBLE lhs = *(t_CKDOUBLE*)sp;
+    t_CKDOUBLE rhs = *(t_CKDOUBLE*)(sp+1);
+    EM_log(CK_LOG_FINE, "Checking if %f >= %f", lhs, rhs);
+    if (lhs >= rhs)
+    {
+        EM_log(CK_LOG_FINE, "Jumping to instruction #%d", m_jmp);
         shred->next_pc = m_jmp;
+    }
 }
 
 
@@ -2078,10 +2134,16 @@ void Chuck_Instr_Branch_Ge_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Branch_Eq_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& sp = (t_CKFLOAT *&)shred->reg->sp;
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
     pop_( sp, 2 );
-    if( val_(sp) == val_(sp+1) )
+    t_CKDOUBLE lhs = *(t_CKDOUBLE*)sp;
+    t_CKDOUBLE rhs = *(t_CKDOUBLE*)(sp+1);
+    EM_log(CK_LOG_FINE, "Checking if %f == %f", lhs, rhs);
+    if (lhs == rhs)
+    {
+        EM_log(CK_LOG_FINE, "Jumping to instruction #%d", m_jmp);
         shred->next_pc = m_jmp;
+    }
 }
 
 
@@ -2093,10 +2155,16 @@ void Chuck_Instr_Branch_Eq_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Branch_Neq_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& sp = (t_CKFLOAT *&)shred->reg->sp;
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
     pop_( sp, 2 );
-    if( val_(sp) != val_(sp+1) )
+    t_CKDOUBLE lhs = *(t_CKDOUBLE*)sp;
+    t_CKDOUBLE rhs = *(t_CKDOUBLE*)(sp+1);
+    EM_log(CK_LOG_FINE, "Checking if %f != %f", lhs, rhs);
+    if (lhs != rhs)
+    {
+        EM_log(CK_LOG_FINE, "Jumping to instruction #%d", m_jmp);
         shred->next_pc = m_jmp;
+    }
 }
 
 
@@ -2159,7 +2227,7 @@ void Chuck_Instr_Branch_Neq_int_IO_good::execute( Chuck_VM * vm, Chuck_VM_Shred 
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Binary_And::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& sp = (t_CKDWORD *&)shred->reg->sp;
     pop_( sp, 2 );
     push_( sp, val_(sp) & val_(sp+1) );
 }
@@ -2173,7 +2241,7 @@ void Chuck_Instr_Binary_And::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Binary_Or::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& sp = (t_CKDWORD *&)shred->reg->sp;
     pop_( sp, 2 );
     push_( sp, val_(sp) | val_(sp+1) );
 }
@@ -2187,7 +2255,7 @@ void Chuck_Instr_Binary_Or::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Binary_Xor::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& sp = (t_CKDWORD *&)shred->reg->sp;
     pop_( sp, 2 );
     push_( sp, val_(sp) ^ val_(sp+1) );
 }
@@ -2201,7 +2269,7 @@ void Chuck_Instr_Binary_Xor::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Binary_Shift_Right::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& sp = (t_CKDWORD *&)shred->reg->sp;
     pop_( sp, 2 );
     push_( sp, val_(sp) >> val_(sp+1) );
 }
@@ -2215,7 +2283,7 @@ void Chuck_Instr_Binary_Shift_Right::execute( Chuck_VM * vm, Chuck_VM_Shred * sh
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Binary_Shift_Right_Reverse::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& sp = (t_CKDWORD *&)shred->reg->sp;
     pop_( sp, 2 );
     push_( sp, val_(sp+1) >> val_(sp) );
 }
@@ -2229,7 +2297,7 @@ void Chuck_Instr_Binary_Shift_Right_Reverse::execute( Chuck_VM * vm, Chuck_VM_Sh
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Binary_Shift_Left::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& sp = (t_CKDWORD *&)shred->reg->sp;
     pop_( sp, 2 );
     push_( sp, val_(sp) << val_(sp+1) );
 }
@@ -2243,7 +2311,7 @@ void Chuck_Instr_Binary_Shift_Left::execute( Chuck_VM * vm, Chuck_VM_Shred * shr
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Binary_Shift_Left_Reverse::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& sp = (t_CKDWORD *&)shred->reg->sp;
     pop_( sp, 2 );
     push_( sp, val_(sp+1) << val_(sp) );
 }
@@ -2418,10 +2486,14 @@ void Chuck_Instr_Neq_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Lt_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& sp = (t_CKFLOAT *&)shred->reg->sp;
-    t_CKUINT *& sp_uint = (t_CKUINT *&)sp;
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
+    t_CKDWORD*& sp_int = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp_uint, val_(sp) < val_(sp+1) );
+    t_CKDOUBLE lhs = *(t_CKDOUBLE*)sp;
+    t_CKDOUBLE rhs = *(t_CKDOUBLE*)(sp+1);
+    t_CKBOOL result = lhs < rhs;
+    EM_log(CK_LOG_FINE, "%f < %f: %d", lhs, rhs, result);
+    push_( sp_int, result );
 }
 
 
@@ -2433,10 +2505,14 @@ void Chuck_Instr_Lt_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Gt_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& sp = (t_CKFLOAT *&)shred->reg->sp;
-    t_CKUINT *& sp_uint = (t_CKUINT *&)sp;
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
+    t_CKDWORD*& sp_int = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp_uint, val_(sp) > val_(sp+1) );
+    t_CKDOUBLE lhs = *(t_CKDOUBLE*)sp;
+    t_CKDOUBLE rhs = *(t_CKDOUBLE*)(sp+1);
+    t_CKBOOL result = lhs > rhs;
+    EM_log(CK_LOG_FINE, "%f > %f: %d", lhs, rhs, result);
+    push_( sp_int, result );
 }
 
 
@@ -2448,10 +2524,14 @@ void Chuck_Instr_Gt_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Le_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& sp = (t_CKFLOAT *&)shred->reg->sp;
-    t_CKUINT *& sp_uint = (t_CKUINT *&)sp;
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
+    t_CKDWORD*& sp_int = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp_uint, val_(sp) <= val_(sp+1) );
+    t_CKDOUBLE lhs = *(t_CKDOUBLE*)sp;
+    t_CKDOUBLE rhs = *(t_CKDOUBLE*)(sp+1);
+    t_CKBOOL result = lhs <= rhs;
+    EM_log(CK_LOG_FINE, "%f <= %f: %d", lhs, rhs, result);
+    push_( sp_int, result );
 }
 
 
@@ -2463,10 +2543,14 @@ void Chuck_Instr_Le_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Ge_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& sp = (t_CKFLOAT *&)shred->reg->sp;
-    t_CKUINT *& sp_uint = (t_CKUINT *&)sp;
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
+    t_CKDWORD*& sp_int = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp_uint, val_(sp) >= val_(sp+1) );
+    t_CKDOUBLE lhs = *(t_CKDOUBLE*)sp;
+    t_CKDOUBLE rhs = *(t_CKDOUBLE*)(sp+1);
+    t_CKBOOL result = lhs >= rhs;
+    EM_log(CK_LOG_FINE, "%f >= %f: %d", lhs, rhs, result);
+    push_( sp_int, result );
 }
 
 
@@ -2478,10 +2562,14 @@ void Chuck_Instr_Ge_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Eq_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& sp = (t_CKFLOAT *&)shred->reg->sp;
-    t_CKUINT *& sp_uint = (t_CKUINT *&)sp;
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
+    t_CKDWORD*& sp_int = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp_uint, val_(sp) == val_(sp+1) );
+    t_CKDOUBLE lhs = *(t_CKDOUBLE*)sp;
+    t_CKDOUBLE rhs = *(t_CKDOUBLE*)(sp+1);
+    t_CKBOOL result = lhs == rhs;
+    EM_log(CK_LOG_FINE, "%f == %f: %d", lhs, rhs, result);
+    push_( sp_int, result );
 }
 
 
@@ -2493,10 +2581,14 @@ void Chuck_Instr_Eq_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Neq_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& sp = (t_CKFLOAT *&)shred->reg->sp;
-    t_CKUINT *& sp_uint = (t_CKUINT *&)sp;
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
+    t_CKDWORD*& sp_int = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp_uint, val_(sp) != val_(sp+1) );
+    t_CKDOUBLE lhs = *(t_CKDOUBLE*)sp;
+    t_CKDOUBLE rhs = *(t_CKDOUBLE*)(sp+1);
+    t_CKBOOL result = lhs != rhs;
+    EM_log(CK_LOG_FINE, "%f != %f: %d", lhs, rhs, result);
+    push_( sp_int, result );
 }
 
 
@@ -2510,7 +2602,7 @@ void Chuck_Instr_Neq_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_And::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& sp = (t_CKDWORD *&)shred->reg->sp;
     pop_( sp, 2 );
     push_( sp, val_(sp) && val_(sp+1) );
 }
@@ -2524,7 +2616,7 @@ void Chuck_Instr_And::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Or::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& sp = (t_CKDWORD *&)shred->reg->sp;
     pop_( sp, 2 );
     push_( sp, val_(sp) || val_(sp+1) );
 }
@@ -2540,6 +2632,7 @@ void Chuck_Instr_Or::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Goto::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
+    EM_log(CK_LOG_FINE, "Jumping to instruction #%d", m_jmp);
     shred->next_pc = m_jmp;
 }
 
