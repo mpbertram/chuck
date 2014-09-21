@@ -723,7 +723,8 @@ CK_DLL_SFUN( random2f_impl )
 CK_DLL_SFUN( random2_impl ) // inclusive.
 {
     // 1.3.1.0: converted int to t_CKINT for 64-bit compatibility
-    t_CKINT min = *(t_CKINT *)ARGS, max = *((t_CKINT *)ARGS + 1);
+    t_CKINT min = *(t_CKINT *)ARGS, max = *(t_CKINT *)(ARGS + 1);
+    EM_log(CK_LOG_FINE, "random2: Generating random number between %d and %d", min, max);
     t_CKINT range = max - min;
     if( range == 0 )
     {

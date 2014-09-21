@@ -373,7 +373,6 @@ void Chuck_Instr_Times_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     t_CKDOUBLE rhs = (t_CKDOUBLE)*(sp+1);
     EM_log(CK_LOG_FINE, "Multiplying %f with %f = %f", lhs, rhs, lhs * rhs);
     push_(sp, lhs * rhs);
-
 }
 
 
@@ -3598,7 +3597,10 @@ void Chuck_Instr_Func_Call_Static::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
         // copy to args
         EM_log(CK_LOG_FINE, "Copying %d argument(s)", stack_depth);
         for( t_CKUINT i = 0; i < stack_depth; i++ )
+        {
+            EM_log(CK_LOG_FINE, "Copying argument %d ", *reg_sp2);
             *mem_sp2++ = *reg_sp2++;
+        }
     }
 
     // detect overflow/underflow
@@ -3619,7 +3621,8 @@ void Chuck_Instr_Func_Call_Static::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
     else if( m_val == kindof_FLOAT ) // ISSUE: 64-bit (fixed 1.3.1.0)
     {
         // push the return args
-        t_CKFLOAT *& sp_double = (t_CKFLOAT *&)reg_sp;
+        t_CKDOUBLE*& sp_double = (t_CKDOUBLE*&)reg_sp;
+        EM_log(CK_LOG_FINE, "Returning %f", retval.v_float);
         push_( sp_double, retval.v_float );
     }
     else if( m_val == kindof_COMPLEX ) // ISSUE: 64-bit (fixed 1.3.1.0)
@@ -5027,7 +5030,7 @@ void Chuck_Instr_Cast_int2double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred
     pop_( sp, 1 );
     t_CKDOUBLE val = (t_CKDOUBLE)*sp;
     EM_log(CK_LOG_FINE, "Cast to double: %f", val);
-    push_( sp, val);
+    push_( (t_CKDOUBLE*&)sp, val);
 }
 
 

@@ -33,6 +33,7 @@
 //-----------------------------------------------------------------------------
 #include "util_math.h"
 #include <math.h>
+#include "chuck_errmsg.h"
 
 
 // windows / visual c++
@@ -89,11 +90,16 @@ double remainder( long a, long b )
 //-----------------------------------------------------------------------------
 double mtof( double f )
 {
+    EM_log(CK_LOG_FINE, "mtof converting midi note %f into frequency", f);
     if( f <= -1500 ) return (0);
     else if( f > 1499 ) return (mtof(1499));
     // else return (8.17579891564 * exp(.0577622650 * f));
     // TODO: optimize
-    else return ( pow(2,(f-69)/12.0) * 440.0 );
+    else {
+        double freq = pow(2,(f-69)/12.0) * 440.0;
+        EM_log(CK_LOG_FINE, "Returning %f", freq);
+        return freq;
+    }
 }
 
 

@@ -616,6 +616,7 @@ CK_DLL_CTRL( osc_ctrl_freq )
     Osc_Data * d = (Osc_Data *)OBJ_MEMBER_UINT(SELF, osc_offset_data);
     // set freq
     d->freq = GET_CK_FLOAT(ARGS);
+    EM_log(CK_LOG_FINE, "Setting oscillator frequency: %f", d->freq);
     // phase increment
     d->num = d->freq / d->srate;
     // bound it
