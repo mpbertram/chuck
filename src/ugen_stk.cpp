@@ -21599,7 +21599,9 @@ CK_DLL_CGET( Envelope_cget_time )
 CK_DLL_CTRL( Envelope_ctrl_duration )
 {
     Envelope * d = (Envelope *)OBJ_MEMBER_UINT(SELF, Envelope_offset_data);
-    d->setTime( GET_NEXT_FLOAT(ARGS) / Stk::sampleRate() );
+    t_CKDOUBLE  duration = GET_NEXT_FLOAT(ARGS);
+    EM_log(CK_LOG_FINE, "Setting envelope duration: %f", duration);
+    d->setTime( duration / Stk::sampleRate() );
     RETURN->v_float = d->m_time * Stk::sampleRate();
 }
 

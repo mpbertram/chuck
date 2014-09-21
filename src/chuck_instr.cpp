@@ -3241,19 +3241,18 @@ void Chuck_Instr_Assign_Primitive::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Assign_Primitive2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKDWORD* reg_sp = (t_CKDWORD*)shred->reg->sp;
-    t_CKDOUBLE*& double_sp = (t_CKDOUBLE*&)reg_sp;
+    t_CKDOUBLE*& reg_sp = (t_CKDOUBLE*&)shred->reg->sp;
     
     // pop value and mem stack pointer
-    pop_( double_sp, 2 );
-    t_CKDOUBLE val = *double_sp;
-    t_CKDOUBLE* ptr = (t_CKDOUBLE*)*(reg_sp+1);
+    pop_( reg_sp, 2 );
+    t_CKDOUBLE val = *reg_sp;
+    t_CKDOUBLE* ptr = (t_CKDOUBLE*)*(t_CKDWORD*)(reg_sp+1);
     assert(ptr);
     EM_log(CK_LOG_FINE, "Copying value %f into memory stack at %p", val, ptr);
     // copy popped value into mem stack
     *ptr = val;
     
-    push_( double_sp, val );
+    push_( reg_sp, val );
 }
 
 
