@@ -1654,8 +1654,10 @@ void Chuck_Instr_Reg_Push_Mem2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     t_CKBYTE *& mem_sp = (t_CKBYTE *&)(base?shred->base_ref->stack:shred->mem->sp);
     t_CKDOUBLE *& reg_sp = (t_CKDOUBLE *&)shred->reg->sp;
 
+    t_CKDOUBLE val = *((t_CKDOUBLE *)(mem_sp + m_val));
+    EM_log(CK_LOG_FINE, "Pushing %f from memory stack onto regular stack", val);
     // push mem stack content into reg stack
-    push_( reg_sp, *((t_CKDOUBLE *)(mem_sp + m_val)) );
+    push_( reg_sp, val );
 }
 
 
@@ -5822,16 +5824,21 @@ void Chuck_Instr_Hack::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     // look at the type (1.3.1.0: added iskindofint)
     if( m_type_ref->size == sz_INT && iskindofint(m_type_ref) ) // ISSUE: 64-bit (fixed 1.3.1.0)
     {
-        t_CKINT * sp = (t_CKINT *)shred->reg->sp;
+        t_CKDWORD* sp = (t_CKDWORD*)shred->reg->sp;
         if( !isa( m_type_ref, &t_string ) )
+        {
             // print it
-            fprintf( stderr, "%ld :(%s)\n", *(sp-1), m_type_ref->c_name() );
+            fprintf( stderr, "%ld :(%s)\n", (t_CKINT)*(sp-1), m_type_ref->c_name() );
+        }
         else
+        {
+            EM_log(CK_LOG_FINE, "Printing string");
             fprintf( stderr, "\"%s\" : (%s)\n", ((Chuck_String *)*(sp-1))->str.c_str(), m_type_ref->c_name() );
+        }
     }
     else if( m_type_ref->size == sz_FLOAT ) // ISSUE: 64-bit (fixed 1.3.1.0)
     {
-        t_CKFLOAT * sp = (t_CKFLOAT *)shred->reg->sp;
+        t_CKDOUBLE* sp = (t_CKDOUBLE*)shred->reg->sp;
         // print it
         fprintf( stderr, "%f :(%s)\n", *(sp-1), m_type_ref->c_name() );
     }
@@ -5839,13 +5846,13 @@ void Chuck_Instr_Hack::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     {
         if( m_type_ref->xid == te_complex )
         {
-            t_CKFLOAT * sp = (t_CKFLOAT *)shred->reg->sp;
+            t_CKDOUBLE* sp = (t_CKDOUBLE*)shred->reg->sp;
             // print it
             fprintf( stderr, "#(%.4f,%.4f) :(%s)\n", *(sp-2), *(sp-1), m_type_ref->c_name() );
         }
         else if( m_type_ref->xid == te_polar )
         {
-            t_CKFLOAT * sp = (t_CKFLOAT *)shred->reg->sp;
+            t_CKDOUBLE* sp = (t_CKDOUBLE*)shred->reg->sp;
             // print it
             fprintf( stderr, "%%(%.4f,%.4f*pi) :(%s)\n", *(sp-2), *(sp-1)/ONE_PI, m_type_ref->c_name() );
         }
@@ -5890,23 +5897,23 @@ Chuck_Instr_Gack::~Chuck_Instr_Gack()
 
 void Chuck_Instr_Gack::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKBYTE * the_sp = (t_CKBYTE *)shred->reg->sp;
-
     if( m_type_refs.size() == 1 )
     {
+        EM_log(CK_LOG_FINE, "Calling Instr_Hack since only one element is printed");
         Chuck_Instr_Hack hack( m_type_refs[0] );
         hack.execute( vm, shred );
         return;
     }
+    
+    EM_log(CK_LOG_FINE, "Printing %d elements", m_type_refs.size());
 
     // loop over types
     t_CKUINT i;
-
+    t_CKDWORD* the_sp = (t_CKDWORD*)shred->reg->sp;
     // find the start of the expression
     for( i = 0; i < m_type_refs.size(); i++ )
     {
-        Chuck_Type * type = m_type_refs[i];
-        the_sp -= type->size;
+        --the_sp;
     }
 
     // print
@@ -5933,7 +5940,7 @@ void Chuck_Instr_Gack::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
                 fprintf( stderr, "%s ", str->str.c_str() );
             }
 
-            the_sp += sz_INT; // ISSUE: 64-bit (fixed 1.3.1.0)
+            ++the_sp;
         }
         else if( type->size == sz_FLOAT ) // ISSUE: 64-bit (fixed 1.3.1.0)
         {
@@ -5941,7 +5948,7 @@ void Chuck_Instr_Gack::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
             // print it
             fprintf( stderr, "%f ", *(sp) );
 
-            the_sp += sz_FLOAT; // ISSUE: 64-bit (fixed 1.3.1.0)
+            ++the_sp;
         }
         else if( type->size == sz_COMPLEX ) // ISSUE: 64-bit (fixed 1.3.1.0)
         {
@@ -5953,7 +5960,7 @@ void Chuck_Instr_Gack::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
                 // print it
                 fprintf( stderr, "%%(%.4f,%.4f*pi) ", *(sp), *(sp+1)/ONE_PI );
 
-            the_sp += sz_COMPLEX; // ISSUE: 64-bit (fixed 1.3.1.0)
+            ++the_sp;
         }
         else if( type->size == 0 )
         {

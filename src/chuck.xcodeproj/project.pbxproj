@@ -809,8 +809,6 @@
 			isa = PBXGroup;
 			children = (
 				74C2BAE119CDD5F600606D45 /* chuck_js.cpp */,
-				74C2BADF19CD9A6700606D45 /* digiio_webaudio.h */,
-				74C2BADD19CD9A4900606D45 /* digiio_webaudio.cpp */,
 				09812B980C6E394A00D1D68C /* uana_extract.cpp */,
 				09812B990C6E394A00D1D68C /* uana_extract.h */,
 				090B4B1A0C4F038E00DF5577 /* uana_xform.cpp */,
@@ -870,6 +868,8 @@
 				09A40B350A9A54DA007604EA /* chuck.lex */,
 				09A40B370A9A54DA007604EA /* digiio_rtaudio.cpp */,
 				09A40B380A9A54DA007604EA /* digiio_rtaudio.h */,
+				74C2BADD19CD9A4900606D45 /* digiio_webaudio.cpp */,
+				74C2BADF19CD9A6700606D45 /* digiio_webaudio.h */,
 				09A40B390A9A54DA007604EA /* hidio_sdl.cpp */,
 				09A40B3A0A9A54DA007604EA /* hidio_sdl.h */,
 				09A40B3B0A9A54DA007604EA /* midiio_rtmidi.cpp */,

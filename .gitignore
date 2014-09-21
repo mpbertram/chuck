@@ -17,3 +17,4 @@ src/chuck.yy.c
 node_modules/
 js/examples/
 js/pages/*.js
+*.js.mem
