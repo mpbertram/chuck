@@ -1720,7 +1720,6 @@ void Chuck_Instr_Reg_Pop_Mem::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 void Chuck_Instr_Reg_Pop_Word::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
-
     pop_( reg_sp, 1 );
 }
 
@@ -1734,7 +1733,6 @@ void Chuck_Instr_Reg_Pop_Word::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 void Chuck_Instr_Reg_Pop_Word2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKDOUBLE *& reg_sp = (t_CKDOUBLE *&)shred->reg->sp;
-
     pop_( reg_sp, 1 );
 }
 
@@ -1762,10 +1760,9 @@ void Chuck_Instr_Reg_Pop_Word3::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Reg_Pop_Word4::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKBYTE *& reg_sp = (t_CKBYTE *&)shred->reg->sp;
-
-    // pop dword from reg stack
-    pop_( reg_sp, m_val * sz_DWORD );
+    EM_log(CK_LOG_FINE, "Popping %d element(s) from stack", m_val);
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
+    pop_( reg_sp, m_val );
 }
 
 
@@ -2606,9 +2603,11 @@ void Chuck_Instr_Alloc_Word2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // zero out the memory stack
-    *( (t_CKFLOAT *)(mem_sp + m_val) ) = 0.0;
+    *( (t_CKDOUBLE*)(mem_sp + m_val) ) = 0.0;
+    t_CKDWORD addr = (t_CKDWORD)(mem_sp + m_val);
+    EM_log(CK_LOG_FINE, "Pushing memory stack address %p of float onto regular stack", addr);
     // push addr onto operand stack
-    push_( reg_sp, (t_CKDWORD)(mem_sp + m_val) );
+    push_( reg_sp, addr );
 }
 
 
@@ -3058,14 +3057,17 @@ void Chuck_Instr_Pre_Ctor_Array_Post::execute( Chuck_VM * vm, Chuck_VM_Shred * s
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Assign_Primitive::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
 
-    // pop word from reg stack
+    // pop value and mem stack pointer
     pop_( reg_sp, 2 );
+    t_CKDWORD val = *reg_sp;
+    t_CKDWORD* ptr = (t_CKDWORD*)*(reg_sp+1);
+    EM_log(CK_LOG_FINE, "Copying value %d into memory stack at %p", val, ptr);
     // copy popped value into mem stack
-    *((t_CKUINT *)(*(reg_sp+1))) = *reg_sp;
+    *ptr = val;
 
-    push_( reg_sp, *reg_sp );
+    push_( reg_sp, val );
 }
 
 
@@ -3077,15 +3079,18 @@ void Chuck_Instr_Assign_Primitive::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Assign_Primitive2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
-
-    // pop word from reg stack // ISSUE: 64-bit (fixed 1.3.1.0)
-    pop_( reg_sp, 1 + (sz_FLOAT / sz_UINT) );
-    // copy popped value into mem stack // ISSUE: 64-bit (fixed 1.3.1.0)
-    *( (t_CKFLOAT *)(*(reg_sp+(sz_FLOAT/sz_UINT))) ) = *(t_CKFLOAT *)reg_sp;
-
-    t_CKFLOAT *& sp_double = (t_CKFLOAT *&)reg_sp;
-    push_( sp_double, *sp_double );
+    t_CKDWORD* reg_sp = (t_CKDWORD*)shred->reg->sp;
+    t_CKDOUBLE*& double_sp = (t_CKDOUBLE*&)reg_sp;
+    
+    // pop value and mem stack pointer
+    pop_( double_sp, 2 );
+    t_CKDOUBLE val = *double_sp;
+    t_CKDOUBLE* ptr = (t_CKDOUBLE*)*(reg_sp+1);
+    EM_log(CK_LOG_FINE, "Copying value %f into memory stack at %p", val, ptr);
+    // copy popped value into mem stack
+    *ptr = val;
+    
+    push_( double_sp, val );
 }
 
 
@@ -3098,12 +3103,12 @@ void Chuck_Instr_Assign_Primitive2::execute( Chuck_VM * vm, Chuck_VM_Shred * shr
 void Chuck_Instr_Assign_Primitive4::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
-
+    
     // pop word from reg stack
     pop_( reg_sp, 1 + (sz_COMPLEX / sz_UINT) ); // ISSUE: 64-bit (fixed 1.3.1.0)
     // copy popped value into mem stack
     *( (t_CKCOMPLEX*)(*(reg_sp+(sz_COMPLEX/sz_UINT))) ) = *(t_CKCOMPLEX *)reg_sp; // ISSUE: 64-bit (fixed 1.3.1.0)
-
+    
     t_CKCOMPLEX *& sp_complex = (t_CKCOMPLEX *&)reg_sp;
     push_( sp_complex, *sp_complex );
 }
