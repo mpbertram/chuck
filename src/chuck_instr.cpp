@@ -3529,12 +3529,14 @@ void Chuck_Instr_Func_Call::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     Chuck_VM_Code * func = (Chuck_VM_Code *)*reg_sp;
     // get the local stack depth - caller local variables
     t_CKUINT local_depth = *(reg_sp+1);
-    // convert to number of int's (was: 4-byte words), extra partial word counts as additional word
-    local_depth = ( local_depth / sz_INT ) + ( local_depth & 0x3 ? 1 : 0 ); // ISSUE: 64-bit (fixed 1.3.1.0)
+    assert(local_depth % sz_DWORD == 0);
+    local_depth = local_depth / sz_DWORD;
     // get the stack depth of the callee function args
-    t_CKUINT stack_depth = ( func->stack_depth / sz_INT ) + ( func->stack_depth & 0x3 ? 1 : 0 ); // ISSUE: 64-bit (fixed 1.3.1.0)
+    assert(func->stack_depth % sz_DWORD == 0);
+    t_CKUINT stack_depth = func->stack_depth / sz_DWORD;
     // get the previous stack depth - caller function args
-    t_CKUINT prev_stack = ( *(mem_sp-1) / sz_INT ) + ( *(mem_sp-1) & 0x3 ? 1 : 0 ); // ISSUE: 64-bit (fixed 1.3.1.0)
+    assert(*(mem_sp-1) % sz_DWORD == 0);
+    t_CKUINT prev_stack = *(mem_sp-1) / sz_DWORD;
 
     // jump the sp
     mem_sp += prev_stack + local_depth;
@@ -3614,10 +3616,10 @@ void Chuck_Instr_Func_Call_Member::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
     // MOVED TO BELOW: f_mfun f = (f_mfun)func->native_func;
     // get the local stack depth - caller local variables
     t_CKDWORD local_depth = *(reg_sp+1);
-    // convert to number of DWORDs (was: 4-byte words), extra partial word counts as additional word
-    // TODO: Make sure local depth is represented in terms of DWORDs instead of integer
-    local_depth = ( local_depth / sz_INT) + ( local_depth & 0x3 ? 1 : 0 ); // ISSUE: 64-bit (fixed 1.3.1.0)
-    EM_log(CK_LOG_FINE, "Local stack depth (as integers): %d", local_depth);
+    assert(local_depth % sz_DWORD == 0);
+    // convert to number of DWORDs
+    local_depth = local_depth / sz_DWORD;
+    EM_log(CK_LOG_FINE, "Local stack depth: %d", local_depth);
     // get the stack depth of the callee function args
     t_CKDWORD stack_depth = ( func->stack_depth / sz_DWORD ) + ( func->stack_depth & 0x3 ? 1 : 0 ); // ISSUE: 64-bit (fixed 1.3.1.0)
     // UNUSED: get the previous stack depth - caller function args
@@ -3731,8 +3733,8 @@ void Chuck_Instr_Func_Call_Static::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
     f_sfun f = (f_sfun)func->native_func;
     // get the local stack depth - caller local variables
     t_CKDWORD local_depth = *(reg_sp+1);
-    // convert to number of int's (was: 4-byte words), extra partial word counts as additional word
-    local_depth = ( local_depth / sz_INT ) + ( local_depth & 0x3 ? 1 : 0 ); // ISSUE: 64-bit (fixed 1.3.1.0)
+    assert(local_depth % sz_DWORD == 0);
+    local_depth = local_depth / sz_DWORD;
     // get the stack depth of the callee function args
     t_CKDWORD stack_depth = ( func->stack_depth / sz_DWORD ) + ( func->stack_depth & 0x3 ? 1 : 0 ); // ISSUE: 64-bit (fixed 1.3.1.0)
     EM_log(CK_LOG_FINE, "Calling function '%s', local depth: %d, stack depth: %d",
@@ -3741,7 +3743,7 @@ void Chuck_Instr_Func_Call_Static::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
     // UNUSED: t_CKUINT prev_stack = ( *(mem_sp-1) >> 2 ) + ( *(mem_sp-1) & 0x3 ? 1 : 0 );
     // the amount to push in 4-byte words
     t_CKDWORD push = local_depth;
-    // push the mem stack passed the current function variables and arguments
+    // push the mem stack past the current function variables and arguments
     mem_sp += push;
 
     // pass args
