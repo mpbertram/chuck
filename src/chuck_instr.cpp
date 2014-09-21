@@ -2427,9 +2427,13 @@ void Chuck_Instr_Binary_Shift_Left_Assign::execute( Chuck_VM * vm, Chuck_VM_Shre
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Lt_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp, val_(sp) < val_(sp+1) );
+    t_CKINT lhs = *(t_CKINT*)sp;
+    t_CKINT rhs = *(t_CKINT*)(sp+1);
+    t_CKBOOL result = lhs < rhs;
+    EM_log(CK_LOG_FINE, "%d < %d = %d", lhs, rhs, result);
+    push_( sp, result );
 }
 
 
@@ -2441,9 +2445,13 @@ void Chuck_Instr_Lt_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Gt_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp, val_(sp) > val_(sp+1) );
+    t_CKINT lhs = *(t_CKINT*)sp;
+    t_CKINT rhs = *(t_CKINT*)(sp+1);
+    t_CKBOOL result = lhs > rhs;
+    EM_log(CK_LOG_FINE, "%d > %d = %d", lhs, rhs, result);
+    push_( sp, result );
 }
 
 
@@ -2455,9 +2463,13 @@ void Chuck_Instr_Gt_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Le_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp, val_(sp) <= val_(sp+1) );
+    t_CKINT lhs = *(t_CKINT*)sp;
+    t_CKINT rhs = *(t_CKINT*)(sp+1);
+    t_CKBOOL result = lhs <= rhs;
+    EM_log(CK_LOG_FINE, "%d <= %d = %d", lhs, rhs, result);
+    push_( sp, result );
 }
 
 
@@ -2469,9 +2481,13 @@ void Chuck_Instr_Le_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Ge_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp, val_(sp) >= val_(sp+1) );
+    t_CKINT lhs = *(t_CKINT*)sp;
+    t_CKINT rhs = *(t_CKINT*)(sp+1);
+    t_CKBOOL result = lhs >= rhs;
+    EM_log(CK_LOG_FINE, "%d >= %d = %d", lhs, rhs, result);
+    push_( sp, result );
 }
 
 
@@ -2483,9 +2499,13 @@ void Chuck_Instr_Ge_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Eq_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp, val_(sp) == val_(sp+1) );
+    t_CKINT lhs = *(t_CKINT*)sp;
+    t_CKINT rhs = *(t_CKINT*)(sp+1);
+    t_CKBOOL result = lhs == rhs;
+    EM_log(CK_LOG_FINE, "%d == %d = %d", lhs, rhs, result);
+    push_( sp, result );
 }
 
 
@@ -2497,9 +2517,13 @@ void Chuck_Instr_Eq_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Neq_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp, val_(sp) != val_(sp+1) );
+    t_CKINT lhs = *(t_CKINT*)sp;
+    t_CKINT rhs = *(t_CKINT*)(sp+1);
+    t_CKBOOL result = lhs != rhs;
+    EM_log(CK_LOG_FINE, "%d != %d = %d", lhs, rhs, result);
+    push_( sp, result );
 }
 
 
@@ -3181,6 +3205,7 @@ void Chuck_Instr_Assign_Primitive::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
     pop_( reg_sp, 2 );
     t_CKDWORD val = *reg_sp;
     t_CKDWORD* ptr = (t_CKDWORD*)*(reg_sp+1);
+    assert(ptr);
     EM_log(CK_LOG_FINE, "Copying value %d into memory stack at %p", val, ptr);
     // copy popped value into mem stack
     *ptr = val;
@@ -3204,6 +3229,7 @@ void Chuck_Instr_Assign_Primitive2::execute( Chuck_VM * vm, Chuck_VM_Shred * shr
     pop_( double_sp, 2 );
     t_CKDOUBLE val = *double_sp;
     t_CKDOUBLE* ptr = (t_CKDOUBLE*)*(reg_sp+1);
+    assert(ptr);
     EM_log(CK_LOG_FINE, "Copying value %f into memory stack at %p", val, ptr);
     // copy popped value into mem stack
     *ptr = val;
@@ -5408,6 +5434,7 @@ void Chuck_Instr_ADC::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 void Chuck_Instr_DAC::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
+    EM_log(CK_LOG_FINE, "Pushing DAC onto regular stack");
     push_( reg_sp, (t_CKDWORD)vm->m_dac );
 }
 
@@ -5420,8 +5447,9 @@ void Chuck_Instr_DAC::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Bunghole::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
-    push_( reg_sp, (t_CKUINT)vm->m_bunghole );
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
+    EM_log(CK_LOG_FINE, "Pushing bunghole onto regular stack");
+    push_( reg_sp, (t_CKDWORD)vm->m_bunghole);
 }
 
 
@@ -5433,8 +5461,10 @@ void Chuck_Instr_Bunghole::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Chout::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
-    push_( reg_sp, (t_CKUINT)Chuck_IO_Chout::getInstance() );
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
+    EM_log(CK_LOG_FINE, "Pushing Chout onto regular stack");
+    push_( reg_sp, (t_CKDWORD)Chuck_IO_Chout::getInstance() );
+
 }
 
 
@@ -5446,8 +5476,9 @@ void Chuck_Instr_Chout::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Cherr::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
-    push_( reg_sp, (t_CKUINT)Chuck_IO_Cherr::getInstance() );
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
+    EM_log(CK_LOG_FINE, "Pushing Cherr onto regular stack");
+    push_( reg_sp, (t_CKDWORD)Chuck_IO_Cherr::getInstance() );
 }
 
 
@@ -5551,11 +5582,15 @@ null_pointer:
 //-----------------------------------------------------------------------------
 void Chuck_Instr_UGen_UnLink::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    Chuck_UGen **& sp = (Chuck_UGen **&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
 
     pop_( sp, 2 );
-    (*(sp+1))->remove( *sp );
-    push_( sp, *(sp + 1) );
+    Chuck_UGen* src = *(Chuck_UGen **)sp;
+    Chuck_UGen* dst = *(Chuck_UGen **)(sp+1);
+    EM_log(CK_LOG_FINE, "Unlinking %s from %s", src->type_ref->name.c_str(),
+           dst->type_ref->name.c_str());
+    dst->remove(src);
+    push_( sp, (t_CKDWORD)dst );
 }
 
 
