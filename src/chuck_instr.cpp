@@ -87,9 +87,13 @@ static void handle_overflow( Chuck_VM_Shred * shred, Chuck_VM * vm )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Add_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp, val_(sp) + val_(sp+1) );
+    t_CKINT lhs = *(t_CKINT*)sp;
+    t_CKINT rhs = *(t_CKINT*)(sp+1);
+    t_CKINT result = lhs + rhs;
+    EM_log(CK_LOG_FINE, "%d + %d = %d", lhs, rhs, result);
+    push_(sp, result);
 }
 
 
@@ -192,7 +196,7 @@ void Chuck_Instr_PostDec_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 void Chuck_Instr_Dec_int_Addr::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     // decrement value
-    (*((t_CKINT *)(m_val)))--;
+    (*(t_CKINT *)m_val)--;
 }
 
 
@@ -204,8 +208,11 @@ void Chuck_Instr_Dec_int_Addr::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Complement_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
-    (*(sp-1)) = ~(*(sp-1));
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
+    t_CKINT val = *(t_CKINT*)(sp-1);
+    t_CKINT result = ~val;
+    EM_log(CK_LOG_FINE, "~%d = %d", val, result);
+    push_(sp, result);
 }
 
 
@@ -217,9 +224,13 @@ void Chuck_Instr_Complement_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred 
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Mod_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp, val_(sp) % val_(sp+1) );
+    t_CKINT lhs = *(t_CKINT*)sp;
+    t_CKINT rhs = *(t_CKINT*)(sp+1);
+    t_CKINT result = lhs % rhs;
+    EM_log(CK_LOG_FINE, "%d %% %d = %d", lhs, rhs, result);
+    push_(sp, result);
 }
 
 
@@ -231,9 +242,13 @@ void Chuck_Instr_Mod_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Mod_int_Reverse::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp, val_(sp+1) % val_(sp) );
+    t_CKINT lhs = *(t_CKINT*)sp;
+    t_CKINT rhs = *(t_CKINT*)(sp+1);
+    t_CKINT result = rhs % lhs;
+    EM_log(CK_LOG_FINE, "%d %% %d = %d", rhs, lhs, result);
+    push_(sp, result);
 }
 
 
@@ -245,9 +260,13 @@ void Chuck_Instr_Mod_int_Reverse::execute( Chuck_VM * vm, Chuck_VM_Shred * shred
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Minus_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp, val_(sp) - val_(sp+1) );
+    t_CKINT lhs = *(t_CKINT*)sp;
+    t_CKINT rhs = *(t_CKINT*)(sp+1);
+    t_CKINT result = lhs - rhs;
+    EM_log(CK_LOG_FINE, "%d - %d = %d", lhs, rhs, result);
+    push_(sp, result);
 }
 
 
@@ -259,9 +278,13 @@ void Chuck_Instr_Minus_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Minus_int_Reverse::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp, val_(sp+1) - val_(sp) );
+    t_CKINT lhs = *(t_CKINT*)sp;
+    t_CKINT rhs = *(t_CKINT*)(sp+1);
+    t_CKINT result = rhs + lhs;
+    EM_log(CK_LOG_FINE, "%d %% %d = %d", rhs, lhs, result);
+    push_(sp, result);
 }
 
 
@@ -294,7 +317,6 @@ void Chuck_Instr_Divide_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     t_CKINT lhs = (t_CKINT)*sp;
     t_CKINT rhs = (t_CKINT)*(sp+1);
     push_(sp, lhs / rhs);
-
 }
 
 
@@ -306,9 +328,11 @@ void Chuck_Instr_Divide_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Divide_int_Reverse::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD *& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp, val_(sp+1) / val_(sp) );
+    t_CKINT lhs = (t_CKINT)*sp;
+    t_CKINT rhs = (t_CKINT)*(sp+1);
+    push_(sp, rhs / lhs);
 }
 
 
@@ -339,7 +363,7 @@ void Chuck_Instr_Add_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Minus_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& sp = (t_CKFLOAT *&)shred->reg->sp;
+    t_CKDOUBLE *& sp = (t_CKDOUBLE *&)shred->reg->sp;
     pop_( sp, 2 );
     push_( sp, val_(sp) - val_(sp+1) );
 }
@@ -353,7 +377,7 @@ void Chuck_Instr_Minus_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Minus_double_Reverse::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& sp = (t_CKFLOAT *&)shred->reg->sp;
+    t_CKDOUBLE *& sp = (t_CKDOUBLE *&)shred->reg->sp;
     pop_( sp, 2 );
     push_( sp, val_(sp+1) - val_(sp) );
 }
@@ -397,7 +421,7 @@ void Chuck_Instr_Divide_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Divide_double_Reverse::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& sp = (t_CKFLOAT *&)shred->reg->sp;
+    t_CKDOUBLE *& sp = (t_CKDOUBLE *&)shred->reg->sp;
     pop_( sp, 2 );
     push_( sp, val_(sp+1) / val_(sp) );
 }
@@ -411,7 +435,7 @@ void Chuck_Instr_Divide_double_Reverse::execute( Chuck_VM * vm, Chuck_VM_Shred *
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Mod_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& sp = (t_CKFLOAT *&)shred->reg->sp;
+    t_CKDOUBLE *& sp = (t_CKDOUBLE *&)shred->reg->sp;
     pop_( sp, 2 );
     push_( sp, ::fmod( val_(sp), val_(sp+1) ) );
 }
@@ -425,7 +449,7 @@ void Chuck_Instr_Mod_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Mod_double_Reverse::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& sp = (t_CKFLOAT *&)shred->reg->sp;
+    t_CKDOUBLE *& sp = (t_CKDOUBLE *&)shred->reg->sp;
     pop_( sp, 2 );
     push_( sp, ::fmod( val_(sp+1), val_(sp) ) );
 }
@@ -1637,9 +1661,10 @@ void Chuck_Instr_Reg_Push_Mem::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     t_CKBYTE *& mem_sp = (t_CKBYTE *&)(base?shred->base_ref->stack:shred->mem->sp);
     t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
+    t_CKDWORD val = *(t_CKDWORD *)(mem_sp + m_val);
     // push mem stack content into reg stack
-    EM_log(CK_LOG_FINE, "Pushing %d onto regular stack", *((t_CKDWORD *)(mem_sp + m_val)));
-    push_( reg_sp, *((t_CKDWORD *)(mem_sp + m_val)) );
+    EM_log(CK_LOG_FINE, "Pushing %d onto regular stack", val);
+    push_( reg_sp, val );
 }
 
 
@@ -3716,6 +3741,7 @@ void Chuck_Instr_Func_Call_Static::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
     if( m_val == kindof_INT ) // ISSUE: 64-bit (fixed 1.3.1.0)
     {
         // push the return args
+        EM_log(CK_LOG_FINE, "Returning %d", retval.v_uint);
         push_( reg_sp, retval.v_uint );
     }
     else if( m_val == kindof_FLOAT ) // ISSUE: 64-bit (fixed 1.3.1.0)
@@ -3993,11 +4019,13 @@ Chuck_Instr_Array_Init::~Chuck_Instr_Array_Init()
 void Chuck_Instr_Array_Init::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     // reg stack pointer
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
 
     // allocate the array
     if( m_type_ref->size == sz_INT ) // ISSUE: 64-bit (fixed 1.3.1.0)
     {
+        EM_log(CK_LOG_FINE, "Allocating int size array of length %d (is_obj: %d)",
+               m_length, m_is_obj);
         // TODO: look at size and treat Chuck_Array4 as ChuckArrayInt
         // pop the values
         pop_( reg_sp, m_length );
@@ -4005,35 +4033,46 @@ void Chuck_Instr_Array_Init::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
         Chuck_Array4 * array = new Chuck_Array4( m_is_obj, m_length );
         // problem
         if( !array ) goto out_of_memory;
+        EM_log(CK_LOG_FINE, "Initializing array");
         // initialize object
         initialize_object( array, &t_array );
         // set size
         array->set_size( m_length );
         // fill array
+
+        EM_log(CK_LOG_FINE, "Filling array with %d value(s)", m_length);
         for( t_CKINT i = 0; i < m_length; i++ )
-            array->set( i, *(reg_sp + i) );
+        {
+            t_CKUINT val = *(t_CKUINT*)(reg_sp + i);
+            array->set( i, val );
+        }
         // push the pointer
-        push_( reg_sp, (t_CKUINT)array );
+        push_( reg_sp, (t_CKDWORD)array );
     }
     else if( m_type_ref->size == sz_FLOAT ) // ISSUE: 64-bit (fixed 1.3.1.0)
     {
+        EM_log(CK_LOG_FINE, "Allocating float size array of length %d (is_obj: %d)",
+               m_length, m_is_obj);
         // pop the values
-        pop_( reg_sp, m_length * (sz_FLOAT / sz_INT) ); // 1.3.1.0 added size division
+        pop_(reg_sp, m_length);
         // instantiate array
         Chuck_Array8 * array = new Chuck_Array8( m_length );
         // problem
         if( !array ) goto out_of_memory;
         // fill array
-        t_CKFLOAT * sp = (t_CKFLOAT *)reg_sp;
+        t_CKDOUBLE * sp = (t_CKDOUBLE *)reg_sp;
         // intialize object
         initialize_object( array, &t_array );
         // set size
         array->set_size( m_length );
         // fill array
         for( t_CKINT i = 0; i < m_length; i++ )
-            array->set( i, *(sp + i) );
+        {
+            t_CKDOUBLE val = *(sp + i);
+            array->set( i, val );
+        }
         // push the pointer
-        push_( reg_sp, (t_CKUINT)array );
+        push_( reg_sp, (t_CKDWORD)array );
     }
     else if( m_type_ref->size == sz_COMPLEX ) // ISSUE: 64-bit (fixed 1.3.1.0)
     {
@@ -4362,7 +4401,7 @@ error:
 void Chuck_Instr_Array_Access::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     // reg stack pointer
-    t_CKUINT *& sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& sp = (t_CKDWORD *&)shred->reg->sp;
     // UNUSED: t_CKUINT *& reg_sp = sp;
     t_CKINT i = 0;
     t_CKUINT val = 0;
@@ -4375,7 +4414,7 @@ void Chuck_Instr_Array_Access::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     pop_( sp, 2 );
 
     // check pointer
-    if( !(*sp) ) goto null_pointer;
+    if( !*sp ) goto null_pointer;
 
     // 4 or 8 or 16
     // 1.3.1.0: look at type to use kind instead of size
@@ -4384,43 +4423,49 @@ void Chuck_Instr_Array_Access::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
         // get array
         Chuck_Array4 * arr = (Chuck_Array4 *)(*sp);
         // get index
-        i = (t_CKINT)(*(sp+1));
+        i = (t_CKINT)*(sp+1);
+        EM_log(CK_LOG_FINE, "Accessing int array at index %d", i);
         // check if writing
         if( m_emit_addr ) {
             // get the addr
             val = arr->addr( i );
             // exception
             if( !val ) goto array_out_of_bound;
+            EM_log(CK_LOG_FINE, "Pushing element address: %d", val);
             // push the addr
             push_( sp, val );
         } else {
             // get the value
             if( !arr->get( i, &val ) )
                 goto array_out_of_bound;
+            EM_log(CK_LOG_FINE, "Pushing element value: %d", val);
             // push the value
             push_( sp, val );
         }
     }
     else if( m_kind == kindof_FLOAT ) // ISSUE: 64-bit (1.3.1.0)
     {
+        EM_log(CK_LOG_FINE, "Accessing float array");
         // get array
-        Chuck_Array8 * arr = (Chuck_Array8 *)(*sp);
+        Chuck_Array8 * arr = (Chuck_Array8 *)*sp;
         // get index
-        i = (t_CKINT)(*(sp+1));
+        i = (t_CKINT)*(sp+1);
         // check if writing
         if( m_emit_addr ) {
             // get the addr
             val = arr->addr( i );
             // exception
             if( !val ) goto array_out_of_bound;
+            EM_log(CK_LOG_FINE, "Pushing element address: %d", val);
             // push the addr
             push_( sp, val );
         } else {
             // get the value
             if( !arr->get( i, &fval ) )
                 goto array_out_of_bound;
+            EM_log(CK_LOG_FINE, "Pushing element value: %f", fval);
             // push the value
-            push_( ((t_CKFLOAT *&)sp), fval );
+            push_( (t_CKDOUBLE *&)sp, fval );
         }
     }
     else if( m_kind == kindof_COMPLEX ) // ISSUE: 64-bit
@@ -5019,6 +5064,7 @@ void Chuck_Instr_Dot_Static_Func::execute( Chuck_VM * vm, Chuck_VM_Shred * shred
     // pop the type pointer
     pop_( sp, 1 );
 
+    EM_log(CK_LOG_FINE, "Pushing address of static func to regular stack: %p", m_func);
     // push the address
     push_( sp, (t_CKDWORD)(m_func) );
 }
