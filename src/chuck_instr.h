@@ -36,7 +36,6 @@
 #include "chuck_def.h"
 #include <vector>
 
-
 // forward reference
 struct Chuck_VM;
 struct Chuck_VM_Shred;
@@ -2026,7 +2025,11 @@ struct Chuck_Instr_Alloc_Word : public Chuck_Instr_Unary_Op
 public:
     // (added 1.3.0.0 -- is_object)
     Chuck_Instr_Alloc_Word( t_CKUINT offset, t_CKBOOL is_object )
-    { this->set( offset ); m_is_object = is_object; }
+    {
+        assert(offset % sz_DWORD == 0);
+        this->set( offset );
+        m_is_object = is_object;
+    }
     
     // was this object reference? (added 1.3.0.0)
     t_CKBOOL m_is_object;
@@ -2045,7 +2048,10 @@ struct Chuck_Instr_Alloc_Word2 : public Chuck_Instr_Unary_Op
 {
 public:
     Chuck_Instr_Alloc_Word2( t_CKUINT offset )
-    { this->set( offset ); }
+    {
+        assert(offset % sz_DWORD == 0);
+        this->set( offset );
+    }
 
     virtual void execute( Chuck_VM * vm, Chuck_VM_Shred * shred );
 };
@@ -2061,7 +2067,10 @@ struct Chuck_Instr_Alloc_Word4 : public Chuck_Instr_Unary_Op
 {
 public:
     Chuck_Instr_Alloc_Word4( t_CKUINT offset )
-    { this->set( offset ); }
+    {
+        assert(offset % sz_DWORD == 0);
+        this->set( offset );
+    }
 
     virtual void execute( Chuck_VM * vm, Chuck_VM_Shred * shred );
 };

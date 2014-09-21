@@ -3718,6 +3718,7 @@ t_CKBOOL emit_engine_emit_exp_decl( Chuck_Emitter * emit, a_Exp_Decl decl,
                     // set
                     is_init = TRUE;
                     // instantiate object, including array
+                    EM_log(CK_LOG_FINE, "Emitting array instantiation");
                     if( !emit_engine_instantiate_object( emit, type, list->var_decl->array, is_ref ) )
                         return FALSE;
                 }
@@ -3727,6 +3728,7 @@ t_CKBOOL emit_engine_emit_exp_decl( Chuck_Emitter * emit, a_Exp_Decl decl,
                 // set
                 is_init = TRUE;
                 // instantiate object (not array)
+                EM_log(CK_LOG_FINE, "Emitting object instantiation");
                 if( !emit_engine_instantiate_object( emit, type, list->var_decl->array, is_ref ) )
                     return FALSE;
             }
@@ -3799,6 +3801,7 @@ t_CKBOOL emit_engine_emit_exp_decl( Chuck_Emitter * emit, a_Exp_Decl decl,
                 if( type->size == sz_INT && iskindofint(type) ) // ISSUE: 64-bit (fixed 1.3.1.0)
                 {
                     // (added 1.3.0.0 -- is_obj)
+                    EM_log(CK_LOG_FINE, "Emitting Alloc_Word at offset %d", local->offset);
                     emit->append( new Chuck_Instr_Alloc_Word( local->offset, is_obj ) );
                 }
                 else if( type->size == sz_FLOAT ) // ISSUE: 64-bit (fixed 1.3.1.0)

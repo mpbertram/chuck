@@ -70,7 +70,7 @@ Chuck_Local * Chuck_Frame::alloc_local( t_CKUINT size, const string & name,
     // is object type?  (added ge: 2012 april | added 1.3.0.0)
     local->is_obj = is_obj;
     // the next offset
-    this->curr_offset += local->size;
+    this->curr_offset += sz_DWORD;
     // name
     local->name = name;
     // push the local

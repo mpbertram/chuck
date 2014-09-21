@@ -720,9 +720,12 @@ void Chuck_Instr_Divide_polar_Reverse::execute( Chuck_VM * vm, Chuck_VM_Shred * 
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Add_int_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT temp, *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    temp = **(t_CKINT **)(sp+1) += val_(sp);
+    t_CKINT** lhs = (t_CKINT**)(sp+1);
+    t_CKINT rhs = *(t_CKINT*)sp;
+    t_CKINT temp = **lhs += rhs;
+    EM_log(CK_LOG_FINE, "%d += %d = %d", lhs, rhs, temp);
     push_( sp, temp );
 }
 
@@ -735,9 +738,12 @@ void Chuck_Instr_Add_int_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shred 
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Mod_int_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT temp, *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    temp = **(t_CKINT **)(sp+1) %= val_(sp);
+    t_CKINT** lhs = (t_CKINT**)(sp+1);
+    t_CKINT rhs = *(t_CKINT*)sp;
+    t_CKINT temp = **lhs %= rhs;
+    EM_log(CK_LOG_FINE, "%d %= %d = %d", lhs, rhs, temp);
     push_( sp, temp );
 }
 
@@ -750,9 +756,12 @@ void Chuck_Instr_Mod_int_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shred 
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Minus_int_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT temp, *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    temp = **(t_CKINT **)(sp+1) -= val_(sp);
+    t_CKINT** lhs = (t_CKINT**)(sp+1);
+    t_CKINT rhs = *(t_CKINT*)sp;
+    t_CKINT temp = **lhs -= rhs;
+    EM_log(CK_LOG_FINE, "%d -= %d = %d", lhs, rhs, temp);
     push_( sp, temp );
 }
 
@@ -765,9 +774,12 @@ void Chuck_Instr_Minus_int_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Times_int_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT temp, *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    temp = **(t_CKINT **)(sp+1) *= val_(sp);
+    t_CKINT** lhs = (t_CKINT**)(sp+1);
+    t_CKINT rhs = *(t_CKINT*)sp;
+    t_CKINT temp = **lhs *= rhs;
+    EM_log(CK_LOG_FINE, "%d *= %d = %d", lhs, rhs, temp);
     push_( sp, temp );
 }
 
@@ -780,9 +792,12 @@ void Chuck_Instr_Times_int_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Divide_int_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT temp, *& sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& sp = (t_CKDWORD*&)shred->reg->sp;
     pop_( sp, 2 );
-    temp = **(t_CKINT **)(sp+1) /= val_(sp);
+    t_CKINT** lhs = (t_CKINT**)(sp+1);
+    t_CKINT rhs = *(t_CKINT*)sp;
+    t_CKINT temp = **lhs /= rhs;
+    EM_log(CK_LOG_FINE, "%d /= %d = %d", lhs, rhs, temp);
     push_( sp, temp );
 }
 
@@ -794,14 +809,13 @@ void Chuck_Instr_Divide_int_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shr
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Add_double_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT temp;
-    t_CKBYTE *& sp = (t_CKBYTE *&)shred->reg->sp;
-    // pop value + pointer
-    pop_( sp, sz_FLOAT + sz_UINT );
-    // assign
-    temp = **(t_CKFLOAT **)(sp+sz_FLOAT) += val_((t_CKFLOAT *&)sp);
-    // push result
-    push_( (t_CKFLOAT *&)sp, temp );
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
+    pop_( sp, 2 );
+    t_CKDOUBLE** lhs = (t_CKDOUBLE**)(sp+1);
+    t_CKDOUBLE rhs = *(t_CKDOUBLE*)sp;
+    t_CKDOUBLE temp = **lhs += rhs;
+    EM_log(CK_LOG_FINE, "%f += %f = %f", lhs, rhs, temp);
+    push_( sp, temp );
 }
 
 
@@ -813,14 +827,14 @@ void Chuck_Instr_Add_double_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shr
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Minus_double_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT temp;
-    t_CKBYTE *& sp = (t_CKBYTE *&)shred->reg->sp;
-    // pop value + pointer
-    pop_( sp, sz_FLOAT + sz_UINT );
-    // assign
-    temp = **(t_CKFLOAT **)(sp+sz_FLOAT) -= val_((t_CKFLOAT *&)sp);
-    // push result
-    push_( (t_CKFLOAT *&)sp, temp );
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
+    pop_( sp, 2 );
+    t_CKDOUBLE** lhs = (t_CKDOUBLE**)(sp+1);
+    t_CKDOUBLE rhs = *(t_CKDOUBLE*)sp;
+    t_CKDOUBLE temp = **lhs -= rhs;
+    EM_log(CK_LOG_FINE, "%f -= %f = %f", lhs, rhs, temp);
+    push_( sp, temp );
+
 }
 
 
@@ -832,14 +846,14 @@ void Chuck_Instr_Minus_double_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * s
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Times_double_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT temp;
-    t_CKBYTE *& sp = (t_CKBYTE *&)shred->reg->sp;
-    // pop value + pointer
-    pop_( sp, sz_FLOAT + sz_UINT );
-    // assign
-    temp = **(t_CKFLOAT **)(sp+sz_FLOAT) *= val_((t_CKFLOAT *&)sp);
-    // push result
-    push_( (t_CKFLOAT *&)sp, temp );
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
+    pop_( sp, 2 );
+    t_CKDOUBLE** lhs = (t_CKDOUBLE**)(sp+1);
+    t_CKDOUBLE rhs = *(t_CKDOUBLE*)sp;
+    t_CKDOUBLE temp = **lhs *= rhs;
+    EM_log(CK_LOG_FINE, "%f *= %f = %f", lhs, rhs, temp);
+    push_( sp, temp );
+
 }
 
 
@@ -851,14 +865,14 @@ void Chuck_Instr_Times_double_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * s
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Divide_double_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT temp;
-    t_CKBYTE *& sp = (t_CKBYTE *&)shred->reg->sp;
-    // pop value + pointer
-    pop_( sp, sz_FLOAT + sz_UINT );
-    // assign
-    temp = **(t_CKFLOAT **)(sp+sz_FLOAT) /= val_((t_CKFLOAT *&)sp);
-    // push result
-    push_( (t_CKFLOAT *&)sp, temp );
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
+    pop_( sp, 2 );
+    t_CKDOUBLE** lhs = (t_CKDOUBLE**)(sp+1);
+    t_CKDOUBLE rhs = *(t_CKDOUBLE*)sp;
+    t_CKDOUBLE temp = **lhs /= rhs;
+    EM_log(CK_LOG_FINE, "%f /= %f = %f", lhs, rhs, temp);
+    push_( sp, temp );
+
 }
 
 
@@ -870,15 +884,15 @@ void Chuck_Instr_Divide_double_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * 
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Mod_double_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT temp;
-    t_CKBYTE *& sp = (t_CKBYTE *&)shred->reg->sp;
-    // pop value + pointer
-    pop_( sp, sz_FLOAT + sz_UINT );
-    // assign
-    temp = ::fmod( **(t_CKFLOAT **)(sp+sz_FLOAT), val_((t_CKFLOAT *&)sp) );
-    **(t_CKFLOAT **)(sp+sz_FLOAT) = temp;
-    // push result
-    push_( (t_CKFLOAT *&)sp, temp );
+
+    t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
+    pop_( sp, 2 );
+    t_CKDOUBLE** lhs = (t_CKDOUBLE**)(sp+1);
+    t_CKDOUBLE rhs = *(t_CKDOUBLE*)sp;
+    t_CKDOUBLE temp = ::fmod(**lhs, rhs);
+    **lhs = temp;
+    EM_log(CK_LOG_FINE, "%f %= %f = %f", lhs, rhs, temp);
+    push_( sp, temp );
 }
 
 
@@ -1661,9 +1675,11 @@ void Chuck_Instr_Reg_Push_Mem::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     t_CKBYTE *& mem_sp = (t_CKBYTE *&)(base?shred->base_ref->stack:shred->mem->sp);
     t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
-    t_CKDWORD val = *(t_CKDWORD *)(mem_sp + m_val);
+    t_CKDWORD* ptr = (t_CKDWORD *)(mem_sp + m_val);
+    t_CKDWORD val = *ptr;
     // push mem stack content into reg stack
-    EM_log(CK_LOG_FINE, "Pushing %d onto regular stack", val);
+    EM_log(CK_LOG_FINE, "Pushing value from memory stack offset %d onto regular stack: %d",
+           m_val, val);
     push_( reg_sp, val );
 }
 
@@ -2725,11 +2741,13 @@ void Chuck_Instr_Alloc_Word::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     t_CKBYTE *& mem_sp = (t_CKBYTE *&)shred->mem->sp;
     t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
 
+    t_CKDWORD* ptr = (t_CKDWORD*)(mem_sp + m_val);
     // zero out the memory stack
-    *( (t_CKDWORD *)(mem_sp + m_val) ) = 0;
+    *ptr = 0;
     // push addr onto operand stack
-    EM_log(CK_LOG_FINE, "Pushing memory stack address %p onto stack", (mem_sp + m_val));
-    push_( reg_sp, (t_CKDWORD)(mem_sp + m_val) );
+    EM_log(CK_LOG_FINE, "Pushing memory stack offset %d onto stack, %p", m_val,
+           ptr);
+    push_( reg_sp, (t_CKDWORD)ptr );
 }
 
 
@@ -2744,12 +2762,13 @@ void Chuck_Instr_Alloc_Word2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     t_CKBYTE *& mem_sp = (t_CKBYTE *&)shred->mem->sp;
     t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
+    t_CKDOUBLE* ptr = (t_CKDOUBLE*)(mem_sp + m_val);
     // zero out the memory stack
-    *( (t_CKDOUBLE*)(mem_sp + m_val) ) = 0.0;
-    t_CKDWORD addr = (t_CKDWORD)(mem_sp + m_val);
-    EM_log(CK_LOG_FINE, "Pushing memory stack address %p of float onto regular stack", addr);
+    *ptr = 0;
+    EM_log(CK_LOG_FINE, "Pushing memory stack offset %d onto regular stack (address: %p)",
+           m_val, ptr);
     // push addr onto operand stack
-    push_( reg_sp, addr );
+    push_( reg_sp, (t_CKDWORD)ptr );
 }
 
 
