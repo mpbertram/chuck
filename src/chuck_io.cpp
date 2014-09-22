@@ -323,7 +323,7 @@ t_CKINT Chuck_IO_Serial::readInt( t_CKINT flags )
 
     if( m_flags & Chuck_IO_File::TYPE_BINARY )
     {
-        if( flags & READ_INT8 )
+        if( flags & INT8 )
         {
             uint8_t byte = 0;
             if(!fread(&byte, 1, 1, m_cfd))
@@ -331,7 +331,7 @@ t_CKINT Chuck_IO_Serial::readInt( t_CKINT flags )
 
             i = byte;
         }
-        else if( flags & READ_INT16 )
+        else if( flags & INT16 )
         {
             uint16_t word = 0;
             if(!fread(&word, 2, 1, m_cfd))
@@ -339,7 +339,7 @@ t_CKINT Chuck_IO_Serial::readInt( t_CKINT flags )
 
             i = word;
         }
-        else if( flags & READ_INT32 )
+        else if( flags & INT32 )
         {
             uint32_t dword = 0;
             if(!fread(&dword, 4, 1, m_cfd))
