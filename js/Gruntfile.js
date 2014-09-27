@@ -60,6 +60,23 @@ module.exports = function (grunt) {
             filter: 'isFile'
           }
         ]
+      },
+      contributions: {
+        options: {
+          env: {
+            root: '../'
+          }
+        },
+        files: [
+          {
+            expand: true,
+            cwd: 'pages',
+            src: 'contributions/**/*.dot.html',
+            dest: 'examples/',
+            ext: '.html',
+            filter: 'isFile'
+          }
+        ]
       }
     },
     watch: {
