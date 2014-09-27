@@ -52,6 +52,7 @@
 #define t_CKVOID                    void
 #define t_CKVOIDPTR                 void *
 #define t_CKDWORD                   uint64_t
+#define t_CKSDWORD                  int64_t
 
 // complex type
 typedef struct { t_CKFLOAT re ; t_CKFLOAT im ; } t_CKCOMPLEX;

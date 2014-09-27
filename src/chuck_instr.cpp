@@ -365,7 +365,11 @@ void Chuck_Instr_Minus_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKDOUBLE *& sp = (t_CKDOUBLE *&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp, val_(sp) - val_(sp+1) );
+    t_CKDOUBLE lhs = val_(sp);
+    t_CKDOUBLE rhs = val_(sp+1);
+    EM_log(CK_LOG_FINE, "Popped %f and %f off regular stack, pushing %f",
+           lhs, rhs, lhs - rhs);
+    push_( sp, lhs - rhs );
 }
 
 
@@ -379,7 +383,11 @@ void Chuck_Instr_Minus_double_Reverse::execute( Chuck_VM * vm, Chuck_VM_Shred * 
 {
     t_CKDOUBLE *& sp = (t_CKDOUBLE *&)shred->reg->sp;
     pop_( sp, 2 );
-    push_( sp, val_(sp+1) - val_(sp) );
+    t_CKDOUBLE lhs = val_(sp+1);
+    t_CKDOUBLE rhs = val_(sp);
+    EM_log(CK_LOG_FINE, "Popped %f and %f off regular stack, pushing %f",
+           lhs, rhs, lhs - rhs);
+    push_( sp, lhs -  rhs);
 }
 
 
@@ -412,6 +420,7 @@ void Chuck_Instr_Divide_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     pop_( sp, 2 );
     t_CKDOUBLE lhs = (t_CKDOUBLE)*sp;
     t_CKDOUBLE rhs = (t_CKDOUBLE)*(sp+1);
+    EM_log(CK_LOG_FINE, "Dividing %f with %f = %f", lhs, rhs, lhs * rhs);
     push_(sp, lhs / rhs);
 }
 
@@ -1394,7 +1403,7 @@ done:
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Add_int_string_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
     t_CKINT lhs = 0;
     Chuck_String ** rhs_ptr = NULL;
 
@@ -1438,7 +1447,7 @@ done:
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Add_float_string_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD*&)shred->reg->sp;
     t_CKFLOAT lhs = 0;
     Chuck_String ** rhs_ptr = NULL;
 
@@ -1548,10 +1557,10 @@ void Chuck_Instr_Reg_Dup_Last::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Reg_Dup_Last2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& reg_sp = (t_CKFLOAT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // dup val into reg stack
-    push_( reg_sp, *(reg_sp-1) );
+    push_( reg_sp, *(t_CKFLOAT*)(reg_sp-1) );
 }
 
 
@@ -1610,10 +1619,10 @@ void Chuck_Instr_Reg_Push_This::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Reg_Push_Start::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKTIME *& reg_sp = (t_CKTIME *&)shred->reg->sp;
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
 
     // push val into reg stack
-    push_( reg_sp, shred->start );
+    push_(reg_sp, shred->start);
 }
 
 
@@ -1625,7 +1634,7 @@ void Chuck_Instr_Reg_Push_Start::execute( Chuck_VM * vm, Chuck_VM_Shred * shred 
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Reg_Push_Maybe::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKINT *& reg_sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
 
     // push val into reg stack
     float num = (float)rand() / (float)RAND_MAX;
@@ -1641,11 +1650,11 @@ void Chuck_Instr_Reg_Push_Maybe::execute( Chuck_VM * vm, Chuck_VM_Shred * shred 
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Reg_Push_Deref::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // (added 1.3.1.0: made this integer only)
     // ISSUE: 64-bit (fixed 1.3.1.0)
-    push_( reg_sp, *((t_CKUINT *)m_val) );
+    push_( reg_sp, *(t_CKDWORD *)m_val);
 }
 
 
@@ -1657,10 +1666,10 @@ void Chuck_Instr_Reg_Push_Deref::execute( Chuck_VM * vm, Chuck_VM_Shred * shred 
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Reg_Push_Deref2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKFLOAT *& reg_sp = (t_CKFLOAT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // (added 1.3.1.0)
-    push_( reg_sp, *((t_CKFLOAT *)m_val) );
+    push_(reg_sp, *(t_CKDWORD *)m_val);
 }
 
 
@@ -1730,6 +1739,8 @@ void Chuck_Instr_Reg_Push_Mem_Addr::execute( Chuck_VM * vm, Chuck_VM_Shred * shr
     t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // push mem stack addr into reg stack
+    EM_log(CK_LOG_FINE, "Pushing value at memory stack + offset %d to regular stack",
+           m_val);
     push_( reg_sp, (t_CKDWORD)(mem_sp + m_val) );
 }
 
@@ -1762,6 +1773,7 @@ void Chuck_Instr_Reg_Pop_Word::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
     pop_( reg_sp, 1 );
+    EM_log(CK_LOG_FINE, "Popped regular stack by one");
 }
 
 
@@ -1773,8 +1785,9 @@ void Chuck_Instr_Reg_Pop_Word::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Reg_Pop_Word2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKDOUBLE *& reg_sp = (t_CKDOUBLE *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
     pop_( reg_sp, 1 );
+    EM_log(CK_LOG_FINE, "Popped regular stack by one");
 }
 
 
@@ -1819,7 +1832,7 @@ void Chuck_Instr_Reg_Pop_Word4::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 void Chuck_Instr_Mem_Set_Imm::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKDWORD * mem_sp = (t_CKDWORD *)(shred->mem->sp + m_offset);
-
+    EM_log(CK_LOG_FINE, "Setting top of memory stack to be unsigned integer %d", m_val);
     // set
     *(mem_sp) = m_val;
 }
@@ -2051,6 +2064,7 @@ void Chuck_Instr_Not_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKDWORD *& sp = (t_CKDWORD *&)shred->reg->sp;
     t_CKINT val = *(t_CKINT*)(sp-1);
+    EM_log(CK_LOG_FINE, "Negating top of regular stack");
     *(sp-1) = !val;
 }
 
@@ -2064,6 +2078,7 @@ void Chuck_Instr_Not_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 void Chuck_Instr_Negate_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKDWORD *& sp = (t_CKDWORD *&)shred->reg->sp;
+    EM_log(CK_LOG_FINE, "Negating top of regular stack");
     t_CKINT val = *(t_CKINT*)(sp-1);
     *(sp-1) = -val;
 }
@@ -2078,6 +2093,7 @@ void Chuck_Instr_Negate_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 void Chuck_Instr_Negate_double::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     t_CKDOUBLE*& sp = (t_CKDOUBLE*&)shred->reg->sp;
+    EM_log(CK_LOG_FINE, "Negating top of regular stack");
     t_CKDOUBLE val = *(t_CKDOUBLE*)(sp-1);
     *(sp-1) = -val;
 }
@@ -3144,14 +3160,19 @@ const char * Chuck_Instr_Pre_Ctor_Array_Top::params() const
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Pre_Ctor_Array_Top::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // see if we are done with all elements in the array
     if( *(reg_sp-2) >= *(reg_sp-1) )
+    {
+        EM_log(CK_LOG_FINE, "Finished instantiating array elements, jumping to instruction %d",
+               m_val);
         shred->next_pc = m_val;
+    }
     else
     {
         // instantiate
+        EM_log(CK_LOG_FINE, "Instantiating array element");
         instantiate_object( vm, shred, type );
     }
 }
@@ -3165,19 +3186,21 @@ void Chuck_Instr_Pre_Ctor_Array_Top::execute( Chuck_VM * vm, Chuck_VM_Shred * sh
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Pre_Ctor_Array_Bottom::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
 
     // pop the object
     pop_( reg_sp, 1 );
 
     // cast the object
-    Chuck_Object * obj = (Chuck_Object *)(*(reg_sp));
+    Chuck_Object * obj = (Chuck_Object *)*reg_sp;
+    EM_log(CK_LOG_FINE, "Popped object from regular stack");
 
     // assign object
-    t_CKUINT * array = (t_CKUINT *)(*(reg_sp-3));
+    t_CKUINT * array = (t_CKUINT *)*(reg_sp-3);
     // get the object pointer
-    Chuck_Object ** dest = (Chuck_Object **)(array[*(reg_sp-2)]);
+    Chuck_Object ** dest = (Chuck_Object **)array[*(reg_sp-2)];
     // copy
+    EM_log(CK_LOG_FINE, "Copying object to destination");
     *dest = obj;
     // ref count
     obj->add_ref();
@@ -3185,6 +3208,7 @@ void Chuck_Instr_Pre_Ctor_Array_Bottom::execute( Chuck_VM * vm, Chuck_VM_Shred *
     (*(reg_sp-2))++; //= (*(reg_sp-2)) + 1;
 
     // goto top
+    EM_log(CK_LOG_FINE, "Jumping to top (instruction %d)", m_val);
     shred->next_pc = m_val;
 }
 
@@ -3197,13 +3221,15 @@ void Chuck_Instr_Pre_Ctor_Array_Bottom::execute( Chuck_VM * vm, Chuck_VM_Shred *
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Pre_Ctor_Array_Post::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
 
     // pop the array, index, and size
     pop_( reg_sp, 3 );
+    EM_log(CK_LOG_FINE, "Popped array, index and size off regular stack");
 
     // clean up the array
     t_CKUINT * arr = (t_CKUINT *)*reg_sp;
+    EM_log(CK_LOG_FINE, "Deleting array");
     SAFE_DELETE_ARRAY( arr );
 }
 
@@ -3375,17 +3401,18 @@ void Chuck_Instr_AddRef_Object::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     // ISSUE: 64-bit?
     t_CKBYTE *& mem_sp = (t_CKBYTE *&)shred->mem->sp;
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
     Chuck_VM_Object * obj = NULL;
+    
 
-    // pop word from reg stack
+    // pop from reg stack
     pop_( reg_sp, 1 );
-    // copy popped value into mem stack
-    obj = *( (Chuck_VM_Object **)(mem_sp + *(reg_sp)) );
+    t_CKDWORD offset = *reg_sp;
+    EM_log(CK_LOG_FINE, "Adding reference to object at memory stack + offset %d", offset);
+    obj = *(Chuck_VM_Object **)(mem_sp + offset);
     // ge (2012 april): check for NULL (added 1.3.0.0)
     if( obj != NULL )
     {
-        // release
         obj->add_ref();
     }
 }
@@ -3423,17 +3450,14 @@ void Chuck_Instr_Reg_AddRef_Object3::execute( Chuck_VM * vm, Chuck_VM_Shred * sh
 {
     // ISSUE: 64-bit?
     // NOTE: this pointer is NOT a reference pointer
-    t_CKUINT * reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD * reg_sp = (t_CKDWORD *)shred->reg->sp;
     Chuck_VM_Object * obj = NULL;
 
-    // move word without popping
-    reg_sp--;
-    // copy popped value into mem stack
-    obj = *( (Chuck_VM_Object **)(reg_sp) );
+    obj = *(Chuck_VM_Object **)(reg_sp-1);
     // ge (2012 april): check for NULL (added 1.3.0.0)
     if( obj != NULL )
     {
-        // release
+        EM_log(CK_LOG_FINE, "Adding reference to object");
         obj->add_ref();
     }
 }
@@ -3449,13 +3473,13 @@ void Chuck_Instr_Release_Object::execute( Chuck_VM * vm, Chuck_VM_Shred * shred 
 {
     // ISSUE: 64-bit?
     t_CKBYTE *& mem_sp = (t_CKBYTE *&)shred->mem->sp;
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
     Chuck_VM_Object * obj = NULL;
 
     // pop word from reg stack
     pop_( reg_sp, 1 );
-    // copy popped value into mem stack
-    obj = *( (Chuck_VM_Object **)(mem_sp + *(reg_sp)) );
+    obj = *(Chuck_VM_Object **)(mem_sp + *reg_sp);
+    EM_log(CK_LOG_FINE, "Releasing object popped from regular stack");
     // ge (2012 april): check for NULL (added 1.3.0.0)
     if( obj != NULL )
     {
@@ -3477,7 +3501,8 @@ void Chuck_Instr_Release_Object2::execute( Chuck_VM * vm, Chuck_VM_Shred * shred
     Chuck_VM_Object * obj = NULL;
 
     // copy popped value into mem stack
-    obj = *( (Chuck_VM_Object **)(mem_sp + m_val) );
+    obj = *(Chuck_VM_Object **)(mem_sp + m_val);
+    EM_log(CK_LOG_FINE, "Releasing object popped from regular stack");
     // check for NULL
     if( obj != NULL )
     {
@@ -3838,17 +3863,21 @@ void Chuck_Instr_Func_Return::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     // UNUSED: t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
 
     // pop pc
-    pop_( mem_sp, 2 );
-    shred->next_pc = *mem_sp;
-    // pop the code
-    pop_( mem_sp, 1 );
-    Chuck_VM_Code * func = (Chuck_VM_Code *)*mem_sp;
-    // pop the prev_stack
-    pop_( mem_sp, 1 );
+    pop_( mem_sp, 4 );
+    t_CKDWORD prev_stack = *mem_sp;
+    Chuck_VM_Code * func = (Chuck_VM_Code *)*(mem_sp+1);
+    t_CKDWORD pc = *(mem_sp+2);
+    EM_log(CK_LOG_FINE, "Popped previous stack %d, function %p, instruction number %d and one more element off memory stack",
+           prev_stack, func, pc);
+    EM_log(CK_LOG_FINE, "Jumping to instruction %d", pc);
+    shred->next_pc = pc;
+
     // jump the prev stack
-    mem_sp -= *(mem_sp);
+    EM_log(CK_LOG_FINE, "Moving stack pointer back to by %d places", prev_stack);
+    mem_sp -= prev_stack;
 
     // set the shred
+    EM_log(CK_LOG_FINE, "Re-setting the shred's code object to the caller function");
     shred->code = func;
     shred->instr = func->instr;
 }
@@ -4342,7 +4371,7 @@ error:
 void Chuck_Instr_Array_Alloc::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
     // reg stack pointer
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD *& reg_sp = (t_CKDWORD *&)shred->reg->sp;
     // ref
     t_CKUINT ref = 0;
     // the total number of objects to allocate
@@ -4359,8 +4388,8 @@ void Chuck_Instr_Array_Alloc::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     // if need instantiation
     if( m_is_obj && !m_is_ref )
     {
-        t_CKINT * curr = (t_CKINT *)(reg_sp - m_depth);
-        t_CKINT * top = (t_CKINT *)(reg_sp - 1);
+        t_CKSDWORD * curr = (t_CKSDWORD *)(reg_sp - m_depth);
+        t_CKSDWORD * top = (t_CKSDWORD *)(reg_sp - 1);
 
         num_obj = 1;
         num = 1.0;
@@ -4481,6 +4510,9 @@ void Chuck_Instr_Array_Access::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 
     // check pointer
     if( !*sp ) goto null_pointer;
+    
+    i = (t_CKINT)*(sp+1);
+    EM_log(CK_LOG_FINE, "Popped array %p and index %d from regular stack", *sp, i);
 
     // 4 or 8 or 16
     // 1.3.1.0: look at type to use kind instead of size
@@ -4489,7 +4521,6 @@ void Chuck_Instr_Array_Access::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
         // get array
         Chuck_Array4 * arr = (Chuck_Array4 *)(*sp);
         // get index
-        i = (t_CKINT)*(sp+1);
         EM_log(CK_LOG_FINE, "Accessing int array at index %d", i);
         // check if writing
         if( m_emit_addr ) {
