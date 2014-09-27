@@ -3506,7 +3506,8 @@ void Chuck_Instr_Func_To_Code::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     // make sure
     assert( func != NULL );
     // code
-    EM_log(CK_LOG_FINE, "Replacing func on top of regular stack with its code: %d", func->code);
+    EM_log(CK_LOG_FINE, "Replacing func on top of regular stack (%s, stack depth %d) with its code: %d",
+           func ->name.c_str(), func->code->stack_depth, func->code);
     *(reg_sp-1) = (t_CKDWORD)func->code;
 }
 
@@ -3519,33 +3520,41 @@ void Chuck_Instr_Func_To_Code::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Func_Call::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& mem_sp = (t_CKUINT *&)shred->mem->sp;
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD*& mem_sp = (t_CKDWORD*&)shred->mem->sp;
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
 
     // pop word
     pop_( reg_sp, 2 );
     // get the function to be called as code
     Chuck_VM_Code * func = (Chuck_VM_Code *)*reg_sp;
     // get the local stack depth - caller local variables
-    t_CKUINT local_depth = *(reg_sp+1);
+    t_CKDWORD local_depth = *(reg_sp+1);
     assert(local_depth % sz_DWORD == 0);
     local_depth = local_depth / sz_DWORD;
     // get the stack depth of the callee function args
+    EM_log(CK_LOG_FINE, "Function stack depth: %d", func->stack_depth);
     assert(func->stack_depth % sz_DWORD == 0);
     t_CKUINT stack_depth = func->stack_depth / sz_DWORD;
     // get the previous stack depth - caller function args
-    assert(*(mem_sp-1) % sz_DWORD == 0);
-    t_CKUINT prev_stack = *(mem_sp-1) / sz_DWORD;
+    t_CKDWORD prev_stack = *(mem_sp-1);
+    EM_log(CK_LOG_FINE, "Previous stack length is %d", prev_stack);
 
+    t_CKDWORD stack_offset = prev_stack + local_depth;
     // jump the sp
-    mem_sp += prev_stack + local_depth;
+    EM_log(CK_LOG_FINE, "Advancing the memory stack by %d", stack_offset);
+    mem_sp += stack_offset;
+    EM_log(CK_LOG_FINE, "Pushing stack offset to memory stack: %d", stack_offset);
     // push the prev stack
-    push_( mem_sp, prev_stack + local_depth );
+    push_( mem_sp, stack_offset );
+    EM_log(CK_LOG_FINE, "Pushing current code to memory stack");
     // push the current function
     push_( mem_sp, (t_CKUINT)shred->code );
+    EM_log(CK_LOG_FINE, "Pushing current instruction number to memory stack");
     // push the pc
     push_( mem_sp, (t_CKUINT)(shred->pc + 1) );
-    // push the stack depth
+    EM_log(CK_LOG_FINE, "Pushing callee stack depth to memory stack: %d", stack_depth);
+    // push the callee stack depth, so that the callee will know how many arguments are
+    // on the mem stack
     push_( mem_sp, stack_depth );
     // set the pc to 0
     shred->next_pc = 0;
@@ -3553,6 +3562,8 @@ void Chuck_Instr_Func_Call::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     shred->code = func;
     // set the instruction to the function instruction
     shred->instr = func->instr;
+    EM_log(CK_LOG_FINE, "Registering function's first instruction for execution: %s",
+           (*shred->instr)->name());
 
     // if there are arguments to be passed
     if( stack_depth )
@@ -3561,8 +3572,8 @@ void Chuck_Instr_Func_Call::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
         pop_( reg_sp, stack_depth );
 
         // make copies
-        t_CKUINT * mem_sp2 = (t_CKUINT *)mem_sp;
-        t_CKUINT * reg_sp2 = (t_CKUINT *)reg_sp;
+        t_CKDWORD* mem_sp2 = (t_CKDWORD*)mem_sp;
+        t_CKDWORD* reg_sp2 = (t_CKDWORD*)reg_sp;
 
         // need this
         if( func->need_this )
@@ -3580,7 +3591,7 @@ void Chuck_Instr_Func_Call::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 
     // detect overflow/underflow
     if( overflow_( shred->mem ) ) goto error_overflow;
-
+    
     return;
 
 error_overflow:
@@ -3823,7 +3834,7 @@ error_overflow:
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Func_Return::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& mem_sp = (t_CKUINT *&)shred->mem->sp;
+    t_CKDWORD*& mem_sp = (t_CKDWORD*&)shred->mem->sp;
     // UNUSED: t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
 
     // pop pc

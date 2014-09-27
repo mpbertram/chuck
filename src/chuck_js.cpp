@@ -153,7 +153,7 @@ void executeCode(const char* fileName, const char* code)
     t_CKBOOL auto_depend = FALSE;
     t_CKBOOL block = FALSE;
     t_CKINT adaptive_size = 0;
-    t_CKINT log_level = CK_LOG_FINE;
+    t_CKINT log_level = CK_LOG_SYSTEM;
     t_CKINT deprecate_level = 1; // 1 == warn
     string filename = "";
     vector <string> args;

@@ -361,7 +361,7 @@ t_CKBOOL emit_engine_emit_stmt( Chuck_Emitter * emit, a_Stmt stmt, t_CKBOOL pop 
     switch( stmt->s_type )
     {
         case ae_stmt_exp:  // expression statement
-            EM_log(CK_LOG_FINE, "Emitting statement expression");
+            EM_log(CK_LOG_FINE, "emitting statement expression");
             EM_pushlog();
             // emit it
             ret = emit_engine_emit_exp( emit, stmt->stmt_exp );
@@ -410,14 +410,17 @@ t_CKBOOL emit_engine_emit_stmt( Chuck_Emitter * emit, a_Stmt stmt, t_CKBOOL pop 
             break;
 
         case ae_stmt_if:  // if statement
+            EM_log(CK_LOG_FINE, "emitting if statement");
             ret = emit_engine_emit_if( emit, &stmt->stmt_if );
             break;
 
         case ae_stmt_for:  // for statement
+            EM_log(CK_LOG_FINE, "emitting for statement");
             ret = emit_engine_emit_for( emit, &stmt->stmt_for );
             break;
 
         case ae_stmt_while:  // while statement
+            EM_log(CK_LOG_FINE, "emitting while statement");
             if( stmt->stmt_while.is_do )
                 ret = emit_engine_emit_do_while( emit, &stmt->stmt_while );
             else
@@ -425,6 +428,7 @@ t_CKBOOL emit_engine_emit_stmt( Chuck_Emitter * emit, a_Stmt stmt, t_CKBOOL pop 
             break;
         
         case ae_stmt_until:  // until statement
+            EM_log(CK_LOG_FINE, "emitting until statement");
             if( stmt->stmt_until.is_do )
                 ret = emit_engine_emit_do_until( emit, &stmt->stmt_until );
             else
@@ -432,6 +436,7 @@ t_CKBOOL emit_engine_emit_stmt( Chuck_Emitter * emit, a_Stmt stmt, t_CKBOOL pop 
             break;
 
         case ae_stmt_loop:  // loop statement
+            EM_log(CK_LOG_FINE, "emitting loop statement");
             ret = emit_engine_emit_loop( emit, &stmt->stmt_loop );
             break;
 
@@ -441,18 +446,22 @@ t_CKBOOL emit_engine_emit_stmt( Chuck_Emitter * emit, a_Stmt stmt, t_CKBOOL pop 
             break;
 
         case ae_stmt_break:  // break statement
+            EM_log(CK_LOG_FINE, "emitting break statement");
             ret = emit_engine_emit_break( emit, &stmt->stmt_break );
             break;
 
         case ae_stmt_code:  // code segment
+            EM_log(CK_LOG_FINE, "emitting code statement");
             ret = emit_engine_emit_code_segment( emit, &stmt->stmt_code );
             break;
             
         case ae_stmt_continue:  // continue statement
+            EM_log(CK_LOG_FINE, "emitting continue statement");
             ret = emit_engine_emit_continue( emit, &stmt->stmt_continue );
             break;
             
         case ae_stmt_return:  // return statement
+            EM_log(CK_LOG_FINE, "emitting return statement");
             ret = emit_engine_emit_return( emit, &stmt->stmt_return );
             break;
             
@@ -3898,6 +3907,7 @@ t_CKBOOL emit_engine_emit_code_segment( Chuck_Emitter * emit,
     // loop through
     while( list )
     {
+        LogPusher logPusher;
         // emit the statement
         if( !emit_engine_emit_stmt( emit, list->stmt ) )
             return FALSE;

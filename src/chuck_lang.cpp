@@ -2829,6 +2829,7 @@ CK_DLL_MFUN( fileio_writeintflags )
     t_CKINT flags = GET_NEXT_INT(ARGS);
     
     Chuck_IO_File * f = (Chuck_IO_File *)SELF;
+#ifndef __EMSCRIPTEN__
     if (f->mode() == Chuck_IO::MODE_ASYNC)
     {
         // TODO: pass flags in args
@@ -2855,6 +2856,9 @@ CK_DLL_MFUN( fileio_writeintflags )
     } else {
         f->write(val, flags);
     }
+#else
+    f->write(val, flags);
+#endif
 }
 
 CK_DLL_MFUN( fileio_writefloat )

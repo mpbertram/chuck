@@ -34,6 +34,7 @@
 #include "chuck_errmsg.h"
 #include "chuck_vm.h"
 #include "util_string.h"
+#include "chuck_logpusher.h"
 
 using namespace std;
 
@@ -745,6 +746,8 @@ t_CKBOOL type_engine_scan1_return( Chuck_Env * env, a_Stmt_Return stmt )
 t_CKBOOL type_engine_scan1_code_segment( Chuck_Env * env, a_Stmt_Code stmt,
                                         t_CKBOOL push )
 {
+    EM_log(CK_LOG_FINER, "scanning code segment");
+    LogPusher logPusher;
     // class
     env->class_scope++;
     // push
@@ -1303,6 +1306,8 @@ t_CKBOOL type_engine_scan1_class_def( Chuck_Env * env, a_Class_Def class_def )
 //-----------------------------------------------------------------------------
 t_CKBOOL type_engine_scan1_func_def( Chuck_Env * env, a_Func_Def f )
 {
+    EM_log(CK_LOG_FINER, "Scanning function definition");
+    LogPusher logPusher;
     a_Arg_List arg_list = NULL;
     t_CKUINT count = 0;
     // t_CKBOOL has_code = FALSE;
@@ -1328,6 +1333,7 @@ t_CKBOOL type_engine_scan1_func_def( Chuck_Env * env, a_Func_Def f )
         EM_error2( f->linepos, "... in return type of function '%s' ...", S_name(f->name) );
         goto error;
     }
+    EM_log(CK_LOG_FINER, "function has return type %s", f->ret_type->name.c_str());
     // check if array
     if( f->type_decl->array != NULL )
     {
@@ -1381,6 +1387,7 @@ t_CKBOOL type_engine_scan1_func_def( Chuck_Env * env, a_Func_Def f )
             goto error;
         }
 
+        EM_log(CK_LOG_FINER, "Argument %d has type %s", count, arg_list->type->name.c_str());
         // count
         count++;
         // next arg
@@ -1394,6 +1401,8 @@ t_CKBOOL type_engine_scan1_func_def( Chuck_Env * env, a_Func_Def f )
         EM_error2( 0, "...in function '%s'", S_name(f->name) );
         goto error;
     }
+    
+    EM_log(CK_LOG_FINER, "stack_depth: %d", f->stack_depth);
 
     return TRUE;
 
@@ -2424,6 +2433,8 @@ t_CKBOOL type_engine_scan2_class_def( Chuck_Env * env, a_Class_Def class_def )
 //-----------------------------------------------------------------------------
 t_CKBOOL type_engine_scan2_func_def( Chuck_Env * env, a_Func_Def f )
 {
+    EM_log(CK_LOG_FINER, "type verification scanning function definition");
+    LogPusher logPusher;
     Chuck_Type * type = NULL;
     Chuck_Value * value = NULL;
     Chuck_Func * func = NULL;
@@ -2482,11 +2493,13 @@ t_CKBOOL type_engine_scan2_func_def( Chuck_Env * env, a_Func_Def f )
     {
         // make the new name
         func_name += "@" + itoa( ++overload->func_num_overloads ) + "@" + env->curr->name;
+        EM_log(CK_LOG_FINER, "function is an overload: %s", func_name.c_str());
     }
     else
     {
         // make name using 0
         func_name += "@0@" + env->curr->name;
+        EM_log(CK_LOG_FINER, "function is not an overload: %s", func_name.c_str());
     }
 
     // make sure a code segment is in stmt - else we should push scope
@@ -2713,6 +2726,9 @@ t_CKBOOL type_engine_scan2_func_def( Chuck_Env * env, a_Func_Def f )
     env->curr->value.pop();    
     // clear the env's function definition
     env->func = NULL;
+    
+    EM_log(CK_LOG_FINER, "function has stack depth %d", f->stack_depth);    
+    assert(f->stack_depth % sz_DWORD == 0);
 
     return TRUE;
 

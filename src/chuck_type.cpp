@@ -38,6 +38,7 @@
 #include "chuck_lang.h"
 #include "util_string.h"
 #include "ugen_xxx.h"
+#include "chuck_logpusher.h"
 
 using namespace std;
 
@@ -689,6 +690,8 @@ t_CKBOOL type_engine_unload_context( Chuck_Env * env )
 //-----------------------------------------------------------------------------
 t_CKBOOL type_engine_check_stmt_list( Chuck_Env * env, a_Stmt_List list )
 {
+    EM_log(CK_LOG_FINER, "type-checking statement list");
+    LogPusher logPusher;
     // type check the stmt_list
     while( list )
     {
@@ -716,6 +719,9 @@ t_CKBOOL type_engine_check_stmt( Chuck_Env * env, a_Stmt stmt )
 
     if( !stmt )
         return TRUE;
+    
+    EM_log(CK_LOG_FINER, "type-checking statement");
+    LogPusher logpusher;
 
     // the type of stmt
     switch( stmt->s_type )
@@ -1181,6 +1187,8 @@ t_CKBOOL type_engine_check_code_segment( Chuck_Env * env, a_Stmt_Code stmt,
 //-----------------------------------------------------------------------------
 t_CKTYPE type_engine_check_exp( Chuck_Env * env, a_Exp exp )
 {
+    EM_log(CK_LOG_FINER, "type-checking expression");
+    LogPusher logPusher;
     a_Exp curr = exp;
     
     // reset the group size
@@ -1271,6 +1279,8 @@ t_CKTYPE type_engine_check_exp( Chuck_Env * env, a_Exp exp )
 //-----------------------------------------------------------------------------
 t_CKTYPE type_engine_check_exp_binary( Chuck_Env * env, a_Exp_Binary binary )
 {
+    EM_log(CK_LOG_FINER, "type-checking a binary expression");
+    LogPusher logPusher;
     a_Exp cl = binary->lhs, cr = binary->rhs;
     t_CKTYPE ret = NULL;
 
@@ -2059,6 +2069,9 @@ t_CKTYPE type_engine_check_op_at_chuck( Chuck_Env * env, a_Exp lhs, a_Exp rhs )
 t_CKTYPE type_engine_check_exp_unary( Chuck_Env * env, a_Exp_Unary unary )
 {
     Chuck_Type * t = NULL;
+    
+    EM_log(CK_LOG_FINER, "type-checking a unary expression");
+    LogPusher logPusher;
 
     // make sure
     if( unary->exp )
@@ -2209,6 +2222,8 @@ t_CKTYPE type_engine_check_exp_unary( Chuck_Env * env, a_Exp_Unary unary )
 //-----------------------------------------------------------------------------
 t_CKTYPE type_engine_check_exp_primary( Chuck_Env * env, a_Exp_Primary exp )
 {
+    EM_log(CK_LOG_FINER, "type-checking a primary expression");
+    LogPusher logPusher;
     t_CKTYPE t = NULL;
     Chuck_Value * v = NULL;
     string str;
@@ -2771,6 +2786,8 @@ t_CKBOOL type_engine_check_cast_valid( Chuck_Env * env, t_CKTYPE to, t_CKTYPE fr
 //-----------------------------------------------------------------------------
 t_CKTYPE type_engine_check_exp_dur( Chuck_Env * env, a_Exp_Dur dur )
 {
+    EM_log(CK_LOG_FINER, "type-checking a dur expression");
+    LogPusher logPusher;
     // type check the two components
     t_CKTYPE base = type_engine_check_exp( env, dur->base );
     t_CKTYPE unit = type_engine_check_exp( env, dur->unit );
@@ -2808,6 +2825,9 @@ t_CKTYPE type_engine_check_exp_dur( Chuck_Env * env, a_Exp_Dur dur )
 //-----------------------------------------------------------------------------
 t_CKTYPE type_engine_check_exp_postfix( Chuck_Env * env, a_Exp_Postfix postfix )
 {
+    EM_log(CK_LOG_FINER, "type-checking a postfix expression");
+    LogPusher logPusher;
+    
     // check the exp
     t_CKTYPE t = type_engine_check_exp( env, postfix->exp );
     if( !t ) return NULL;
@@ -2857,6 +2877,8 @@ t_CKTYPE type_engine_check_exp_postfix( Chuck_Env * env, a_Exp_Postfix postfix )
 //-----------------------------------------------------------------------------
 t_CKTYPE type_engine_check_exp_if( Chuck_Env * env, a_Exp_If exp_if )
 {
+    EM_log(CK_LOG_FINER, "type-checking an if expression");
+    LogPusher logPusher;
     // check the components
     t_CKTYPE cond = type_engine_check_exp( env, exp_if->cond );
     t_CKTYPE if_exp = type_engine_check_exp( env, exp_if->if_exp );
@@ -2925,6 +2947,9 @@ t_CKTYPE type_engine_check_exp_decl( Chuck_Env * env, a_Exp_Decl decl )
     Chuck_Value * value = NULL;
     t_CKBOOL is_obj = FALSE;
     t_CKBOOL is_ref = FALSE;
+    
+    EM_log(CK_LOG_FINER, "Type checking a declaration expression");
+    LogPusher logPusher;
 
     // loop through the variables
     while( list != NULL )
@@ -3178,6 +3203,8 @@ Chuck_Func * find_func_match( Chuck_Func * up, a_Exp args )
 t_CKTYPE type_engine_check_exp_func_call( Chuck_Env * env, a_Exp exp_func, a_Exp args, 
                                           t_CKFUNC & ck_func, int linepos )
 {
+    EM_log(CK_LOG_FINER, "type-checking function call expression");
+    LogPusher logPusher;
     Chuck_Func * func = NULL;
     Chuck_Func * up = NULL;
 
@@ -3303,6 +3330,8 @@ t_CKTYPE type_engine_check_exp_func_call( Chuck_Env * env, a_Exp_Func_Call func_
 //-----------------------------------------------------------------------------
 t_CKTYPE type_engine_check_exp_dot_member( Chuck_Env * env, a_Exp_Dot_Member member )
 {
+    EM_log(CK_LOG_FINER, "type-checking a dot member expression");
+    LogPusher logPusher;
     Chuck_Value * value = NULL;
     Chuck_Type * the_base = NULL;
     t_CKBOOL base_static = FALSE;
@@ -3436,6 +3465,8 @@ t_CKTYPE type_engine_check_exp_dot_member( Chuck_Env * env, a_Exp_Dot_Member mem
 //-----------------------------------------------------------------------------
 t_CKTYPE type_engine_check_exp_array( Chuck_Env * env, a_Exp_Array array )
 {
+    EM_log(CK_LOG_FINER, "type-checking an array expression");
+    LogPusher logPusher;
     // verify there are no errors from the parser...
     if( !verify_array( array->indices ) )
         return NULL;
