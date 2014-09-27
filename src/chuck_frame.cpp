@@ -150,7 +150,7 @@ void Chuck_Frame::pop_scope( vector<Chuck_Local *> & out )
         if( local )
         {
             // offset
-            curr_offset -= local->size;
+            curr_offset -= sz_DWORD;
             // copy out (NOTE: these locals should be memory managed outside)
             out.push_back( local );
         }
@@ -160,4 +160,7 @@ void Chuck_Frame::pop_scope( vector<Chuck_Local *> & out )
     assert( this->stack.size() > 0 );
     // get ride of null boundary character (added 1.3.0.0)
     this->stack.pop_back();
+#ifdef __EMSCRIPTEN__
+    assert(curr_offset % sz_DWORD == 0);
+#endif
 }

@@ -415,7 +415,6 @@ t_CKBOOL emit_engine_emit_stmt( Chuck_Emitter * emit, a_Stmt stmt, t_CKBOOL pop 
             break;
 
         case ae_stmt_for:  // for statement
-            EM_log(CK_LOG_FINE, "emitting for statement");
             ret = emit_engine_emit_for( emit, &stmt->stmt_for );
             break;
 
@@ -592,6 +591,8 @@ t_CKBOOL emit_engine_emit_if( Chuck_Emitter * emit, a_Stmt_If stmt )
 //-----------------------------------------------------------------------------
 t_CKBOOL emit_engine_emit_for( Chuck_Emitter * emit, a_Stmt_For stmt )
 {
+    EM_log(CK_LOG_FINE, "emitting for statement");
+
     t_CKBOOL ret = TRUE;
     Chuck_Instr_Branch_Op * op = NULL;
 
@@ -699,10 +700,10 @@ t_CKBOOL emit_engine_emit_for( Chuck_Emitter * emit, a_Stmt_For stmt )
         // pop (changed to Chuck_Instr_Reg_Pop_Word4 in 1.3.1.0)
         if( num_words > 0 ) emit->append( new Chuck_Instr_Reg_Pop_Word4( num_words ) );
     }
-
+    
     // go back to do check the condition
     emit->append( new Chuck_Instr_Goto( start_index ) );
-
+    
     // could be NULL
     if( stmt->c2 )
         // set the op's target
@@ -714,7 +715,7 @@ t_CKBOOL emit_engine_emit_for( Chuck_Emitter * emit, a_Stmt_For stmt )
         emit->code->stack_cont.back()->set( cont_index );
         emit->code->stack_cont.pop_back();
     }
-
+    
     // stack of break
     while( emit->code->stack_break.size() && emit->code->stack_break.back() )
     {
@@ -3202,6 +3203,7 @@ t_CKBOOL emit_engine_emit_exp_func_call( Chuck_Emitter * emit,
     // push the local stack depth - local variables
     EM_log(CK_LOG_FINE, "Emitting reg_push_imm for function's local stack depth (%d)",
            emit->code->frame->curr_offset);
+    assert(emit->code->frame->curr_offset % sz_DWORD == 0);
     emit->append( new Chuck_Instr_Reg_Push_Imm( emit->code->frame->curr_offset ) );
 
     // TODO: member functions and static functions

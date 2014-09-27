@@ -3651,10 +3651,11 @@ void Chuck_Instr_Func_Call_Member::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
     // MOVED TO BELOW: f_mfun f = (f_mfun)func->native_func;
     // get the local stack depth - caller local variables
     t_CKDWORD local_depth = *(reg_sp+1);
+    EM_log(CK_LOG_FINE, "Local stack depth (in bytes): %d", local_depth);
     assert(local_depth % sz_DWORD == 0);
     // convert to number of DWORDs
     local_depth = local_depth / sz_DWORD;
-    EM_log(CK_LOG_FINE, "Local stack depth: %d", local_depth);
+
     // get the stack depth of the callee function args
     t_CKDWORD stack_depth = ( func->stack_depth / sz_DWORD ) + ( func->stack_depth & 0x3 ? 1 : 0 ); // ISSUE: 64-bit (fixed 1.3.1.0)
     // UNUSED: get the previous stack depth - caller function args
