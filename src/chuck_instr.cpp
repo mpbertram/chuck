@@ -105,16 +105,17 @@ void Chuck_Instr_Add_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_PreInc_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    // t_CKBYTE *& mem_sp = (t_CKBYTE *&)shred->mem->sp;
-    t_CKINT **& reg_sp = (t_CKINT **&)shred->reg->sp;
-    t_CKINT *&  the_sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
 
     // pointer
     pop_( reg_sp, 1 );
+    EM_log(CK_LOG_FINE, "Popped int pointer off operand stack");
     // increment value
-    (**(reg_sp))++;
+    int val = ++(*(t_CKINT*)*reg_sp);
     // value on stack
-    push_( the_sp, **(reg_sp) );
+    push_( reg_sp, val );
+    EM_log(CK_LOG_FINE, "Incremented integer to %d and pushed the result to operand stack",
+           val);
 }
 
 
@@ -126,19 +127,20 @@ void Chuck_Instr_PreInc_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_PostInc_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    // t_CKBYTE *& mem_sp = (t_CKBYTE *&)shred->mem->sp;
-    t_CKINT **& reg_sp = (t_CKINT **&)shred->reg->sp;
-    t_CKINT *&  the_sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
     t_CKINT *   ptr;
 
     // pointer
-    pop_( reg_sp, 1 );
+    pop_(reg_sp, 1);
     // copy
-    ptr = *reg_sp;
+    ptr = (t_CKINT*)*reg_sp;
     // value on stack
-    push_( the_sp, **(reg_sp) );
+    push_(reg_sp, *ptr);
+    EM_log(CK_LOG_FINE, "Popped int pointer %p off operand stack and pushed its value %d onto operand stack",
+           ptr, *ptr);
     // increment value
-    (*(ptr))++;
+    ++(*ptr);
+    EM_log(CK_LOG_FINE, "Incremented pointed to value");
 }
 
 
@@ -150,16 +152,17 @@ void Chuck_Instr_PostInc_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_PreDec_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    // t_CKBYTE *& mem_sp = (t_CKBYTE *&)shred->mem->sp;
-    t_CKINT **& reg_sp = (t_CKINT **&)shred->reg->sp;
-    t_CKINT *&  the_sp = (t_CKINT *&)shred->reg->sp;
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
 
     // pointer
     pop_( reg_sp, 1 );
+    EM_log(CK_LOG_FINE, "Popped int pointer off operand stack");
     // decrement value
-    (**(reg_sp))--;
+    int val = --(*(t_CKINT*)*reg_sp);
     // value on stack
-    push_( the_sp, **(reg_sp) );
+    push_( reg_sp, val );
+    EM_log(CK_LOG_FINE, "Decremented integer to %d and pushed the result to operand stack",
+           val);
 }
 
 
@@ -171,19 +174,20 @@ void Chuck_Instr_PreDec_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 //-----------------------------------------------------------------------------
 void Chuck_Instr_PostDec_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    // t_CKBYTE *& mem_sp = (t_CKBYTE *&)shred->mem->sp;
-    t_CKINT **& reg_sp = (t_CKINT **&)shred->reg->sp;
-    t_CKINT *&  the_sp = (t_CKINT *&)shred->reg->sp;
-    t_CKINT *   ptr;
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
+    t_CKINT*   ptr;
 
     // pointer
     pop_( reg_sp, 1 );
     // copy
-    ptr = *reg_sp;
+    ptr = (t_CKINT*)*reg_sp;
     // value on stack
-    push_( the_sp, **(reg_sp) );
+    push_(reg_sp, *ptr);
+    EM_log(CK_LOG_FINE, "Popped int pointer %p off operand stack and pushed its value %d onto operand stack",
+           ptr, *ptr);
     // decrement value
-    (*(ptr))--;
+    --(*ptr);
+    EM_log(CK_LOG_FINE, "Decremented pointed to value");
 }
 
 
@@ -1119,7 +1123,7 @@ void Chuck_Instr_Divide_polar_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * s
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Add_string::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
     Chuck_String * lhs = NULL;
     Chuck_String * rhs = NULL;
     Chuck_String * result = NULL;
@@ -1141,7 +1145,7 @@ void Chuck_Instr_Add_string::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     result->str = lhs->str + rhs->str;
 
     // push the reference value to reg stack
-    push_( reg_sp, (t_CKUINT)(result) );
+    push_( reg_sp, (t_CKDWORD)(result) );
 
     return;
 
@@ -1167,16 +1171,16 @@ done:
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Add_string_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
     Chuck_String * lhs = NULL;
     Chuck_String ** rhs_ptr = NULL;
 
     // pop word from reg stack
     pop_( reg_sp, 2 );
     // the previous reference
-    rhs_ptr = (Chuck_String **)(*(reg_sp+1));
+    rhs_ptr = (Chuck_String **)*(reg_sp+1);
     // copy popped value into memory
-    lhs = (Chuck_String *)(*(reg_sp));
+    lhs = (Chuck_String *)*reg_sp;
 
     // make sure no null
     if( !(*rhs_ptr) ) goto null_pointer;
@@ -1185,7 +1189,7 @@ void Chuck_Instr_Add_string_Assign::execute( Chuck_VM * vm, Chuck_VM_Shred * shr
     (*rhs_ptr)->str += lhs->str;
 
     // push the reference value to reg stack
-    push_( reg_sp, (t_CKUINT)(*rhs_ptr) );
+    push_( reg_sp, (t_CKDWORD)*rhs_ptr );
 
     return;
 
@@ -1211,7 +1215,7 @@ done:
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Add_string_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
     Chuck_String * lhs = NULL;
     t_CKINT rhs = 0;
     Chuck_String * result = NULL;
@@ -1219,9 +1223,9 @@ void Chuck_Instr_Add_string_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred 
     // pop word from reg stack
     pop_( reg_sp, 2 );
     // left
-    lhs = (Chuck_String *)(*(reg_sp));
+    lhs = (Chuck_String *)*(reg_sp);
     // right
-    rhs = (*(t_CKINT *)(reg_sp+1));
+    rhs = *(t_CKINT *)(reg_sp+1);
 
     // make sure no null
     if( !lhs ) goto null_pointer;
@@ -1233,7 +1237,7 @@ void Chuck_Instr_Add_string_int::execute( Chuck_VM * vm, Chuck_VM_Shred * shred 
     result->str = lhs->str + ::itoa(rhs);
 
     // push the reference value to reg stack
-    push_( reg_sp, (t_CKUINT)(result) );
+    push_( reg_sp, (t_CKDWORD)(result) );
 
     return;
 
@@ -1259,17 +1263,17 @@ done:
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Add_string_float::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
     Chuck_String * lhs = NULL;
     t_CKFLOAT rhs = 0;
     Chuck_String * result = NULL;
 
-    // pop word from reg stack (1.3.1.0: add size check)
-    pop_( reg_sp, 1 + (sz_FLOAT / sz_UINT) ); // ISSUE: 64-bit (fixed 1.3.1.0)
+    // pop word from reg stack
+    pop_( reg_sp, 2 );
     // left
-    lhs = (Chuck_String *)(*(reg_sp));
+    lhs = (Chuck_String *)*(reg_sp);
     // right
-    rhs = (*(t_CKFLOAT *)(reg_sp+1));
+    rhs = *(t_CKFLOAT *)(reg_sp+1);
 
     // make sure no null
     if( !lhs ) goto null_pointer;
@@ -1281,7 +1285,7 @@ void Chuck_Instr_Add_string_float::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
     result->str = lhs->str + ::ftoa(rhs, 4);
 
     // push the reference value to reg stack
-    push_( reg_sp, (t_CKUINT)(result) );
+    push_( reg_sp, (t_CKDWORD)result );
 
     return;
 
@@ -1307,7 +1311,7 @@ done:
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Add_int_string::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
     t_CKINT lhs = 0;
     Chuck_String * rhs = NULL;
     Chuck_String * result = NULL;
@@ -1315,9 +1319,9 @@ void Chuck_Instr_Add_int_string::execute( Chuck_VM * vm, Chuck_VM_Shred * shred 
     // pop word from reg stack
     pop_( reg_sp, 2 );
     // left
-    lhs = (*(t_CKINT *)(reg_sp));
+    lhs = *(t_CKINT *)reg_sp;
     // right
-    rhs = (Chuck_String *)(*(reg_sp+1));
+    rhs = (Chuck_String *)*(reg_sp+1);
 
     // make sure no null
     if( !rhs ) goto null_pointer;
@@ -1329,7 +1333,7 @@ void Chuck_Instr_Add_int_string::execute( Chuck_VM * vm, Chuck_VM_Shred * shred 
     result->str = ::itoa(lhs) + rhs->str;
 
     // push the reference value to reg stack
-    push_( reg_sp, (t_CKUINT)(result) );
+    push_( reg_sp, (t_CKDWORD)result );
 
     return;
 
@@ -1355,17 +1359,17 @@ done:
 //-----------------------------------------------------------------------------
 void Chuck_Instr_Add_float_string::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
 {
-    t_CKUINT *& reg_sp = (t_CKUINT *&)shred->reg->sp;
+    t_CKDWORD*& reg_sp = (t_CKDWORD*&)shred->reg->sp;
     t_CKFLOAT lhs = 0;
     Chuck_String * rhs = NULL;
     Chuck_String * result = NULL;
 
-    // pop word from reg stack (1.3.1.0: added size check)
-    pop_( reg_sp, 1 + (sz_FLOAT / sz_UINT) );  // ISSUE: 64-bit (fixed 1.3.1.0)
+    // pop word from reg stack
+    pop_( reg_sp, 2 );
     // left (2 word)
-    lhs = (*(t_CKFLOAT *)(reg_sp));
+    lhs = *(t_CKFLOAT *)reg_sp;
     // right (1.3.1.0: added size)
-    rhs = (Chuck_String *)(*(reg_sp+(sz_FLOAT/sz_INT))); // ISSUE: 64-bit (fixed 1.3.1.0)
+    rhs = (Chuck_String *)*(reg_sp+1);
 
     // make sure no null
     if( !rhs ) goto null_pointer;
@@ -1377,7 +1381,7 @@ void Chuck_Instr_Add_float_string::execute( Chuck_VM * vm, Chuck_VM_Shred * shre
     result->str = ::ftoa(lhs, 4) + rhs->str;
 
     // push the reference value to reg stack
-    push_( reg_sp, (t_CKUINT)(result) );
+    push_( reg_sp, (t_CKDWORD)result );
 
     return;
 
