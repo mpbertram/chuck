@@ -80,10 +80,11 @@ CFLAGS+= -D__CHUCK_STAT_TRACK__
 endif
 
 ifneq ($(CHUCK_DEBUG),)
-CFLAGS+= -g
+OPT_FLAGS=-g
 else
-CFLAGS+= -O3
+OPT_FLAGS=-O3
 endif
+CFLAGS+= $(OPT_FLAGS)
 
 ifneq ($(USE_64_BIT_SAMPLE),)
 CFLAGS+= -D__CHUCK_USE_64_BIT_SAMPLE__
@@ -128,9 +129,9 @@ chuck: $(OBJS)
 	$(LD) -o chuck $(OBJS) $(LDFLAGS) $(ARCHOPTS)
 
 chuck.js: $(OBJS)
-	emcc -o chuck.bc $(OBJS)
-	emcc -s EXPORTED_FUNCTIONS='["_executeCode"]' -s DEMANGLE_SUPPORT=1 --js-library \
-	emscripten/libraries/webaudio.js -o chuck.js chuck.bc
+	emcc $(OPT_FLAGS) -o chuck.bc $(OBJS)
+	emcc $(OPT_FLAGS) -s EXPORTED_FUNCTIONS='["_executeCode"]' -s DEMANGLE_SUPPORT=1 \
+		--js-library emscripten/libraries/webaudio.js -o chuck.js chuck.bc
 
 chuck.tab.c chuck.tab.h: chuck.y
 	$(YACC) -dv -b chuck chuck.y

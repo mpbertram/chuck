@@ -27,6 +27,22 @@ module.exports = function (grunt) {
             ]
           },
         ]
+      },
+      chuck: {
+        files: [
+          {
+            expand: true, cwd: '../src', dest: 'examples/basic',
+            src: [
+              'chuck.js', 'chuck.js.mem'
+            ]
+          },
+          {
+            expand: true, cwd: '../src', dest: 'examples/contributions',
+            src: [
+              'chuck.js', 'chuck.js.mem'
+            ]
+          },
+        ]
       }
     },
     zetzer: {
