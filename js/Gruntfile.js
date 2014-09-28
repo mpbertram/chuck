@@ -42,6 +42,12 @@ module.exports = function (grunt) {
               'chuck.js', 'chuck.js.mem'
             ]
           },
+          {
+            expand: true, cwd: '../src', dest: '../src/emscripten',
+            src: [
+              'chuck.js', 'chuck.js.mem'
+            ]
+          },
         ]
       }
     },

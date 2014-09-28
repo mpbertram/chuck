@@ -16,6 +16,10 @@ We have a test HTML page to demonstrate chuck.js, src/emscripten/chuck.html; jus
 enabled browser, and you should hear a short sine tone.
 
 ## BUILDING
+If you wish to build for debugging, make sure you export CHUCK_DEBUG=1 before building. This will
+disable optimization and enable debug symbols. It will also make the the JavaScript version of ChucK
+easier to work with, due to not being optimized.
+
 ### JavaScript
 To build the JavaScript port of ChucK, first source the [Emscripten](http://emscripten.org/) SDK,
 then enter the src directory and run `make emscripten`. This will generate a JavaScript library with the
@@ -29,3 +33,7 @@ if you haven't done so already, run `npm install` to install the JavaScript depe
 To build the demo pages, in js/examples/, enter the js/ directory and execute `grunt`. This'll build a
 number of standalone HTML pages in the js/examples/ directory, each of which you can open to see/hear a
 certain demo of ChucK.
+
+It is recommended to launch the demo pages via a Web server, this is actually required if chuck.js has
+been built with optimizations, for technical reasons. If you've got Python installed, you can start
+a Web server as simple as this: `python -m SimpleHTTPServer`.

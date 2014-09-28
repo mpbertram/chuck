@@ -131,7 +131,7 @@ chuck: $(OBJS)
 chuck.js: $(OBJS)
 	emcc $(OPT_FLAGS) -o chuck.bc $(OBJS)
 	emcc $(OPT_FLAGS) -s EXPORTED_FUNCTIONS='["_executeCode"]' -s DEMANGLE_SUPPORT=1 \
-		--js-library emscripten/libraries/webaudio.js -o chuck.js chuck.bc
+		-s ASSERTIONS=1 --js-library emscripten/libraries/webaudio.js -o chuck.js chuck.bc
 
 chuck.tab.c chuck.tab.h: chuck.y
 	$(YACC) -dv -b chuck chuck.y
