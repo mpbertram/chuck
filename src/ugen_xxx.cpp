@@ -2541,6 +2541,12 @@ struct sndbuf_data
             SAFE_DELETE_ARRAY(chunk_map);
         }
     }
+    
+    inline void sampleIndex2FrameIndexAndChannel(t_CKINT sample, t_CKINT *frame, t_CKINT *channel)
+    {
+        *frame = (t_CKINT) floorf(sample/this->num_channels);
+        *channel = sample%this->num_channels;
+    }
 };
 
 
@@ -2862,7 +2868,7 @@ CK_DLL_TICK( sndbuf_tick )
     // we're ticking once per sample ( system )
     // curf in samples;
 
-    if( !d->loop && d->curf >= d->num_frames )
+    if( !d->loop && d->curf > d->num_frames )
     {
         *out = 0;
         return TRUE;
@@ -3373,9 +3379,11 @@ CK_DLL_CGET( sndbuf_cget_channels )
 CK_DLL_CGET( sndbuf_cget_valueAt )
 {
     sndbuf_data * d = (sndbuf_data *)OBJ_MEMBER_UINT(SELF, sndbuf_offset_data);
-    t_CKINT i = GET_CK_INT(ARGS);
-    if( d->fd ) sndbuf_load( d, i );
-    RETURN->v_float = ( i > d->num_frames * d->num_channels || i < 0 ) ? 0 : sndbuf_sampleAt(d, i);
+    t_CKINT sample = GET_CK_INT(ARGS);
+    t_CKINT frame, channel;
+    d->sampleIndex2FrameIndexAndChannel(sample, &frame, &channel);
+    if( d->fd ) sndbuf_load( d, sample );
+    RETURN->v_float = ( frame > d->num_frames || frame < 0 ) ? 0 : sndbuf_sampleAt(d, frame, channel);
 }
 
 #endif // __DISABLE_SNDBUF__
