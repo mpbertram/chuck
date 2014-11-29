@@ -1163,12 +1163,8 @@
 					.,
 				);
 				INSTALL_PATH = "$(HOME)/bin";
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = (
-					"-lm",
-					"-lstdc++",
-				);
 				PRODUCT_NAME = chuck;
 			};
 			name = Debug;
@@ -1195,12 +1191,8 @@
 					.,
 				);
 				INSTALL_PATH = "$(HOME)/bin";
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = (
-					"-lm",
-					"-lstdc++",
-				);
 				PRODUCT_NAME = chuck;
 			};
 			name = Release;
