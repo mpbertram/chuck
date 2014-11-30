@@ -7,7 +7,7 @@
     "C. Spencer Salazar <spencer@ccrma.stanford.edu>"
   ],
   "description": "The ChucK music programming language",
-  "main": "js/lib/chuck.js",
+  "main": "lib/chuck.js",
   "moduleType": [
     "globals"
   ],
