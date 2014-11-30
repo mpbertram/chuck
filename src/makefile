@@ -19,7 +19,7 @@ endif
 
 .PHONY: osx linux-pulse linux-jack linux-alsa cygwin osx-rl
 osx linux-pulse linux-jack linux-alsa cygwin osx-rl: chuck
-emscripten: chuck.js
+emscripten: ../js/lib/chuck.js
 
 win32:
 	make -f makefile.win32
@@ -128,10 +128,10 @@ endif
 chuck: $(OBJS)
 	$(LD) -o chuck $(OBJS) $(LDFLAGS) $(ARCHOPTS)
 
-chuck.js: $(OBJS)
+../js/lib/chuck.js: $(OBJS)
 	emcc $(OPT_FLAGS) -o chuck.bc $(OBJS)
 	emcc $(OPT_FLAGS) -s EXPORTED_FUNCTIONS='["_executeCode"]' -s DEMANGLE_SUPPORT=1 \
-		-s ASSERTIONS=1 --js-library emscripten/libraries/webaudio.js -o chuck.js chuck.bc
+		-s ASSERTIONS=1 --js-library emscripten/libraries/webaudio.js -o ../js/lib/chuck.js chuck.bc
 
 chuck.tab.c chuck.tab.h: chuck.y
 	$(YACC) -dv -b chuck chuck.y
@@ -165,7 +165,7 @@ chuck_main.o: chuck_main.cpp
 clean:
 	@rm -rf $(wildcard chuck chuck.exe) *.o *.d *.map *.js *.bc $(OBJS) \
          $(patsubst %.o,%.d,$(OBJS)) *~ chuck.output chuck.tab.h chuck.tab.c \
-         chuck.yy.c $(DIST_DIR){,.tgz,.zip} Release Debug
+         chuck.yy.c $(DIST_DIR){,.tgz,.zip} Release Debug ../js/lib/chuck.js*
 
 
 # ------------------------------------------------------------------------------

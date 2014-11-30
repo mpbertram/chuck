@@ -31,19 +31,19 @@ module.exports = function (grunt) {
       chuck: {
         files: [
           {
-            expand: true, cwd: '../src', dest: 'examples/basic',
+            expand: true, cwd: 'lib', dest: 'examples/basic',
             src: [
               'chuck.js', 'chuck.js.mem'
             ]
           },
           {
-            expand: true, cwd: '../src', dest: 'examples/contributions',
+            expand: true, cwd: 'lib', dest: 'examples/contributions',
             src: [
               'chuck.js', 'chuck.js.mem'
             ]
           },
           {
-            expand: true, cwd: '../src', dest: '../src/emscripten',
+            expand: true, cwd: 'lib', dest: '../src/emscripten',
             src: [
               'chuck.js', 'chuck.js.mem'
             ]
