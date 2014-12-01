@@ -122,6 +122,12 @@ ifneq (,$(strip $(filter osx-rl,$(MAKECMDGOALS))))
 include makefile.rl
 endif
 
+ifneq ($(CHUCK_EM_ASSERTIONS),)
+EM_ASSERTIONS=$(CHUCK_EM_ASSERTIONS)
+else
+EM_ASSERTIONS=1
+endif
+
 # pull in dependency info for *existing* .o files
 -include $(OBJS:.o=.d)
 
@@ -131,7 +137,7 @@ chuck: $(OBJS)
 ../js/lib/chuck.js: $(OBJS)
 	emcc $(OPT_FLAGS) -o chuck.bc $(OBJS)
 	emcc $(OPT_FLAGS) -s EXPORTED_FUNCTIONS='["_executeCode"]' -s DEMANGLE_SUPPORT=1 \
-		-s ASSERTIONS=1 --js-library emscripten/libraries/webaudio.js -o ../js/lib/chuck.js chuck.bc
+		-s ASSERTIONS=$(EM_ASSERTIONS) --js-library emscripten/libraries/webaudio.js -o ../js/lib/chuck.js chuck.bc
 
 chuck.tab.c chuck.tab.h: chuck.y
 	$(YACC) -dv -b chuck chuck.y
