@@ -83,6 +83,9 @@ ifneq ($(CHUCK_DEBUG),)
 OPT_FLAGS=-g
 else
 OPT_FLAGS=-O3
+ifneq ($(CHUCK_OPT_DEBUG),)
+OPT_FLAGS+=-g
+endif
 endif
 CFLAGS+= $(OPT_FLAGS)
 
@@ -122,10 +125,14 @@ ifneq (,$(strip $(filter osx-rl,$(MAKECMDGOALS))))
 include makefile.rl
 endif
 
+EM_FLAGS=-s DEMANGLE_SUPPORT=1
+
 ifneq ($(CHUCK_EM_ASSERTIONS),)
-EM_ASSERTIONS=$(CHUCK_EM_ASSERTIONS)
-else
-EM_ASSERTIONS=1
+EM_FLAGS+=-s ASSERTIONS=$(CHUCK_EM_ASSERTIONS)
+endif
+
+ifneq ($(CHUCK_EM_SAFEHEAP),)
+EM_FLAGS+=-s SAFE_HEAP=$(CHUCK_EM_SAFEHEAP)
 endif
 
 # pull in dependency info for *existing* .o files
@@ -136,8 +143,8 @@ chuck: $(OBJS)
 
 ../js/lib/chuck.js: $(OBJS)
 	emcc $(OPT_FLAGS) -o chuck.bc $(OBJS)
-	emcc $(OPT_FLAGS) -s EXPORTED_FUNCTIONS='["_executeCode"]' -s DEMANGLE_SUPPORT=1 \
-		-s ASSERTIONS=$(EM_ASSERTIONS) --js-library emscripten/libraries/webaudio.js -o ../js/lib/chuck.js chuck.bc
+	emcc $(OPT_FLAGS) -s EXPORTED_FUNCTIONS='["_executeCode"]' $(EM_FLAGS) \
+		--js-library emscripten/libraries/webaudio.js -o ../js/lib/chuck.js chuck.bc
 
 chuck.tab.c chuck.tab.h: chuck.y
 	$(YACC) -dv -b chuck chuck.y
