@@ -33,7 +33,7 @@ module.exports = function (grunt) {
           {
             expand: true, cwd: 'lib', dest: 'examples/basic',
             src: [
-              'chuck.js', 'chuck.js.mem'
+              'chuck.js*'
             ]
           },
           {
