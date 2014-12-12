@@ -79,8 +79,12 @@ ifneq ($(CHUCK_STAT),)
 CFLAGS+= -D__CHUCK_STAT_TRACK__
 endif
 
+ifneq "$(or $(CHUCK_DEBUG),$(CHUCK_DEBUG_LEVEL))" ""
 ifneq ($(CHUCK_DEBUG),)
 OPT_FLAGS=-g
+else
+OPT_FLAGS=-g$(CHUCK_DEBUG_LEVEL)
+endif
 else
 OPT_FLAGS=-O3
 ifneq ($(CHUCK_OPT_DEBUG),)
