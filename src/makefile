@@ -146,6 +146,7 @@ chuck: $(OBJS)
 	$(LD) -o chuck $(OBJS) $(LDFLAGS) $(ARCHOPTS)
 
 ../js/lib/chuck.js: $(OBJS)
+	mkdir -p ../js/lib
 	emcc $(OPT_FLAGS) -o chuck.bc $(OBJS)
 	emcc $(OPT_FLAGS) -s EXPORTED_FUNCTIONS='["_executeCode"]' $(EM_FLAGS) \
 		--js-library emscripten/libraries/webaudio.js -o ../js/lib/chuck.js chuck.bc
