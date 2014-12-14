@@ -1,4 +1,5 @@
 FROM ubuntu:latest
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 ADD . /code
 WORKDIR /code
 RUN apt-get update && apt-get install -y bison flex build-essential curl python git cmake && \
