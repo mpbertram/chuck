@@ -8,3 +8,4 @@ RUN curl https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portab
   tar xzf emsdk-portable.tar.gz && pushd emsdk_portable && ./emsdk update && ./emsdk install latest && \
   ./emsdk activate latest && source ./emsdk_env.sh && popd && pushd src && \
   make -j5 CHUCK_EM_SOURCEMAP=1 CHUCK_EM_SAFEHEAP=3 emscripten
+RUN cd js && grunt
