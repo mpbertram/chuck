@@ -86,9 +86,9 @@ endif
 ifneq ($(CHUCK_DEBUG),)
 CFLAGS+= -g
 ifeq ($(CHUCK_EM_SOURCEMAP),)
-EM_LD_FLAGS=-g
+EM_LDFLAGS=-g
 else
-EM_LD_FLAGS=-g4
+EM_LDFLAGS=-g4
 endif
 else
 EM_LDFLAGS=-O3
@@ -153,7 +153,6 @@ chuck: $(OBJS)
 
 ../js/lib/chuck.js: $(OBJS)
 	mkdir -p ../js/lib
-	# emcc $(EM_LDFLAGS) -o chuck.bc $(OBJS)
 	emcc $(EM_LDFLAGS) -s EXPORTED_FUNCTIONS='["_executeCode"]' $(EM_FLAGS) \
 		--js-library emscripten/libraries/webaudio.js -o ../js/lib/chuck.js $(OBJS)
 
