@@ -3,3 +3,5 @@ web:
   command: python -m SimpleHTTPServer
   volumes:
     - .:/code
+  ports:
+    - "8000:8000"
