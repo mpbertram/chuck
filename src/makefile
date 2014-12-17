@@ -79,19 +79,25 @@ ifneq ($(CHUCK_STAT),)
 CFLAGS+= -D__CHUCK_STAT_TRACK__
 endif
 
-ifneq "$(or $(CHUCK_DEBUG),$(CHUCK_DEBUG_LEVEL))" ""
+ifneq ($(CHUCK_EM_SOURCEMAP),)
+CHUCK_DEBUG=1
+endif
+
 ifneq ($(CHUCK_DEBUG),)
-OPT_FLAGS=-g
+CFLAGS+= -g
+ifeq ($(CHUCK_EM_SOURCEMAP),)
+EM_LD_FLAGS=-g
 else
-OPT_FLAGS=-g$(CHUCK_DEBUG_LEVEL)
+EM_LD_FLAGS=-g4
 endif
 else
-OPT_FLAGS=-O3
+EM_LDFLAGS=-O3
 ifneq ($(CHUCK_OPT_DEBUG),)
-OPT_FLAGS+=-g
+CFLAGS+= -g
+EM_LDFLAGS+= -g
 endif
+CFLAGS+= -O3
 endif
-CFLAGS+= $(OPT_FLAGS)
 
 ifneq ($(USE_64_BIT_SAMPLE),)
 CFLAGS+= -D__CHUCK_USE_64_BIT_SAMPLE__
@@ -147,9 +153,9 @@ chuck: $(OBJS)
 
 ../js/lib/chuck.js: $(OBJS)
 	mkdir -p ../js/lib
-	emcc $(OPT_FLAGS) -o chuck.bc $(OBJS)
-	emcc $(OPT_FLAGS) -s EXPORTED_FUNCTIONS='["_executeCode"]' $(EM_FLAGS) \
-		--js-library emscripten/libraries/webaudio.js -o ../js/lib/chuck.js chuck.bc
+	# emcc $(EM_LDFLAGS) -o chuck.bc $(OBJS)
+	emcc $(EM_LDFLAGS) -s EXPORTED_FUNCTIONS='["_executeCode"]' $(EM_FLAGS) \
+		--js-library emscripten/libraries/webaudio.js -o ../js/lib/chuck.js $(OBJS)
 
 chuck.tab.c chuck.tab.h: chuck.y
 	$(YACC) -dv -b chuck chuck.y
