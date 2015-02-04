@@ -5,24 +5,12 @@ m => rev;
 .4 => m.gain;
 .1 => rev.mix;
 
-Gain tScalerL => rev;
-0.25 => tScalerL.gain;
-Pan2 negPan2;
--1. => negPan2.pan;
-negPan2 => tScalerL;
-Pan2 negPan1;
--.5 => negPan1.pan;
-negPan1 => tScalerL;
-Pan2 posPan1;
-.5 => posPan1.pan;
-posPan1 => tScalerL;
-Pan2 posPan2;
-1. => posPan2.pan;
-posPan2 => tScalerL;
-Blit tNeg2 => negPan2;
-Blit tNeg1 => negPan1;
-Blit tPos1 => posPan1;
-Blit tPos2 => posPan2;
+Gain tScaler => rev;
+0.25 => tScaler.gain;
+Blit tNeg2 => tScaler;
+Blit tNeg1 => tScaler;
+Blit tPos1 => tScaler;
+Blit tPos2 => tScaler;
 
 // A minor scale
 [220.0, 246.94, 261.63, 293.66, 329.63, 349.23, 392.0] @=> float scale[];
