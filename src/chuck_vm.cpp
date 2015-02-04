@@ -2080,7 +2080,7 @@ t_CKBOOL Chuck_VM_Shreduler::shredule( Chuck_VM_Shred * shred,
     if( diff < 0 ) diff = 0;
     // if( diff < m_samps_until_next )
     m_samps_until_next = diff;
-    EM_log(CK_LOG_SYSTEM, "Scheduling shred to wake at %f (in %d samples), now: %f",
+    EM_log(CK_LOG_FINEST, "Scheduling shred to wake at %f (in %d samples), now: %f",
         wake_time, (int)diff, this->now_system);
 
     return TRUE;
