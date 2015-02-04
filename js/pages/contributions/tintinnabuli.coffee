@@ -1,11 +1,9 @@
 code = """\
-NRev rev => dac;
-Blit m;
-m => rev;
+Blit m => ADSR e => NRev rev => dac;
 .4 => m.gain;
 .1 => rev.mix;
-
-Gain tScaler => rev;
+e.set(5::ms, 3::ms, .5, 5::ms);
+Gain tScaler => e;
 0.25 => tScaler.gain;
 Blit tNeg2 => tScaler;
 Blit tNeg1 => tScaler;
@@ -70,7 +68,10 @@ fun void sequence(int enableTNeg2, int enableTNeg1, int enableTPos1, int enableT
     scale[i] => m.freq;
     Math.random2(1, 5) => m.harmonics;
 
+    e.keyOn();
     158::ms => now;
+    e.keyOff();
+    5::ms => now;
   }
 }
 
