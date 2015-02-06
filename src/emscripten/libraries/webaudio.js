@@ -20,7 +20,7 @@ var LibraryWebAudio = {
     if (!callback) {
       throw new Error('callback must be provided')
     }
-    WEBAUDIO.audioContext = new AudioContext()
+    WEBAUDIO.audioContext = new (window.AudioContext || window.webkitAudioContext)()
     var bufLen = 4096
     WEBAUDIO.scriptProcessor = WEBAUDIO.audioContext.createScriptProcessor(bufLen, 0, 2)
     WEBAUDIO.scriptProcessor.onaudioprocess = function (event) {
