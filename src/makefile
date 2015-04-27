@@ -1,4 +1,4 @@
-DESTDIR=/usr/bin
+DESTDIR?=/usr/bin
 
 # default target: print usage message and quit
 current:
@@ -7,6 +7,7 @@ current:
 	@echo "   make osx, make osx-ub, make cygwin, make win32, or make emscripten"
 
 install:
+	mkdir -p $(DESTDIR)
 	cp $(wildcard chuck chuck.exe) $(DESTDIR)/
 	chmod 755 $(DESTDIR)/$(wildcard chuck chuck.exe)
 
@@ -24,7 +25,7 @@ emscripten: ../js/lib/chuck.js
 win32:
 	make -f makefile.win32
 
-CK_VERSION=1.3.5.0-rc-1
+CK_VERSION=1.3.5.1
 
 LEX=flex
 YACC=bison
@@ -105,6 +106,11 @@ endif
 
 ifneq ($(CHUCK_STRICT),)
 CFLAGS+= -Wall
+endif
+
+ifneq ($(findstring arm,$(shell uname -p)),)
+# some sort of arm platform- enable aggressive optimizations
+CFLAGS+= -ffast-math
 endif
 
 ifneq (,$(strip $(filter osx bin-dist-osx,$(MAKECMDGOALS))))
@@ -241,14 +247,15 @@ src-dist:
 # clean out old dists
 	rm -rf $(DIST_DIR) $(DIST_DIR){.tgz,.zip}
 # create directories
-	mkdir $(DIST_DIR) $(DIST_DIR)/doc
+	mkdir $(DIST_DIR) $(DIST_DIR)/doc $(DIST_DIR)/src $(DIST_DIR)/examples
 # copy src
-	svn export $(CK_SVN)/trunk/src $(DIST_DIR)/src 2>&1 > /dev/null
-	rm -rf $(DIST_DIR)/src/{examples,test}
+	git archive HEAD . | tar -x -C $(DIST_DIR)/src
+	rm -r $(DIST_DIR)/src/examples $(DIST_DIR)/src/test 
 # copy manual + notes
-	cp ../doc/manual/ChucK_manual.pdf $(addprefix ../notes/doc/,$(DOC_NOTES)) $(DIST_DIR)/doc
+	cp $(addprefix ../notes/doc/,$(DOC_NOTES)) $(DIST_DIR)/doc
 # copy examples
-	svn export $(CK_SVN)/trunk/src/examples $(DIST_DIR)/examples 2>&1 > /dev/null
+	git archive HEAD examples | tar -x -C $(DIST_DIR)/
+	# svn export $(CK_SVN)/trunk/src/examples $(DIST_DIR)/examples 2>&1 > /dev/null
 #cp -r examples $(DIST_DIR)/examples
 # remove .svn directories
 #-find $(DIST_DIR)/examples/ -name '.svn' -exec rm -rf '{}' \; &> /dev/null
