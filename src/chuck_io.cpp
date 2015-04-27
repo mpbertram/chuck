@@ -52,13 +52,11 @@
 #include <fstream>
 using namespace std;
 
-
 #ifdef __WINDOWS_DS__
 typedef BYTE uint8_t;
 typedef WORD uint16_t;
 typedef DWORD uint32_t;
 #endif
-
 
 // available baud rates
 const t_CKUINT Chuck_IO_Serial::CK_BAUD_2400   = 2400;
@@ -111,9 +109,9 @@ void * Chuck_IO_Serial::shell_read_cb( void *_this )
 void * Chuck_IO_Serial::shell_write_cb( void *_this )
 {
     Chuck_IO_Serial *cereal = (Chuck_IO_Serial *) _this;
-    
+
     cereal->write_cb();
-    
+
     return NULL;
 }
 
@@ -146,10 +144,10 @@ m_writeBuffer(1024)
 
 #ifndef __EMSCRIPTEN__
     m_read_thread = NULL;
+    m_write_thread = NULL;
 #endif
     m_event_buffer = NULL;
-    
-    m_write_thread = NULL;
+
     m_do_write_thread = TRUE;
 
     m_do_exit = FALSE;
@@ -769,7 +767,7 @@ Chuck_String * Chuck_IO_Serial::getLine()
     Request r;
 
     Chuck_String * str = NULL;
-    
+
     if(m_asyncResponses.peek(r, 1) &&
        r.m_type == TYPE_LINE && r.m_status == Request::RQ_STATUS_SUCCESS)
     {
@@ -919,7 +917,7 @@ t_CKBOOL Chuck_IO_Serial::get_buffer(t_CKINT timeout_ms)
             m_io_buf_pos = 0;
 
             EM_log(CK_LOG_FINE, "(SerialIO::get_buffer): read() returned %i bytes", result);
-            
+
             return TRUE;
         }
         else
@@ -956,7 +954,7 @@ t_CKBOOL Chuck_IO_Serial::get_buffer(t_CKINT timeout_ms)
 t_CKINT Chuck_IO_Serial::peek_buffer()
 {
     // fprintf(stderr, "Chuck_IO_Serial::peek_buffer %i/%i\n", m_io_buf_pos, m_io_buf_available);
-    
+
     if(m_io_buf_pos >= m_io_buf_available)
     {
         // refresh data
@@ -975,7 +973,7 @@ t_CKINT Chuck_IO_Serial::peek_buffer()
 t_CKINT Chuck_IO_Serial::pull_buffer()
 {
     // fprintf(stderr, "Chuck_IO_Serial::pull_buffer %i/%i\n", m_io_buf_pos, m_io_buf_available);
-    
+
     if(m_io_buf_pos >= m_io_buf_available)
     {
         // refresh data
@@ -1022,7 +1020,7 @@ t_CKBOOL Chuck_IO_Serial::handle_line(Chuck_IO_Serial::Request &r)
             if(peek_buffer() == '\n') pull_buffer(); // handle \r\n
             break;
         }
-        
+
         if(peek_buffer() == '\n')
         {
             // consume newline character
@@ -1294,12 +1292,14 @@ t_CKBOOL Chuck_IO_Serial::handle_int_binary(Chuck_IO_Serial::Request & r)
 void Chuck_IO_Serial::read_cb()
 {
     m_do_read_thread = TRUE;
-    
+
+#ifndef __EMSCRIPTEN__
     m_write_thread = new XThread;
 #ifdef WIN32
         m_read_thread->start((unsigned int (__stdcall *)(void*))shell_write_cb, this);
 #else
 	m_write_thread->start(shell_write_cb, this);
+#endif
 #endif
 
     while(m_do_read_thread && !m_do_exit)
@@ -1314,7 +1314,7 @@ void Chuck_IO_Serial::read_cb()
                 EM_log(CK_LOG_SEVERE, "SerialIO.read_cb: error: response buffer overflow, dropping read");
                 continue;
             }
-            
+
             if(m_flags & Chuck_IO_File::TYPE_ASCII)
             {
                 switch(r.m_type)
@@ -1322,11 +1322,11 @@ void Chuck_IO_Serial::read_cb()
                     case TYPE_LINE:
                         handle_line(r);
                         break;
-                        
+
                     case TYPE_STRING:
                         handle_string(r);
                         break;
-                        
+
                     case TYPE_INT:
                         handle_int_ascii(r);
                         break;
@@ -1379,22 +1379,24 @@ void Chuck_IO_Serial::read_cb()
         usleep(100);
     }
 
+#ifndef __EMSCRIPTEN__
     m_write_thread->wait(-1);
-    
+#endif
+
     close_int();
 }
 
 void Chuck_IO_Serial::write_cb()
 {
     m_do_write_thread = TRUE;
-    
+
     char *tmp_writethread_buf = new char[CHUCK_IO_DEFAULT_BUFSIZE];
     t_CKINT tmp_writethread_buf_max = CHUCK_IO_DEFAULT_BUFSIZE;
-    
+
     while(m_do_write_thread && !m_do_exit)
     {
         Request r;
-        
+
         while(m_asyncWriteRequests.get(r) && m_do_write_thread && !m_do_exit)
         {
             if(r.m_type == TYPE_WRITE)
@@ -1406,9 +1408,9 @@ void Chuck_IO_Serial::write_cb()
                     tmp_writethread_buf[numBytes] = c;
                     numBytes++;
                 }
-                
+
                 assert(numBytes < tmp_writethread_buf_max);
-                
+
                 if(numBytes)
                 {
                     fwrite(tmp_writethread_buf, 1, numBytes, m_cfd);
@@ -1416,11 +1418,11 @@ void Chuck_IO_Serial::write_cb()
                 }
             }
         }
-        
+
         // todo: replace with semaphore?
         usleep(100);
     }
-    
+
     delete[] tmp_writethread_buf;
     tmp_writethread_buf = NULL;
 }
@@ -1583,7 +1585,7 @@ CK_DLL_MFUN( serialio_writeBytes );
 CK_DLL_MFUN( serialio_flush )
 {
     Chuck_IO_Serial * cereal = (Chuck_IO_Serial *) SELF;
-    
+
     cereal->flush();
 }
 
@@ -1709,12 +1711,12 @@ t_CKBOOL init_class_serialio( Chuck_Env * env )
     func = make_new_mfun("void", "flush", serialio_flush);
     func->doc = "Flush the IO buffer.";
     if( !type_engine_import_mfun( env, func ) ) goto error;
-    
+
     // add can_wait
     // func = make_new_mfun("int", "can_wait", serialio_canWait);
     // func->doc = "";
     // if( !type_engine_import_mfun( env, func ) ) goto error;
-    
+
     // add baud rate constants
     type_engine_import_svar(env, "int", "B2400",   TRUE, (t_CKUINT) &Chuck_IO_Serial::CK_BAUD_2400, "2400 baud");
     type_engine_import_svar(env, "int", "B4800",   TRUE, (t_CKUINT) &Chuck_IO_Serial::CK_BAUD_4800, "4800 baud");
@@ -1948,4 +1950,3 @@ CK_DLL_MFUN(serialio_canWait)
     Chuck_IO_Serial *cereal = (Chuck_IO_Serial *) SELF;
     RETURN->v_int = cereal->can_wait();
 }
-

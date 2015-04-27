@@ -60,7 +60,7 @@ public:
     virtual t_CKBOOL open( const std::string & path, t_CKINT flags, t_CKUINT baud = CK_BAUD_9600 );
 
     virtual t_CKBOOL can_wait();
-    
+
     virtual t_CKBOOL good();
     virtual void close();
     virtual void flush();
@@ -145,7 +145,9 @@ protected:
     static void *shell_read_cb(void *);
     void read_cb();
 
+#ifndef __EMSCRIPTEN__
     XThread * m_write_thread;
+#endif
     static void *shell_write_cb(void *);
     void write_cb();
 
@@ -183,7 +185,7 @@ protected:
 
     unsigned char * m_tmp_buf;
     t_CKUINT m_tmp_buf_max;
-    
+
     CircularBuffer<Request> m_asyncWriteRequests;
     CircularBuffer<char> m_writeBuffer;
 
