@@ -1,34 +1,57 @@
 plugins {
-  id "com.gradle.receipts" version "0.9.3.1"
+  id 'com.gradle.receipts' version '0.9.3.1'
 }
 
 apply plugin: 'cpp'
 apply plugin: 'c'
 
-sources {
-  c {
-    source {
-      srcDir "src"
-      include "**/*.c"
-    }
-    exportedHeaders {
-      srcDir "src"
-    }
-  }
-  cpp {
-    source {
-      srcDir "src"
-      include "**/*.cpp"
-    }
-    exportedHeaders {
-      srcDir "src"
+task lex(type: LexCompiler) {
+}
+
+model {
+  components {
+    chuck(NativeExecutableSpec) {
+      sources {
+        c {
+          source {
+            srcDir 'src'
+            include '*.c'
+          }
+          exportedHeaders {
+            srcDir 'src'
+          }
+        }
+        cpp {
+          source {
+            srcDir 'src'
+            include '*.cpp'
+            exportedHeaders {
+              srcDir 'src'
+            }
+          }
+        }
+      }
     }
   }
 }
 
-libraries {
-  chuck {}
-}
 binaries.all {
-  lib libraries.chuck.shared
+  // Define toolchain-specific compiler and linker options
+  if (toolChain in Clang) {
+    cCompiler.args '-D__MACOSX_CORE__', '-isysroot', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk', '-DHAVE_CONFIG_H'
+    cppCompiler.args '-D__MACOSX_CORE__', '-isysroot', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk'
+    linker.args '-F/System/Library/PrivateFrameworks', '-weak_framework', 'MultitouchSupport', '-framework', 'CoreAudio', '-framework', 'CoreMIDI', '-framework', 'CoreFoundation', '-framework', 'IOKit', '-framework', 'Carbon', '-framework', 'AppKit', '-framework', 'Foundation'
+  }
+}
+
+class LexCompiler extends DefaultTask {
+    @InputFiles FileCollection lexFiles
+    @OutputDirectory File sourceDir
+
+    @TaskAction
+    void processLexFiles() {
+      project.exec {
+        commandLine = ['flex', 'src/chuck.lex']
+      }
+    }
 }
