@@ -18,14 +18,14 @@ apply plugin: 'cpp'
 apply plugin: 'c'
 
 task lex(type: LexCompiler) {
-  sourceDir = project.file("${buildDir}/src/generated/lex")
-  headerDir = project.file("${buildDir}/src/generated/lex")
+  sourceDir = project.file("${buildDir}/src/generated")
+  headerDir = project.file("${buildDir}/src/generated")
   lexFiles = files('src/chuck.lex')
 }
 
 task yacc(type: YaccCompiler) {
-  sourceDir = project.file("${buildDir}/src/generated/yacc")
-  headerDir = project.file("${buildDir}/src/generated/yacc")
+  sourceDir = project.file("${buildDir}/src/generated")
+  headerDir = project.file("${buildDir}/src/generated")
   yaccFiles = files('src/chuck.y')
 }
 
@@ -127,10 +127,7 @@ model {
 }
 
 class EmscriptenBaseTask extends DefaultTask {
-  def emccPath = {
-    emscriptenPath = System.getenv("EMSCRIPTEN")
-    new File(emscriptenPath, 'emcc').absolutePath
-  }
+  def emccPath = new File(System.getenv("EMSCRIPTEN"), 'emcc').absolutePath
 }
 
 class EmscriptenCompiler extends EmscriptenBaseTask {
@@ -151,7 +148,7 @@ class EmscriptenCompiler extends EmscriptenBaseTask {
       inputs.outOfDate { change ->
         project.exec {
           // TODO: Make -g configurable
-          commandLine = [emccPath, '-Isrc', '-Isrc/lo', '-g', '-o',
+          commandLine = [emccPath, '-Isrc', '-Isrc/lo', '-Ibuild/src/generated', '-g', '-o',
             new File(outputDirectory, replaceExtension(change.file.name)).absolutePath,
             change.file.absolutePath]
         }
@@ -179,16 +176,18 @@ class EmscriptenLinker extends EmscriptenBaseTask {
 }
 
 task emscriptenYacc(type: EmscriptenCompiler) {
-  outputDirectory = file("${buildDir}/emscripten/yacc")
+  outputDirectory = file("${buildDir}/emscripten")
   emscriptenFiles = fileTree(tasks.yacc.sourceDir)
     .include('chuck.tab.c')
+  dependsOn(tasks.yacc)
 }
 
 task emscriptenLex(type: EmscriptenCompiler) {
-  outputDirectory = file("${buildDir}/emscripten/lex")
+  outputDirectory = file("${buildDir}/emscripten")
   emscriptenFiles = fileTree(tasks.lex.sourceDir)
     .include('chuck.yy.c')
-  dependsOn(yacc)
+  dependsOn(tasks.lex)
+  dependsOn(tasks.yacc)
 }
 
 task emscriptenCompile(type: EmscriptenCompiler) {
