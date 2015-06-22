@@ -18,14 +18,14 @@ apply plugin: 'cpp'
 apply plugin: 'c'
 
 task lex(type: LexCompiler) {
-  sourceDir = project.file("${buildDir}/src/generated")
-  headerDir = project.file("${buildDir}/src/generated")
+  sourceDir = project.file("${buildDir}/src/generated/lex")
+  headerDir = project.file("${buildDir}/src/generated/lex")
   lexFiles = files('src/chuck.lex')
 }
 
 task yacc(type: YaccCompiler) {
-  sourceDir = project.file("${buildDir}/src/generated")
-  headerDir = project.file("${buildDir}/src/generated")
+  sourceDir = project.file("${buildDir}/src/generated/yacc")
+  headerDir = project.file("${buildDir}/src/generated/yacc")
   yaccFiles = files('src/chuck.y')
 }
 
@@ -94,6 +94,7 @@ model {
         }
         lexOutput(CSourceSet) {
           generatedBy tasks.lex
+          source.include '*.c'
           lib sources.yaccOutput
         }
         c {
@@ -127,52 +128,53 @@ model {
 }
 
 class EmscriptenBaseTask extends DefaultTask {
+  // TODO: Make not fail in case $EMSCRIPTEN is undefined
   def emccPath = new File(System.getenv("EMSCRIPTEN"), 'emcc').absolutePath
 }
 
 class EmscriptenCompiler extends EmscriptenBaseTask {
-    @InputFiles FileCollection emscriptenFiles
-    @OutputDirectory File outputDirectory
+  @InputFiles FileCollection emscriptenFiles
+  @OutputDirectory File outputDirectory
 
-    def replaceExtension(fileName) {
-      if (fileName.endsWith('.cpp')) {
-        return fileName - '.cpp' + '.o'
-      }
-      if (fileName.endsWith('.c')) {
-        return fileName - '.c' + '.o'
+  def replaceExtension(fileName) {
+    if (fileName.endsWith('.cpp')) {
+      return fileName - '.cpp' + '.o'
+    }
+    if (fileName.endsWith('.c')) {
+      return fileName - '.c' + '.o'
+    }
+  }
+
+  @TaskAction
+  void processEmscriptenFiles(IncrementalTaskInputs inputs) {
+    inputs.outOfDate { change ->
+      project.exec {
+        // TODO: Make -g configurable, don't hardcode YACC header dir
+        commandLine = [emccPath, '-Isrc', '-Isrc/lo', '-Ibuild/src/generated/yacc', '-g', '-o',
+          new File(outputDirectory, replaceExtension(change.file.name)).absolutePath,
+          change.file.absolutePath]
       }
     }
 
-    @TaskAction
-    void processEmscriptenFiles(IncrementalTaskInputs inputs) {
-      inputs.outOfDate { change ->
-        project.exec {
-          // TODO: Make -g configurable
-          commandLine = [emccPath, '-Isrc', '-Isrc/lo', '-Ibuild/src/generated', '-g', '-o',
-            new File(outputDirectory, replaceExtension(change.file.name)).absolutePath,
-            change.file.absolutePath]
-        }
-      }
-
-      inputs.removed { change ->
-        new File(outputDirectory, replaceExtension(change.file.name)).delete()
-      }
+    inputs.removed { change ->
+      new File(outputDirectory, replaceExtension(change.file.name)).delete()
     }
+  }
 }
 
 class EmscriptenLinker extends EmscriptenBaseTask {
-    @InputFiles FileCollection emscriptenFiles
-    @OutputDirectory File outputDirectory
+  @InputFiles FileCollection emscriptenFiles
+  @OutputDirectory File outputDirectory
 
-    @TaskAction
-    void processEmscriptenFiles() {
-      project.exec {
-        // TODO: Make -g and SAFE_HEAP configurable
-        commandLine = [emccPath, '-g', '-s', 'EXPORTED_FUNCTIONS=["_executeCode"]', '--js-library',
-          'src/emscripten/libraries/webaudio.js', '-s', 'SAFE_HEAP=1', '-s DEMANGLE_SUPPORT=1', '-o',
-          new File(outputDirectory, 'chuck.js').absolutePath] + emscriptenFiles.collect { it.absolutePath }
-      }
+  @TaskAction
+  void processEmscriptenFiles() {
+    project.exec {
+      // TODO: Make -g and SAFE_HEAP configurable
+      commandLine = [emccPath, '-g', '-s', 'EXPORTED_FUNCTIONS=["_executeCode"]', '--js-library',
+        'src/emscripten/libraries/webaudio.js', '-s', 'SAFE_HEAP=1', '-s DEMANGLE_SUPPORT=1', '-o',
+        new File(outputDirectory, 'chuck.js').absolutePath] + emscriptenFiles.collect { it.absolutePath }
     }
+  }
 }
 
 task emscriptenYacc(type: EmscriptenCompiler) {
