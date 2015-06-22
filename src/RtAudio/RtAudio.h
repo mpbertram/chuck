@@ -474,7 +474,7 @@ class RtAudio
 
   //! Stop a stream, discarding any samples remaining in the input/output queue.
   /*!
-    An RtError (type = SYST/_ERROR) is thrown if an error occurs
+    An RtError (type = SYSTEM_ERROR) is thrown if an error occurs
     during processing.  An RtError (type = INVALID_USE) is thrown if a
     stream is not open.  A warning is issued if the stream is already
     stopped.
