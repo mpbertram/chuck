@@ -53,7 +53,8 @@ class EmscriptenCompiler extends EmscriptenBaseTask {
     void processEmscriptenFiles(IncrementalTaskInputs inputs) {
       inputs.outOfDate { change ->
         project.exec {
-          commandLine = [emccPath, '-Isrc', '-Isrc/lo', '-o',
+          // TODO: Make -g configurable
+          commandLine = [emccPath, '-Isrc', '-Isrc/lo', '-g', '-o',
             new File(outputDirectory, replaceExtension(change.file.name)).absolutePath,
             change.file.absolutePath]
         }
@@ -72,8 +73,9 @@ class EmscriptenLinker extends EmscriptenBaseTask {
     @TaskAction
     void processEmscriptenFiles() {
       project.exec {
-        commandLine = [emccPath, '-s', 'EXPORTED_FUNCTIONS=["_executeCode"]', '--js-library',
-          'src/emscripten/libraries/webaudio.js', '-s DEMANGLE_SUPPORT=1', '-o',
+        // TODO: Make -g and SAFE_HEAP configurable
+        commandLine = [emccPath, '-g', '-s', 'EXPORTED_FUNCTIONS=["_executeCode"]', '--js-library',
+          'src/emscripten/libraries/webaudio.js', '-s', 'SAFE_HEAP=1', '-s DEMANGLE_SUPPORT=1', '-o',
           new File(outputDirectory, 'chuck.js').absolutePath] + emscriptenFiles.collect { it.absolutePath }
       }
     }
