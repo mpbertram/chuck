@@ -4,10 +4,11 @@ wrapper {
 
 enum Platform {
   OsX,
-  Windows
+  Windows,
+  Linux
 }
 
-def platforms = ['mac os x': Platform.OsX, 'windows': Platform.Windows]
+def platforms = ['mac os x': Platform.OsX, 'windows': Platform.Windows, 'linux': Platform.Linux]
 
 def platform = {
   return platforms[System.properties['os.name'].toLowerCase()]
@@ -28,8 +29,108 @@ task yacc(type: YaccCompiler) {
   yaccFiles = files('src/chuck.y')
 }
 
+binaries.all {
+  // Define toolchain-specific compiler and linker options
+  if (platform() == Platform.OsX) {
+    // TODO: Determine automatically
+    cCompiler.args '-DHAVE_CONFIG_H', '-D__MACOSX_CORE__', '-isysroot',
+      '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk', \
+      '-mmacosx-version-min=10.4'
+    cppCompiler.args '-D__MACOSX_CORE__', '-isysroot', \
+      '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk', \
+      '-mmacosx-version-min=10.4'
+    linker.args '-F/System/Library/PrivateFrameworks', '-weak_framework', 'MultitouchSupport', \
+      '-framework', 'CoreAudio', '-framework', 'CoreMIDI', '-framework', 'CoreFoundation', '-framework', \
+      'IOKit', '-framework', 'Carbon', '-framework', 'AppKit', '-framework', 'Foundation', \
+      '-mmacosx-version-min=10.4'
+  }
+}
+
+class LexCompiler extends DefaultTask {
+    @InputFiles FileCollection lexFiles
+    @OutputDirectory File sourceDir
+    @OutputDirectory File headerDir
+
+    @TaskAction
+    void processLexFiles() {
+      lexFiles.each { file ->
+        project.exec {
+          commandLine = ['flex', '-o', new File(sourceDir, file.name - '.lex' + '.yy.c').absolutePath,
+            file.absolutePath]
+        }
+      }
+    }
+}
+
+class YaccCompiler extends DefaultTask {
+    @InputFiles FileCollection yaccFiles
+    @OutputDirectory File sourceDir
+    @OutputDirectory File headerDir
+
+    @TaskAction
+    void processYaccFiles() {
+      yaccFiles.each { file ->
+        project.exec {
+          commandLine = ['bison', '-dv', '-o', new File(sourceDir, file.name - '.y' + '.tab.c'),
+            file.absolutePath]
+        }
+      }
+    }
+}
+
+model {
+  components {
+    chuck(NativeExecutableSpec) {
+      sources.all {
+        exportedHeaders {
+          srcDir 'src'
+          srcDir 'src/lo'
+        }
+      }
+      sources {
+        yaccOutput(CSourceSet) {
+          generatedBy tasks.yacc
+          source.include '*.c'
+        }
+        lexOutput(CSourceSet) {
+          generatedBy tasks.lex
+          lib sources.yaccOutput
+        }
+        c {
+          source {
+            srcDir 'src'
+            include '*.c'
+            include 'lo/*.c'
+            if (platform() != Platform.Windows) {
+              exclude 'chuck_win32.c'
+            }
+            if (platform() != Platform.OsX) {
+              exclude 'util_sndfile.c'
+            }
+          }
+          lib sources.lexOutput
+          lib sources.yaccOutput
+        }
+        cpp {
+          source {
+            srcDir 'src'
+            include '*.cpp'
+            include 'RtAudio/*.cpp'
+            exclude 'rtaudio_c.cpp'
+            exclude 'chuck_js.cpp'
+            exclude 'digiio_webaudio.cpp'
+          }
+        }
+      }
+    }
+  }
+}
+
 class EmscriptenBaseTask extends DefaultTask {
-  def emccPath = new File(System.getenv("EMSCRIPTEN"), 'emcc').absolutePath
+  def emccPath = {
+    emscriptenPath = System.getenv("EMSCRIPTEN")
+    new File(emscriptenPath, 'emcc').absolutePath
+  }
 }
 
 class EmscriptenCompiler extends EmscriptenBaseTask {
@@ -107,52 +208,4 @@ task emscripten(type: EmscriptenLinker) {
   outputDirectory = file("${buildDir}/js")
   emscriptenFiles = tasks.emscriptenYacc.outputs.files.asFileTree + \
     tasks.emscriptenLex.outputs.files.asFileTree + tasks.emscriptenCompile.outputs.files.asFileTree
-}
-
-binaries.all {
-  // Define toolchain-specific compiler and linker options
-  if (platform() == Platform.OsX) {
-    cCompiler.args '-D__MACOSX_CORE__', '-isysroot', \
-      '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk', \
-      '-DHAVE_CONFIG_H', '-mmacosx-version-min=10.4'
-    cppCompiler.args '-D__MACOSX_CORE__', '-isysroot', \
-      '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk', \
-      '-mmacosx-version-min=10.4'
-    linker.args '-F/System/Library/PrivateFrameworks', '-weak_framework', 'MultitouchSupport', \
-      '-framework', 'CoreAudio', '-framework', 'CoreMIDI', '-framework', 'CoreFoundation', '-framework', \
-      'IOKit', '-framework', 'Carbon', '-framework', 'AppKit', '-framework', 'Foundation', \
-      '-mmacosx-version-min=10.4'
-  }
-}
-
-class LexCompiler extends DefaultTask {
-    @InputFiles FileCollection lexFiles
-    @OutputDirectory File sourceDir
-    @OutputDirectory File headerDir
-
-    @TaskAction
-    void processLexFiles() {
-      lexFiles.each { file ->
-        project.exec {
-          commandLine = ['flex', '-o', new File(sourceDir, file.name - '.lex' + '.yy.c').absolutePath,
-            file.absolutePath]
-        }
-      }
-    }
-}
-
-class YaccCompiler extends DefaultTask {
-    @InputFiles FileCollection yaccFiles
-    @OutputDirectory File sourceDir
-    @OutputDirectory File headerDir
-
-    @TaskAction
-    void processYaccFiles() {
-      yaccFiles.each { file ->
-        project.exec {
-          commandLine = ['bison', '-dv', '-o', new File(sourceDir, file.name - '.y' + '.tab.c'),
-            file.absolutePath]
-        }
-      }
-    }
 }
