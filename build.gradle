@@ -6,6 +6,8 @@ wrapper {
   gradleVersion = "2.4"
 }
 
+def isOnOsX = System.properties['os.name'].toLowerCase().contains('mac os x')
+
 apply plugin: 'cpp'
 apply plugin: 'c'
 
@@ -36,9 +38,13 @@ model {
             srcDir 'src'
             include '*.c'
             include 'lo/*.c'
+            if (!isOnOsX) {
+              exclude 'util_sndfile.c'
+            }
           }
           exportedHeaders {
             srcDir 'src'
+            srcDir 'src/lo'
           }
           lib sources.lexOutput
           lib sources.yaccOutput
@@ -47,8 +53,13 @@ model {
           source {
             srcDir 'src'
             include '*.cpp'
+            include 'RTAudio/*.cpp'
+            exclude 'rtaudio_c.cpp'
+            exclude 'chuck_js.cpp'
+            exclude 'chuck_webaudio.cpp'
             exportedHeaders {
               srcDir 'src'
+              srcDir 'src/lo'
             }
           }
         }
@@ -59,15 +70,17 @@ model {
 
 binaries.all {
   // Define toolchain-specific compiler and linker options
-  if (toolChain in Clang) {
+  if (isOnOsX) {
     cCompiler.args '-D__MACOSX_CORE__', '-isysroot', \
       '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk', \
-      '-DHAVE_CONFIG_H'
+      '-DHAVE_CONFIG_H', '-mmacosx-version-min=10.4'
     cppCompiler.args '-D__MACOSX_CORE__', '-isysroot', \
-      '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk'
+      '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk', \
+      '-mmacosx-version-min=10.4'
     linker.args '-F/System/Library/PrivateFrameworks', '-weak_framework', 'MultitouchSupport', \
       '-framework', 'CoreAudio', '-framework', 'CoreMIDI', '-framework', 'CoreFoundation', '-framework', \
-      'IOKit', '-framework', 'Carbon', '-framework', 'AppKit', '-framework', 'Foundation'
+      'IOKit', '-framework', 'Carbon', '-framework', 'AppKit', '-framework', 'Foundation', \
+      '-mmacosx-version-min=10.4'
   }
 }
 

@@ -84,7 +84,7 @@ static int lo_server_join_multicast_group(lo_server s, const char *group);
 
 #ifdef WIN32
 #ifndef gai_strerror
-// Copied from the Win32 SDK 
+// Copied from the Win32 SDK
 
 // WARNING: The gai_strerror inline functions below use static buffers,
 // and hence are not thread-safe.  We'll use buffers long enough to hold
@@ -129,7 +129,7 @@ int initWSock()
             HIBYTE( wsaData.wVersion ) != HIBYTE(reqversion) ) {
         /* wrong version */
         WSACleanup();
-        stateWSock = 0; 
+        stateWSock = 0;
     }
     else
         stateWSock = 1;
@@ -172,7 +172,7 @@ lo_server lo_server_new_with_proto_internal(const char *group,
 	if (proto==LO_DEFAULT) {
 #ifndef WIN32
 		if (port && *port == '/') proto = LO_UNIX;
-		else 
+		else
 #endif
 		proto = LO_UDP;
 	}
@@ -181,7 +181,7 @@ lo_server lo_server_new_with_proto_internal(const char *group,
 #ifdef WIN32
     if(!initWSock()) return NULL;
 #endif
-    
+
     s = calloc(1, sizeof(struct _lo_server));
     if (!s) return 0;
 
@@ -210,7 +210,7 @@ lo_server lo_server_new_with_proto_internal(const char *group,
 	hints.ai_socktype = SOCK_DGRAM;
     } else if (proto == LO_TCP) {
 	hints.ai_socktype = SOCK_STREAM;
-    } 
+    }
 #ifndef WIN32
     else if (proto == LO_UNIX) {
 
@@ -231,17 +231,17 @@ lo_server lo_server_new_with_proto_internal(const char *group,
 
 	if ((ret = bind(s->sockets[0].fd,
                     (struct sockaddr *)&sa, sizeof(sa))) < 0) {
-        int err = geterror();      
+        int err = geterror();
 	    lo_throw(s, err, strerror(err), "bind()");
 
 	    lo_server_free(s);
 	    return NULL;
 	}
-	
+
 	s->path = strdup(port);
 
 	return s;
-    } 
+    }
 #endif
     else {
 	lo_throw(s, LO_UNKNOWNPROTO, "Unknown protocol", NULL);
@@ -343,7 +343,7 @@ lo_server lo_server_new_with_proto_internal(const char *group,
 
 	/* Set hostname to empty string */
     hostname[0] = '\0';
-	
+
 #ifdef ENABLE_IPV6
     /* Try it the IPV6 friendly way first */
 	for (it = ai; it; it = it->ai_next) {
@@ -626,7 +626,7 @@ void *lo_server_recv_raw_stream(lo_server s, size_t *size)
         lo_server_del_socket(s, i, sock);
         continue;
     }
- 
+
     /* end of loop over sockets: successfully read data */
     break;
         }
@@ -708,7 +708,7 @@ int lo_server_recv_noblock(lo_server s, int timeout)
     } else {
       return 0;
     }
-}     
+}
 
 int lo_server_recv(lo_server s)
 {
@@ -997,8 +997,8 @@ static void dispatch_method(lo_server s, const char *path,
 	hostname[0] = '\0';
 	portname[0] = '\0';
     }
-    
-    
+
+
     // Store the source information in the lo_address
     if (src->host) free(src->host);
     if (src->host) free(src->port);
@@ -1285,7 +1285,7 @@ void lo_server_del_method(lo_server s, const char *path,
 int lo_server_get_socket_fd(lo_server s)
 {
     if (s->protocol != LO_UDP &&
-        s->protocol != LO_TCP 
+        s->protocol != LO_TCP
 #ifndef WIN32
         && s->protocol != LO_UNIX
 #endif
@@ -1337,7 +1337,7 @@ char *lo_server_get_url(lo_server s)
 	snprintf(buf, ret+1, "osc.%s://%s:%d/", proto, s->hostname, s->port);
 
 	return buf;
-    } 
+    }
 #ifndef WIN32
     else if (s->protocol == LO_UNIX) {
 	ret = snprintf(NULL, 0, "osc.unix:///%s", s->path);
