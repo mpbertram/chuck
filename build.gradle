@@ -6,7 +6,16 @@ wrapper {
   gradleVersion = "2.4"
 }
 
-def isOnOsX = System.properties['os.name'].toLowerCase().contains('mac os x')
+enum Platform {
+  OsX,
+  Windows
+}
+
+def platforms = ['mac os x': Platform.OsX, 'windows': Platform.Windows]
+
+def platform = {
+  return platforms[System.properties['os.name'].toLowerCase()]
+}
 
 apply plugin: 'cpp'
 apply plugin: 'c'
@@ -26,25 +35,32 @@ task yacc(type: YaccCompiler) {
 model {
   components {
     chuck(NativeExecutableSpec) {
-      sources {
-        lexOutput(CSourceSet) {
-          generatedBy tasks.lex
+      sources.all {
+        exportedHeaders {
+          srcDir 'src'
+          srcDir 'src/lo'
         }
+      }
+      sources {
         yaccOutput(CSourceSet) {
           generatedBy tasks.yacc
+          source.include '*.c'
+        }
+        lexOutput(CSourceSet) {
+          generatedBy tasks.lex
+          lib sources.yaccOutput
         }
         c {
           source {
             srcDir 'src'
             include '*.c'
             include 'lo/*.c'
-            if (!isOnOsX) {
+            if (platform() != Platform.Windows) {
+              exclude 'chuck_win32.c'
+            }
+            if (platform() != Platform.OsX) {
               exclude 'util_sndfile.c'
             }
-          }
-          exportedHeaders {
-            srcDir 'src'
-            srcDir 'src/lo'
           }
           lib sources.lexOutput
           lib sources.yaccOutput
@@ -53,14 +69,10 @@ model {
           source {
             srcDir 'src'
             include '*.cpp'
-            include 'RTAudio/*.cpp'
+            include 'RtAudio/*.cpp'
             exclude 'rtaudio_c.cpp'
             exclude 'chuck_js.cpp'
-            exclude 'chuck_webaudio.cpp'
-            exportedHeaders {
-              srcDir 'src'
-              srcDir 'src/lo'
-            }
+            exclude 'digiio_webaudio.cpp'
           }
         }
       }
@@ -70,7 +82,7 @@ model {
 
 binaries.all {
   // Define toolchain-specific compiler and linker options
-  if (isOnOsX) {
+  if (platform() == Platform.OsX) {
     cCompiler.args '-D__MACOSX_CORE__', '-isysroot', \
       '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk', \
       '-DHAVE_CONFIG_H', '-mmacosx-version-min=10.4'
