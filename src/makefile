@@ -250,7 +250,7 @@ src-dist:
 	mkdir $(DIST_DIR) $(DIST_DIR)/doc $(DIST_DIR)/src $(DIST_DIR)/examples
 # copy src
 	git archive HEAD . | tar -x -C $(DIST_DIR)/src
-	rm -r $(DIST_DIR)/src/examples $(DIST_DIR)/src/test 
+	rm -r $(DIST_DIR)/src/examples $(DIST_DIR)/src/test
 # copy manual + notes
 	cp $(addprefix ../notes/doc/,$(DOC_NOTES)) $(DIST_DIR)/doc
 # copy examples

@@ -1,25 +1,47 @@
-plugins {
-  id 'com.gradle.receipts' version '0.9.3.1'
+// plugins {
+//   id 'com.gradle.receipts' version '0.9.3.1'
+// }
+
+wrapper {
+  gradleVersion = "2.4"
 }
 
 apply plugin: 'cpp'
 apply plugin: 'c'
 
 task lex(type: LexCompiler) {
+  sourceDir = project.file("${buildDir}/src/generated/lex")
+  headerDir = project.file("${buildDir}/src/generated/lex")
+  lexFiles = files('src/chuck.lex')
+}
+
+task yacc(type: YaccCompiler) {
+  sourceDir = project.file("${buildDir}/src/generated/yacc")
+  headerDir = project.file("${buildDir}/src/generated/yacc")
+  yaccFiles = files('src/chuck.y')
 }
 
 model {
   components {
     chuck(NativeExecutableSpec) {
       sources {
+        lexOutput(CSourceSet) {
+          generatedBy tasks.lex
+        }
+        yaccOutput(CSourceSet) {
+          generatedBy tasks.yacc
+        }
         c {
           source {
             srcDir 'src'
             include '*.c'
+            include 'lo/*.c'
           }
           exportedHeaders {
             srcDir 'src'
           }
+          lib sources.lexOutput
+          lib sources.yaccOutput
         }
         cpp {
           source {
@@ -38,20 +60,45 @@ model {
 binaries.all {
   // Define toolchain-specific compiler and linker options
   if (toolChain in Clang) {
-    cCompiler.args '-D__MACOSX_CORE__', '-isysroot', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk', '-DHAVE_CONFIG_H'
-    cppCompiler.args '-D__MACOSX_CORE__', '-isysroot', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk'
-    linker.args '-F/System/Library/PrivateFrameworks', '-weak_framework', 'MultitouchSupport', '-framework', 'CoreAudio', '-framework', 'CoreMIDI', '-framework', 'CoreFoundation', '-framework', 'IOKit', '-framework', 'Carbon', '-framework', 'AppKit', '-framework', 'Foundation'
+    cCompiler.args '-D__MACOSX_CORE__', '-isysroot', \
+      '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk', \
+      '-DHAVE_CONFIG_H'
+    cppCompiler.args '-D__MACOSX_CORE__', '-isysroot', \
+      '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk'
+    linker.args '-F/System/Library/PrivateFrameworks', '-weak_framework', 'MultitouchSupport', \
+      '-framework', 'CoreAudio', '-framework', 'CoreMIDI', '-framework', 'CoreFoundation', '-framework', \
+      'IOKit', '-framework', 'Carbon', '-framework', 'AppKit', '-framework', 'Foundation'
   }
 }
 
 class LexCompiler extends DefaultTask {
     @InputFiles FileCollection lexFiles
     @OutputDirectory File sourceDir
+    @OutputDirectory File headerDir
 
     @TaskAction
     void processLexFiles() {
-      project.exec {
-        commandLine = ['flex', 'src/chuck.lex']
+      lexFiles.each { file ->
+        project.exec {
+          commandLine = ['flex', '-o', new File(sourceDir, file.name - '.lex' + '.yy.c').absolutePath,
+            file.absolutePath]
+        }
+      }
+    }
+}
+
+class YaccCompiler extends DefaultTask {
+    @InputFiles FileCollection yaccFiles
+    @OutputDirectory File sourceDir
+    @OutputDirectory File headerDir
+
+    @TaskAction
+    void processYaccFiles() {
+      yaccFiles.each { file ->
+        project.exec {
+          commandLine = ['bison', '-dv', '-o', new File(sourceDir, file.name - '.y' + '.tab.c'),
+            file.absolutePath]
+        }
       }
     }
 }
