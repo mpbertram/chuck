@@ -3,16 +3,15 @@ wrapper {
 }
 
 enum Platform {
-  OsX,
-  Windows,
-  Linux
+  OsX('mac os x|darwin|osx'),
+  Windows('windows'),
+  Linux('linux')
+  Platform(String regex) { this.regex = regex }
+  String regex
+  static Platform current() { values().find { System.getProperty('os.name') =~ "(?i)${it.regex}" } }
 }
 
-def platforms = ['mac os x': Platform.OsX, 'windows': Platform.Windows, 'linux': Platform.Linux]
-
-def platform = {
-  return platforms[System.properties['os.name'].toLowerCase()]
-}
+ext.platform = Platform.current()
 
 apply plugin: 'cpp'
 apply plugin: 'c'
@@ -31,7 +30,7 @@ task yacc(type: YaccCompiler) {
 
 binaries.all {
   // Define toolchain-specific compiler and linker options
-  if (platform() == Platform.OsX) {
+  if (project.platform == Platform.OsX) {
     // TODO: Determine automatically
     cCompiler.args '-DHAVE_CONFIG_H', '-D__MACOSX_CORE__', '-isysroot',
       '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk', \
@@ -47,35 +46,35 @@ binaries.all {
 }
 
 class LexCompiler extends DefaultTask {
-    @InputFiles FileCollection lexFiles
-    @OutputDirectory File sourceDir
-    @OutputDirectory File headerDir
+  @InputFiles FileCollection lexFiles
+  @OutputDirectory File sourceDir
+  @OutputDirectory File headerDir
 
-    @TaskAction
-    void processLexFiles() {
-      lexFiles.each { file ->
-        project.exec {
-          commandLine = ['flex', '-o', new File(sourceDir, file.name - '.lex' + '.yy.c').absolutePath,
-            file.absolutePath]
-        }
+  @TaskAction
+  void processLexFiles() {
+    lexFiles.each { file ->
+      project.exec {
+        commandLine = ['flex', '-o', new File(sourceDir, file.name - '.lex' + '.yy.c').absolutePath,
+          file.absolutePath]
       }
     }
+  }
 }
 
 class YaccCompiler extends DefaultTask {
-    @InputFiles FileCollection yaccFiles
-    @OutputDirectory File sourceDir
-    @OutputDirectory File headerDir
+  @InputFiles FileCollection yaccFiles
+  @OutputDirectory File sourceDir
+  @OutputDirectory File headerDir
 
-    @TaskAction
-    void processYaccFiles() {
-      yaccFiles.each { file ->
-        project.exec {
-          commandLine = ['bison', '-dv', '-o', new File(sourceDir, file.name - '.y' + '.tab.c'),
-            file.absolutePath]
-        }
+  @TaskAction
+  void processYaccFiles() {
+    yaccFiles.each { file ->
+      project.exec {
+        commandLine = ['bison', '-dv', '-o', new File(sourceDir, file.name - '.y' + '.tab.c'),
+          file.absolutePath]
       }
     }
+  }
 }
 
 model {
@@ -102,10 +101,10 @@ model {
             srcDir 'src'
             include '*.c'
             include 'lo/*.c'
-            if (platform() != Platform.Windows) {
+            if (project.platform != Platform.Windows) {
               exclude 'chuck_win32.c'
             }
-            if (platform() != Platform.OsX) {
+            if (project.platform != Platform.OsX) {
               exclude 'util_sndfile.c'
             }
           }
@@ -126,6 +125,8 @@ model {
     }
   }
 }
+
+ext.hasEmscripten = (System.getenv("EMSCRIPTEN")?.trim())
 
 class EmscriptenBaseTask extends DefaultTask {
   // TODO: Make not fail in case $EMSCRIPTEN is undefined
