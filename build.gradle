@@ -173,7 +173,7 @@ class EmscriptenLinker extends EmscriptenBaseTask {
     project.exec {
       // TODO: Make -g and SAFE_HEAP configurable
       commandLine = [emccPath, '-g', '-s', 'EXPORTED_FUNCTIONS=["_executeCode"]', '--js-library',
-        'src/emscripten/libraries/webaudio.js', '-s', 'SAFE_HEAP=1', '-s DEMANGLE_SUPPORT=1', '-o',
+        'src/emscripten/libraries/webaudio.js', '-s', 'SAFE_HEAP=1', '-s', 'DEMANGLE_SUPPORT=1', '-o',
         new File(outputDirectory, 'chuck.js').absolutePath] + emscriptenFiles.collect { it.absolutePath }
     }
   }
