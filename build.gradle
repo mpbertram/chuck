@@ -8,7 +8,10 @@ enum Platform {
   Linux('linux')
   Platform(String regex) { this.regex = regex }
   String regex
-  static Platform current() { values().find { System.getProperty('os.name') =~ "(?i)${it.regex}" } }
+  static Platform current() {
+    def osName = System.getProperty('os.name')
+     values().find { osName =~ "(?i)${it.regex}" }
+   }
 }
 
 ext.platform = Platform.current()
@@ -126,8 +129,6 @@ model {
   }
 }
 
-ext.hasEmscripten = (System.getenv("EMSCRIPTEN")?.trim())
-
 class EmscriptenBaseTask extends DefaultTask {
   // TODO: Make not fail in case $EMSCRIPTEN is undefined
   def emccPath = new File(System.getenv("EMSCRIPTEN"), 'emcc').absolutePath
@@ -178,36 +179,38 @@ class EmscriptenLinker extends EmscriptenBaseTask {
   }
 }
 
-task emscriptenYacc(type: EmscriptenCompiler) {
-  outputDirectory = file("${buildDir}/emscripten")
-  emscriptenFiles = fileTree(tasks.yacc.sourceDir)
-    .include('chuck.tab.c')
-  dependsOn(tasks.yacc)
-}
+if (System.getenv("EMSCRIPTEN")?.trim()) {
+  task emscriptenYacc(type: EmscriptenCompiler) {
+    outputDirectory = file("${buildDir}/emscripten")
+    emscriptenFiles = fileTree(tasks.yacc.sourceDir)
+      .include('chuck.tab.c')
+    dependsOn(tasks.yacc)
+  }
 
-task emscriptenLex(type: EmscriptenCompiler) {
-  outputDirectory = file("${buildDir}/emscripten")
-  emscriptenFiles = fileTree(tasks.lex.sourceDir)
-    .include('chuck.yy.c')
-  dependsOn(tasks.lex)
-  dependsOn(tasks.yacc)
-}
+  task emscriptenLex(type: EmscriptenCompiler) {
+    outputDirectory = file("${buildDir}/emscripten")
+    emscriptenFiles = fileTree(tasks.lex.sourceDir)
+      .include('chuck.yy.c')
+    dependsOn(tasks.lex)
+    dependsOn(tasks.yacc)
+  }
 
-task emscriptenCompile(type: EmscriptenCompiler) {
-  outputDirectory = file("${buildDir}/emscripten")
-  emscriptenFiles = fileTree(dir: 'src')
-    .include('*.c')
-    .include('*.cpp')
-    .exclude('rtaudio_c.cpp')
-    .exclude('digiio_rtaudio.cpp')
-    .exclude('util_sndfile.c')
-    .exclude('chuck_win32.c')
+  task emscriptenCompile(type: EmscriptenCompiler) {
+    outputDirectory = file("${buildDir}/emscripten")
+    emscriptenFiles = fileTree(dir: 'src')
+      .include('*.c')
+      .include('*.cpp')
+      .exclude('rtaudio_c.cpp')
+      .exclude('digiio_rtaudio.cpp')
+      .exclude('util_sndfile.c')
+      .exclude('chuck_win32.c')
 
-  dependsOn(tasks.yacc)
-}
+    dependsOn(tasks.yacc)
+  }
 
-task emscripten(type: EmscriptenLinker) {
-  outputDirectory = file("${buildDir}/js")
-  emscriptenFiles = tasks.emscriptenYacc.outputs.files.asFileTree + \
-    tasks.emscriptenLex.outputs.files.asFileTree + tasks.emscriptenCompile.outputs.files.asFileTree
+  task emscripten(type: EmscriptenLinker) {
+    outputDirectory = file("${buildDir}/js")
+    emscriptenFiles = tasks.emscriptenYacc.outputs.files.asFileTree + \
+      tasks.emscriptenLex.outputs.files.asFileTree + tasks.emscriptenCompile.outputs.files.asFileTree
+  }
 }
