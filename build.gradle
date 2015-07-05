@@ -45,6 +45,10 @@ binaries.all {
       '-framework', 'CoreAudio', '-framework', 'CoreMIDI', '-framework', 'CoreFoundation', '-framework', \
       'IOKit', '-framework', 'Carbon', '-framework', 'AppKit', '-framework', 'Foundation', \
       '-mmacosx-version-min=10.4'
+  } else if (project.platform == Platform.Linux) {
+    cCompiler.args '-DHAVE_CONFIG_H', '-D__LINUX_ALSA__', '-D__PLATFORM_LINUX__'
+    cppCompiler.args '-D__LINUX_ALSA__', '-D__PLATFORM_LINUX__'
+    linker.args '-lasound', '-lstdc++', '-ldl', '-lm', '-lsndfile', '-lpthread'
   }
 }
 
