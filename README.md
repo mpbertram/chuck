@@ -22,11 +22,14 @@ If you wish to build for debugging, make sure you export the environment variabl
 also make the the JavaScript version of ChucK easier to work with, due to not being optimized.
 
 ### JavaScript
-To build the JavaScript port of ChucK, first of all make sure the Emscripten tools are available by
-[sourcing](http://superuser.com/questions/46139/what-does-source-do)
-the [Emscripten](http://emscripten.org/) SDK. On OS X I accomplish this with the following command:
-`pushd ~/Applications/emsdk_portable/ && source ./emsdk_env.sh && popd`. Now, enter the src directory and
-run `make emscripten`. This will generate a JavaScript library with the help of Emscripten: chuck.js.
+To build the JavaScript port of ChucK, you should use the [Gradle](http://gradle.org) build tool. Since
+a wrapper is included with ChucK, you'll only need to make sure the Java runtime (JRE) is installed first.
+Then, you must install [Emscripten](http://emscripten.org/) and make sure it's activated in your shell
+by [sourcing](http://superuser.com/questions/46139/what-does-source-do) the Emscripten SDK. On OS X I
+accomplish this with the following command:
+`pushd ~/Applications/emsdk_portable/ && source ./emsdk_env.sh && popd`. Now, from the root directory run
+`./gradlew emscripten`. This will generate a JavaScript library with the help of Emscripten:
+'build/js/chuck.js'.
 
 ### JavaScript Demos
 To build the JavaScript demo HTML pages, first make sure you have [NPM](https://www.npmjs.org/) installed.
