@@ -129,88 +129,9 @@ model {
   }
 }
 
-class EmscriptenBaseTask extends DefaultTask {
-  // TODO: Make not fail in case $EMSCRIPTEN is undefined
-  def emccPath = new File(System.getenv("EMSCRIPTEN"), 'emcc').absolutePath
-}
-
-class EmscriptenCompiler extends EmscriptenBaseTask {
-  @InputFiles FileCollection emscriptenFiles
-  @OutputDirectory File outputDirectory
-
-  def replaceExtension(fileName) {
-    if (fileName.endsWith('.cpp')) {
-      return fileName - '.cpp' + '.o'
-    }
-    if (fileName.endsWith('.c')) {
-      return fileName - '.c' + '.o'
-    }
-  }
-
-  @TaskAction
-  void processEmscriptenFiles(IncrementalTaskInputs inputs) {
-    inputs.outOfDate { change ->
-      project.exec {
-        // TODO: Make -g configurable, don't hardcode YACC header dir
-        commandLine = [emccPath, '-Isrc', '-Isrc/lo', '-Ibuild/src/generated/yacc', '-g', '-o',
-          new File(outputDirectory, replaceExtension(change.file.name)).absolutePath,
-          change.file.absolutePath]
-      }
-    }
-
-    inputs.removed { change ->
-      new File(outputDirectory, replaceExtension(change.file.name)).delete()
-    }
-  }
-}
-
-class EmscriptenLinker extends EmscriptenBaseTask {
-  @InputFiles FileCollection emscriptenFiles
-  @OutputDirectory File outputDirectory
-
-  @TaskAction
-  void processEmscriptenFiles() {
-    project.exec {
-      // TODO: Make -g and SAFE_HEAP configurable
-      commandLine = [emccPath, '-g', '-s', 'EXPORTED_FUNCTIONS=["_executeCode"]', '--js-library',
-        'src/emscripten/libraries/webaudio.js', '-s', 'SAFE_HEAP=1', '-s', 'DEMANGLE_SUPPORT=1', '-o',
-        new File(outputDirectory, 'chuck.js').absolutePath] + emscriptenFiles.collect { it.absolutePath }
-    }
-  }
-}
-
 if (System.getenv("EMSCRIPTEN")?.trim()) {
-  task emscriptenYacc(type: EmscriptenCompiler) {
-    outputDirectory = file("${buildDir}/emscripten")
-    emscriptenFiles = fileTree(tasks.yacc.sourceDir)
-      .include('chuck.tab.c')
-    dependsOn(tasks.yacc)
-  }
-
-  task emscriptenLex(type: EmscriptenCompiler) {
-    outputDirectory = file("${buildDir}/emscripten")
-    emscriptenFiles = fileTree(tasks.lex.sourceDir)
-      .include('chuck.yy.c')
-    dependsOn(tasks.lex)
-    dependsOn(tasks.yacc)
-  }
-
-  task emscriptenCompile(type: EmscriptenCompiler) {
-    outputDirectory = file("${buildDir}/emscripten")
-    emscriptenFiles = fileTree(dir: 'src')
-      .include('*.c')
-      .include('*.cpp')
-      .exclude('rtaudio_c.cpp')
-      .exclude('digiio_rtaudio.cpp')
-      .exclude('util_sndfile.c')
-      .exclude('chuck_win32.c')
-
-    dependsOn(tasks.yacc)
-  }
-
-  task emscripten(type: EmscriptenLinker) {
-    outputDirectory = file("${buildDir}/js")
-    emscriptenFiles = tasks.emscriptenYacc.outputs.files.asFileTree + \
-      tasks.emscriptenLex.outputs.files.asFileTree + tasks.emscriptenCompile.outputs.files.asFileTree
-  }
+  logger.info("Emscripten detected - Configuring targets")
+  apply plugin: 'emscripten'
+} else {
+  logger.info("Emscripten not detected - Not configuring targets")
 }
