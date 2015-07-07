@@ -35,17 +35,22 @@ binaries.all {
       'IOKit', '-framework', 'Carbon', '-framework', 'AppKit', '-framework', 'Foundation', \
       '-mmacosx-version-min=10.4'
   } else if (project.platform == Platform.Linux) {
-    cCompiler.args '-DHAVE_CONFIG_H', '-D__PLATFORM_LINUX__'
-    cppCompiler.args '-D__PLATFORM_LINUX__'
+    cCompiler.args '-DHAVE_CONFIG_H', '-D__PLATFORM_LINUX__ -D__CK_SNDFILE_NATIVE__'
+    cppCompiler.args '-D__PLATFORM_LINUX__ -D__CK_SNDFILE_NATIVE__'
 
-    def audioArch = 'alsa'
-    if (hasProperty('audioArchitecture')) {
-      audioArch = audioArchitecture.toLowerCase()
-    }
+    def audioArch = (project.hasProperty('audioArchitecture')) ? audioArchitecture.toLowerCase() : 'alsa'
     if (audioArch == 'alsa') {
       cCompiler.args '-D__LINUX_ALSA__'
       cppCompiler.args '-D__LINUX_ALSA__'
       linker.args '-lasound'
+    else if (audioArch == 'jack') {
+      cCompiler.args '-D__UNIX_JACK__'
+      cppCompiler.args '-D__UNIX_JACK__'
+      linker.args '-lasound -ljack '
+    } else if (audioArch == 'pulse') {
+      cCompiler.args '-D__LINUX_PULSE__'
+      cppCompiler.args '-D__LINUX_PULSE__'
+      linker.args '-lasound -lpulse-simple -lpulse'
     } else {
       throw new Exception("Unknown audioArchitecture option '${audioArchitecture}'")
     }

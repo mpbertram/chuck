@@ -9,9 +9,8 @@ CONFIG=Release
 CHUCK_BIN=Release/chuck.exe
 endif
 
-$(CHUCK_BIN): 
-	$(MSBUILD) /p:Configuration=$(CONFIG) 
+$(CHUCK_BIN):
+	$(MSBUILD) /p:Configuration=$(CONFIG)
 
 clean:
 	$(MSBUILD) /p:Configuration=$(CONFIG) /t:Clean
-
