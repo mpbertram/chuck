@@ -43,7 +43,7 @@ binaries.all {
       cCompiler.args '-D__LINUX_ALSA__'
       cppCompiler.args '-D__LINUX_ALSA__'
       linker.args '-lasound'
-    else if (audioArch == 'jack') {
+    } else if (audioArch == 'jack') {
       cCompiler.args '-D__UNIX_JACK__'
       cppCompiler.args '-D__UNIX_JACK__'
       linker.args '-lasound -ljack '
