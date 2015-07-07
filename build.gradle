@@ -35,9 +35,22 @@ binaries.all {
       'IOKit', '-framework', 'Carbon', '-framework', 'AppKit', '-framework', 'Foundation', \
       '-mmacosx-version-min=10.4'
   } else if (project.platform == Platform.Linux) {
-    cCompiler.args '-DHAVE_CONFIG_H', '-D__LINUX_ALSA__', '-D__PLATFORM_LINUX__'
-    cppCompiler.args '-D__LINUX_ALSA__', '-D__PLATFORM_LINUX__'
-    linker.args '-lasound', '-lstdc++', '-ldl', '-lm', '-lsndfile', '-lpthread'
+    cCompiler.args '-DHAVE_CONFIG_H', '-D__PLATFORM_LINUX__'
+    cppCompiler.args '-D__PLATFORM_LINUX__'
+
+    def audioArch = 'alsa'
+    if (hasProperty('audioArchitecture')) {
+      audioArch = audioArchitecture.toLowerCase()
+    }
+    if (audioArch == 'alsa') {
+      cCompiler.args '-D__LINUX_ALSA__'
+      cppCompiler.args '-D__LINUX_ALSA__'
+      linker.args '-lasound'
+    } else {
+      throw new Exception("Unknown audioArchitecture option '${audioArchitecture}'")
+    }
+
+    linker.args '-lstdc++', '-ldl', '-lm', '-lsndfile', '-lpthread'
   }
 }
 
