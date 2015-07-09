@@ -15,6 +15,17 @@ enum Platform {
 }
 
 ext.platform = Platform.current()
+def debug
+if (project.hasProperty('debug')) {
+  debug = true
+} else {
+  debug = false
+}
+if (debug) {
+  ext.compilerFlags = ['-g',]
+} else {
+  ext.compilerFlags = ['-O3',]
+}
 
 apply plugin: 'cpp'
 apply plugin: 'c'
@@ -22,7 +33,15 @@ apply plugin: 'lexAndYacc'
 
 binaries.all {
   // Define toolchain-specific compiler and linker options
+  cCompiler.args project.compilerFlags as String[]
+  cppCompiler.args project.compilerFlags as String[]
+
   if (project.platform == Platform.OsX) {
+    if (debug) {
+      ext.compilerFlags = ['-g',]
+    } else {
+      ext.compilerFlags = ['-O3',]
+    }
     // TODO: Determine automatically
     cCompiler.args '-DHAVE_CONFIG_H', '-D__MACOSX_CORE__', '-isysroot',
       '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk', \
@@ -35,6 +54,13 @@ binaries.all {
       'IOKit', '-framework', 'Carbon', '-framework', 'AppKit', '-framework', 'Foundation', \
       '-mmacosx-version-min=10.4'
   } else if (project.platform == Platform.Linux) {
+    if (debug) {
+      ext.compilerFlags = ['-g',]
+    } else {
+      ext.compilerFlags = ['-O3',]
+      cCompiler.args '-fno-strict-aliasing'
+      cppCompiler.args '-fno-strict-aliasing'
+    }
     cCompiler.args '-DHAVE_CONFIG_H', '-D__PLATFORM_LINUX__ -D__CK_SNDFILE_NATIVE__'
     cppCompiler.args '-D__PLATFORM_LINUX__ -D__CK_SNDFILE_NATIVE__'
 

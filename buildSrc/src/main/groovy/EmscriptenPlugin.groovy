@@ -20,9 +20,9 @@ class EmscriptenCompiler extends EmscriptenBaseTask {
   void processEmscriptenFiles(IncrementalTaskInputs inputs) {
     inputs.outOfDate { change ->
       project.exec {
-        // TODO: Make -g configurable, don't hardcode YACC header dir
-        commandLine = [emccPath, '-Isrc', '-Isrc/lo', '-Ibuild/src/generated/yacc', '-g', '-o',
-          new File(outputDirectory, replaceExtension(change.file.name)).absolutePath,
+        // TODO: Don't hardcode YACC header dir
+        commandLine = [emccPath, '-Isrc', '-Isrc/lo', '-Ibuild/src/generated/yacc', '-o'] +
+          project.compilerFlags + [new File(outputDirectory, replaceExtension(change.file.name)).absolutePath,
           change.file.absolutePath]
       }
     }
