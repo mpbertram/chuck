@@ -15,11 +15,9 @@ enum Platform {
 }
 
 ext.platform = Platform.current()
-def debug
+def debug = true
 if (project.hasProperty('debug')) {
-  debug = true
-} else {
-  debug = false
+  debug = project.debug.toLowerCase().matches(/^(true|1)$/)
 }
 if (debug) {
   ext.compilerFlags = ['-g',]
