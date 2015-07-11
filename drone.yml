@@ -1,0 +1,6 @@
+image: aknuds1/docker-emscripten
+script:
+  - ./gradlew install -P audioArchitecture=pulse -i
+  - cd emsdk_portable && source ./emsdk_env.sh && cd ..
+  - ./gradlew -i emscripten
+  - cd src/test && PATH=build/binaries/chuckExecutable/chuck:$PATH python test.py
