@@ -20,9 +20,13 @@ if (project.hasProperty('debug')) {
   debug = project.debug.toLowerCase().matches(/^(true|1)$/)
 }
 if (debug) {
-  ext.compilerFlags = ['-g',]
+  if (project.platform == Platform.OsX || project.platform == Platform.Linux) {
+    ext.compilerFlags = ['-g',]
+  }
 } else {
-  ext.compilerFlags = ['-O3',]
+  if (project.platform == Platform.OsX || project.platform == Platform.Linux) {
+    ext.compilerFlags = ['-O3',]
+  }
 }
 
 apply plugin: 'cpp'
@@ -35,11 +39,6 @@ binaries.all {
   cppCompiler.args project.compilerFlags as String[]
 
   if (project.platform == Platform.OsX) {
-    if (debug) {
-      ext.compilerFlags = ['-g',]
-    } else {
-      ext.compilerFlags = ['-O3',]
-    }
     // TODO: Determine automatically
     cCompiler.args '-DHAVE_CONFIG_H', '-D__MACOSX_CORE__', '-isysroot',
       '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk', \
@@ -52,10 +51,7 @@ binaries.all {
       'IOKit', '-framework', 'Carbon', '-framework', 'AppKit', '-framework', 'Foundation', \
       '-mmacosx-version-min=10.4'
   } else if (project.platform == Platform.Linux) {
-    if (debug) {
-      ext.compilerFlags = ['-g',]
-    } else {
-      ext.compilerFlags = ['-O3',]
+    if (!debug) {
       cCompiler.args '-fno-strict-aliasing'
       cppCompiler.args '-fno-strict-aliasing'
     }
