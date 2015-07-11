@@ -1,24 +1,31 @@
+sudo: false
+language:
+  - cpp
+compiler:
+  - gcc
+  - clang
+install:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
 os:
   - linux
   - osx
-
-language:
-  - cpp
-
 addons:
   apt:
+    sources:
+      - ubuntu-toolchain-r-test
     packages:
+      - gcc-4.8
+      - g++-4.8
+      - clang
       - libsndfile1-dev
       - libpulse-dev
       - libasound2-dev
       - nodejs
-      - cmake
-
 before_script:
   - wget http://www.cmake.org/files/v3.3/cmake-3.3.0-rc3.tar.gz
   - tar xzf cmake-3.3.0-rc3.tar.gz && cd cmake-3.3.0-rc3
   - ./bootstrap && make
-  - sudo make install && cd ..
+  - make install && cd ..
   - wget https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz
   - tar xzf emsdk-portable.tar.gz
   - cd emsdk_portable && ./emsdk update
