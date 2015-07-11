@@ -2,6 +2,10 @@ wrapper {
   gradleVersion = "2.5"
 }
 
+apply plugin: 'cpp'
+apply plugin: 'c'
+apply plugin: 'lexAndYacc'
+
 enum Platform {
   OsX('mac os x|darwin|osx'),
   Windows('windows'),
@@ -28,10 +32,6 @@ if (debug) {
     ext.compilerFlags = ['-O3',]
   }
 }
-
-apply plugin: 'cpp'
-apply plugin: 'c'
-apply plugin: 'lexAndYacc'
 
 binaries.all {
   // Define toolchain-specific compiler and linker options
