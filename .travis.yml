@@ -12,7 +12,6 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-      - kalakris-cmake
     packages:
       - gcc-4.8
       - g++-4.8
@@ -21,13 +20,16 @@ addons:
       - libpulse-dev
       - libasound2-dev
       - nodejs
-      - cmake
 before_install:
+  - wget http://www.cmake.org/files/v3.3/cmake-3.3.0-rc3-Linux-x86_64.tar.gz
+  - tar xzf cmake-3.3.0-rc3-Linux-x86_64.tar.gz
+  - export PATH=`pwd`/cmake-3.3.0-rc3-Linux-x86_64/bin:$PATH
   - wget https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz
   - tar xzf emsdk-portable.tar.gz
   - cd emsdk_portable && ./emsdk update
   - sed 's/clang-tag-%tag%-64bit/clang-tag-e%tag%-64bit/' -i emsdk_manifest.json
   - ./emsdk install latest 2>&1 > /dev/null && ./emsdk activate latest && cd ..
+
 script:
   - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then ./gradlew install -P audioArchitecture=pulse -i; fi
   - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then ./gradlew install -i; fi
@@ -35,7 +37,9 @@ script:
   - ./gradlew -i emscripten
   - export PATH=build/binaries/chuckExecutable/chuck:$PATH
   - cd src/test && python test.py
+
 after_success:
   - echo "Success!"
+
 after_failure:
   - echo "Something went wrong..."
