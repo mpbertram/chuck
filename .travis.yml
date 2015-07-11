@@ -3,8 +3,6 @@ language:
   - cpp
 compiler:
   - gcc
-install:
-  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
 os:
   - linux
   - osx
@@ -21,6 +19,7 @@ addons:
       - libasound2-dev
       - nodejs
 before_install:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
   - wget http://www.cmake.org/files/v3.3/cmake-3.3.0-rc3-Linux-x86_64.tar.gz
   - tar xzf cmake-3.3.0-rc3-Linux-x86_64.tar.gz
   - export PATH=`pwd`/cmake-3.3.0-rc3-Linux-x86_64/bin:$PATH
