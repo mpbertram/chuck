@@ -19,7 +19,7 @@ before_script:
   - tar xzf emsdk-portable.tar.gz
   - cd emsdk_portable && ./emsdk update
   - sed 's/clang-tag-%tag%-64bit/clang-tag-e%tag%-64bit/' -i emsdk_manifest.json
-  - ./emsdk install latest && ./emsdk activate latest && cd ..
+  - ./emsdk install latest 2>&1 > /dev/null && ./emsdk activate latest && cd ..
 
 script:
   - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then ./gradlew install -P audioArchitecture=pulse -i; fi
