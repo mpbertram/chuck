@@ -15,7 +15,7 @@ addons:
 script:
   - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then ./gradlew install -P audioArchitecture=pulse -i; fi
   - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then ./gradlew install -i; fi
-  - sudo mv ./build/install/chuckExecutable/chuck /usr/local/bin/
+  - sudo mv ./build/binaries/chuckExecutable/chuck /usr/local/bin/
   - cd src/test && python test.py
 
 after_success:
