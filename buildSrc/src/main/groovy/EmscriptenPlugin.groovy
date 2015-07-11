@@ -21,9 +21,9 @@ class EmscriptenCompiler extends EmscriptenBaseTask {
     inputs.outOfDate { change ->
       project.exec {
         // TODO: Don't hardcode YACC header dir
-        commandLine = [emccPath, '-Isrc', '-Isrc/lo', '-Ibuild/src/generated/yacc', '-o'] +
-          project.compilerFlags + [new File(outputDirectory, replaceExtension(change.file.name)).absolutePath,
-          change.file.absolutePath]
+        commandLine = [emccPath, '-Isrc', '-Isrc/lo', '-Ibuild/src/generated/yacc', '-o',
+            new File(outputDirectory, replaceExtension(change.file.name)).absolutePath] +
+        project.compilerFlags + [change.file.absolutePath]
       }
     }
 
