@@ -70,11 +70,11 @@ binaries.all {
     } else if (audioArch == 'jack') {
       cCompiler.args '-D__UNIX_JACK__'
       cppCompiler.args '-D__UNIX_JACK__'
-      linker.args '-lasound -ljack '
+      linker.args '-lasound', '-ljack '
     } else if (audioArch == 'pulse') {
       cCompiler.args '-D__LINUX_PULSE__'
       cppCompiler.args '-D__LINUX_PULSE__'
-      linker.args '-lasound -lpulse-simple -lpulse'
+      linker.args '-lasound', '-lpulse-simple', '-lpulse'
     } else {
       throw new Exception("Unknown audioArchitecture option '${audioArchitecture}'")
     }
