@@ -1,4 +1,4 @@
-DESTDIR?=/usr/bin
+DESTDIR?=/usr/local/bin
 
 # default target: print usage message and quit
 current:
@@ -25,7 +25,7 @@ emscripten: ../js/lib/chuck.js
 win32:
 	make -f makefile.win32
 
-CK_VERSION=1.3.5.1
+CK_VERSION=1.3.5.2-beta-2
 
 LEX=flex
 YACC=bison

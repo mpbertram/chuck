@@ -6086,10 +6086,13 @@ void Chuck_Instr_Hack::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
     if( m_type_ref->size == sz_INT && iskindofint(m_type_ref) ) // ISSUE: 64-bit (fixed 1.3.1.0)
     {
         t_CKDWORD* sp = (t_CKDWORD*)shred->reg->sp;
-        if( !isa( m_type_ref, &t_string ) )
+        if( !isa( m_type_ref, &t_string ) ||  *(sp-1) == 0 )
         {
             // print it
-            fprintf( stderr, "%ld :(%s)\n", (t_CKINT)*(sp-1), m_type_ref->c_name() );
+            if( *(sp-1) == 0 && isa( m_type_ref, &t_object ) )
+                fprintf( stderr, "null :(%s)\n", m_type_ref->c_name() );
+            else
+                fprintf( stderr, "%ld :(%s)\n", *(sp-1), m_type_ref->c_name() );
         }
         else
         {
@@ -6186,14 +6189,21 @@ void Chuck_Instr_Gack::execute( Chuck_VM * vm, Chuck_VM_Shred * shred )
         if( type->size == sz_INT && iskindofint(type) ) // ISSUE: 64-bit (fixed 1.3.1.0)
         {
             t_CKINT * sp = (t_CKINT *)the_sp;
-            if( !isa( type, &t_string ) )
+            if( !isa( type, &t_string ) ||  *(sp) == 0 )
             {
                 if( isa( type, &t_object ) )
+                {
                     // print it
-                    fprintf( stderr, "0x%lx ", *(sp) );
+                    if( *(sp-1) == 0 )
+                        fprintf( stderr, "null " );
+                    else
+                        fprintf( stderr, "0x%lx ", *(sp) );
+                }
                 else
+                {
                     // print it
                     fprintf( stderr, "%ld ", *(sp) );
+                }
             }
             else
             {
