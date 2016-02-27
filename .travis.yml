@@ -20,7 +20,7 @@ addons:
       - nodejs
 before_install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
-  - wget https://cmake.org/files/v3.5/cmake-3.5.0-rc3-Linux-x86_64.tar.gz
+  - wget --no-check-certificate https://cmake.org/files/v3.5/cmake-3.5.0-rc3-Linux-x86_64.tar.gz
   - tar xzf cmake-3.5.0-rc3-Linux-x86_64.tar.gz
   - export PATH=`pwd`/cmake-3.5.0-rc3-Linux-x86_64/bin:$PATH
   - wget https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz
