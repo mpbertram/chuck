@@ -61,6 +61,8 @@ double trunc( double a )
 }
 
 
+// ge: this is needed in some/earlier versions of windows
+#ifndef __WINDOWS_MODERN__
 //-----------------------------------------------------------------------------
 // name: remainder()
 // desc: ...
@@ -70,6 +72,7 @@ double remainder( long a, long b )
     long div = a/b;
     return a - b*div;
 }
+#endif
 
 
 #endif

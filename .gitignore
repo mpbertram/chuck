@@ -13,8 +13,8 @@ src/Release
 src/Debug
 
 .DS_Store
-
-*.xcodeproj/
+project.xcworkspace
+xcuserdata
 
 node_modules/
 js/examples/

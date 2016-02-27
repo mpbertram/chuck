@@ -25,7 +25,7 @@ emscripten: ../js/lib/chuck.js
 win32:
 	make -f makefile.win32
 
-CK_VERSION=1.3.5.2-beta-2
+CK_VERSION=1.3.5.2
 
 LEX=flex
 YACC=bison
