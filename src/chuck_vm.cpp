@@ -1644,7 +1644,7 @@ CK_VM_DEBUG( t_CKBYTE * t_reg_sp = this->mem->sp );
 //-----------------------------------------------------------------------------
         // execute the instruction
         EM_log(CK_LOG_FINE, "Shred executing instruction %s: %d, %d, %d", instr[pc]->name(),
-            *vm_running, is_running, is_abort);
+            *loop_running, is_running, is_abort);
         EM_pushlog();
         instr[pc]->execute( vm, this );
         EM_poplog();
@@ -2052,7 +2052,7 @@ void Chuck_VM_Shreduler::advance( t_CKINT N )
     t_CKUINT i;
     // input and output
     const SAMPLE * input = vm_ref->input_ref() + (N*m_num_adc_channels);
-    SAMPLE * output = vm_ref->output_ref() + (N*m_num_adc_channels);
+    SAMPLE * output = vm_ref->output_ref() + (N*m_num_dac_channels);
 
     // INPUT: loop over channels
 

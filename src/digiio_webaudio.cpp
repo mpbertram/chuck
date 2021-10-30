@@ -36,7 +36,7 @@
 #include <limits.h>
 
 extern "C" {
-    BOOL__ waudio_initialize(void (*callback)(float*, float*, float*, float*, unsigned
+    BOOL__ waudio_initialize(void (*callback)(float*, float*, unsigned
         long));
     BOOL__ waudio_start();
     BOOL__ waudio_stop();
@@ -46,29 +46,29 @@ extern "C" {
 namespace {
 /** Callback to Web Audio library.
 */
-extern "C" void callback(float* input_left, float* input_right, float* output_left,
-    float* output_right, unsigned long buffer_size)
+extern "C" void callback(float* input, float* output, unsigned long buffer_size)
 {
-    // EM_log(CK_LOG_FINE, "Audio callback invoked for %d samples", buffer_size);
-    Digitalio::m_samples_left = output_left;
-    Digitalio::m_samples_right = output_right;
-    Digitalio::m_out_pos = 0;
-    Digitalio::m_vm->run(buffer_size);
+    memset( output, 0, buffer_size * sizeof(SAMPLE) * Digitalio::m_num_channels_out );
+    Digitalio::m_buffer_out = output;
+    if (Digitalio::m_vm->run(buffer_size, Digitalio::m_buffer_in, Digitalio::m_buffer_out)) {
+        waudio_stop();
+    }
 }
 }
 
-// static
 BOOL__ Digitalio::m_init = FALSE;
 DWORD__ Digitalio::m_start = 0;
 DWORD__ Digitalio::m_tick_count = 0;
 DWORD__ Digitalio::m_num_channels_out = NUM_CHANNELS_DEFAULT;
-DWORD__ Digitalio::m_num_channels_in = NUM_CHANNELS_DEFAULT;
+DWORD__ Digitalio::m_num_channels_in = 0;
 DWORD__ Digitalio::m_sampling_rate = SAMPLING_RATE_DEFAULT;
 DWORD__ Digitalio::m_bps = BITS_PER_SAMPLE_DEFAULT;
 DWORD__ Digitalio::m_buffer_size = BUFFER_SIZE_DEFAULT;
 DWORD__ Digitalio::m_num_buffers = NUM_BUFFERS_DEFAULT;
-float* Digitalio::m_samples_left = NULL;
-float* Digitalio::m_samples_right = NULL;
+SAMPLE* Digitalio::m_buffer_out = NULL;
+SAMPLE* Digitalio::m_buffer_in = NULL;
+SAMPLE** Digitalio::m_write_ptr = NULL;
+SAMPLE** Digitalio::m_read_ptr = NULL;
 BOOL__ Digitalio::m_out_ready = FALSE;
 BOOL__ Digitalio::m_in_ready = FALSE;
 BOOL__ Digitalio::m_use_cb = USE_CB_DEFAULT;
@@ -111,6 +111,12 @@ BOOL__ Digitalio::initialize( DWORD__ num_dac_channels,
 {
     Digitalio::m_vm = vm_ref;
     Digitalio::m_num_channels_out = num_dac_channels;
+    
+    Digitalio::m_buffer_in = new SAMPLE[buffer_size * num_adc_channels];
+    Digitalio::m_buffer_out = new SAMPLE[buffer_size * num_adc_channels];
+    memset( Digitalio::m_buffer_in, 0, buffer_size * sizeof(SAMPLE) * num_adc_channels );
+    memset( Digitalio::m_buffer_out, 0, buffer_size * sizeof(SAMPLE) * num_dac_channels );
+    
     return waudio_initialize(&callback);
 }
 
@@ -166,6 +172,9 @@ DigitalOut::~DigitalOut()
 //-----------------------------------------------------------------------------
 BOOL__ DigitalOut::initialize( )
 {
+    m_data_ptr_out = Digitalio::m_buffer_out;
+    Digitalio::m_write_ptr = &m_data_ptr_out;
+
     return TRUE;
 }
 
@@ -204,7 +213,9 @@ void DigitalOut::cleanup()
 // desc: 1 channel
 //-----------------------------------------------------------------------------
 BOOL__ DigitalOut::tick_out( SAMPLE sample )
-{
+{    
+    *m_data_ptr_out++ = sample;
+
     return TRUE;
 }
 
@@ -214,6 +225,9 @@ BOOL__ DigitalOut::tick_out( SAMPLE sample )
 //-----------------------------------------------------------------------------
 BOOL__ DigitalOut::tick_out( SAMPLE sample_l, SAMPLE sample_r )
 {
+    *m_data_ptr_out++ = sample_l;
+    *m_data_ptr_out++ = sample_r;
+
     return TRUE;
 }
 
@@ -223,9 +237,10 @@ BOOL__ DigitalOut::tick_out( SAMPLE sample_l, SAMPLE sample_r )
 //-----------------------------------------------------------------------------
 BOOL__ DigitalOut::tick_out( const SAMPLE * samples, DWORD__ n )
 {
-    Digitalio::m_samples_left[Digitalio::m_out_pos] = samples[0];
-    Digitalio::m_samples_right[Digitalio::m_out_pos] = samples[1];
-    ++Digitalio::m_out_pos;
+    if( !n ) n = Digitalio::m_num_channels_out;
+    while( n-- )
+        *m_data_ptr_out++ = *samples++;
+
     return TRUE;
 }
 

@@ -1,6 +1,7 @@
 // "use strict";
 
 var LibraryWebAudio = {
+  waudio_initialize__deps: ['$getFuncWrapper'],
   // Internal functions
   $WEBAUDIO: {
     started: false,
@@ -15,40 +16,34 @@ var LibraryWebAudio = {
     }
   },
   waudio_initialize: function (callback) {
-    callback = Runtime.getFuncWrapper(callback, 'viiiii')
+    callback = getFuncWrapper(callback, 'viiiii')
     console.log('Initializing Web Audio')
     if (!callback) {
       throw new Error('callback must be provided')
     }
     WEBAUDIO.audioContext = new (window.AudioContext || window.webkitAudioContext)()
     var bufLen = 4096
-    WEBAUDIO.scriptProcessor = WEBAUDIO.audioContext.createScriptProcessor(bufLen, 0, 2)
+    WEBAUDIO.scriptProcessor = WEBAUDIO.audioContext.createScriptProcessor(bufLen, 0, 1)
     WEBAUDIO.scriptProcessor.onaudioprocess = function (event) {
-      var samplesLeft = event.outputBuffer.getChannelData(0)
-      var samplesRight = event.outputBuffer.getChannelData(1)
-      var numBytes = bufLen * Float32Array.BYTES_PER_ELEMENT
-      // Allocate buffers for the callback to fill
-      var pointerLeft = Module._malloc(numBytes)
-      var pointerRight = Module._malloc(numBytes)
+      var samples = event.outputBuffer.getChannelData(0)
+      var buf = Module._malloc(bufLen * Float32Array.BYTES_PER_ELEMENT)
 
       try {
         try {
-          callback(0, 0, pointerLeft, pointerRight, bufLen)
+          callback(0, buf, bufLen)
         }
         catch (err) {
           console.error('Exception caught in audio callback: ' + err)
           // TODO: Terminate processing
         }
 
-        var i, shiftage = Float32Array.BYTES_PER_ELEMENT / 2
         for (i = 0; i < bufLen; ++i) {
-          samplesLeft[i] = HEAPF32[(pointerLeft >> shiftage) + i]
-          samplesRight[i] = HEAPF32[(pointerRight >> shiftage) + i]
+          var f = buf + (i * Float32Array.BYTES_PER_ELEMENT)
+          samples[i] = getValue(f, 'float')
         }
       }
       finally {
-        Module._free(pointerLeft)
-        Module._free(pointerRight)
+        Module._free(buf)
       }
     }
 

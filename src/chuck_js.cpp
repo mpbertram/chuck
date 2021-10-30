@@ -41,6 +41,8 @@
 #include "util_string.h"
 #include "hidio_sdl.h"
 
+#include <unistd.h>
+
 using namespace std;
 
 namespace {
@@ -97,12 +99,12 @@ t_CKBOOL sporkCode(Chuck_Compiler* compiler, Chuck_VM* vm, const char* filename,
     compiler->env->load_user_namespace();
 
     // log
-    EM_log(CK_LOG_FINE, "compiling code...");
+    EM_log(CK_LOG_SYSTEM, "compiling code [%s, %s]...", filename, sourceCode);
     // push indent
     EM_pushlog();
 
     // parse, type-check, and emit (full_path added 1.3.0.0)
-    if (!compiler->go(filename, NULL, sourceCode, NULL))
+    if (!compiler->go(string(filename), NULL, sourceCode))
     {
         EM_log(CK_LOG_SYSTEM, "compilation failed");
         return FALSE;
@@ -116,9 +118,7 @@ t_CKBOOL sporkCode(Chuck_Compiler* compiler, Chuck_VM* vm, const char* filename,
 
     // spork
     vm->spork(code, NULL);
-    // add args
-    // (*shred)->args = args;
-
+    
     // pop indent
     EM_poplog();
 
@@ -147,8 +147,8 @@ void executeCode(const char* fileName, const char* code)
     t_CKUINT num_buffers = NUM_BUFFERS_DEFAULT;
     t_CKUINT dac = 0;
     t_CKUINT adc = 0;
-    t_CKUINT dac_chans = 2;
-    t_CKUINT adc_chans = 2;
+    t_CKUINT dac_chans = 1;
+    t_CKUINT adc_chans = 0;
     t_CKBOOL dump = FALSE;
     t_CKBOOL auto_depend = FALSE;
     t_CKBOOL block = FALSE;
@@ -188,9 +188,7 @@ void executeCode(const char* fileName, const char* code)
 
     // allocate the vm - needs the type system
     vm = g_vm = new Chuck_VM;
-    if (!vm->initialize(TRUE, vm_halt, srate, buffer_size,
-            num_buffers, dac, adc, dac_chans, adc_chans,
-            block, adaptive_size, force_srate))
+    if (!vm->initialize(srate, dac_chans, adc_chans, adaptive_size, TRUE))
     {
         fprintf(stderr, "[chuck]: %s\n", vm->last_error());
         exit(1);
@@ -222,6 +220,41 @@ void executeCode(const char* fileName, const char* code)
     // reset count
     count = 1;
 
+    BBQ * bbq = new BBQ;
+    bbq->set_srate( srate );
+    bbq->set_bufsize( buffer_size );
+    bbq->set_numbufs( num_buffers );
+    bbq->set_inouts( adc, dac );
+    bbq->set_chans( adc_chans, dac_chans );
+    
+    EM_log( CK_LOG_SYSTEM, "initializing audio I/O..." );
+    EM_pushlog();
+    EM_log( CK_LOG_SYSTEM, "probing '%s' audio subsystem...", g_enable_realtime_audio ? "real-time" : "fake-time" );
+
+    SAMPLE * input = new SAMPLE[buffer_size * adc_chans];
+    SAMPLE * output = new SAMPLE[buffer_size * dac_chans];
+    memset( input, 0, sizeof(SAMPLE) * buffer_size * adc_chans );
+    memset( output, 0, sizeof(SAMPLE) * buffer_size * dac_chans );
+
+    if( !bbq->initialize( dac_chans, adc_chans, srate, 16, buffer_size, num_buffers,
+                          dac, adc, block, vm, g_enable_realtime_audio, NULL, NULL, force_srate ) )
+    {
+        EM_log( CK_LOG_SYSTEM,
+                "cannot initialize audio device (use --silent/-s for non-realtime)" );
+        EM_poplog();
+        exit( 1 );
+    }
+
+    bbq->digi_in()->initialize();
+    if( !bbq->digi_out()->initialize() )
+    {
+        EM_log( CK_LOG_SYSTEM,
+               "cannot open audio output" );
+        exit(1);
+    }
+
+    vm->start();
+
     load_chugins(compiler, vm);
 
     if (!sporkCode(compiler, vm, fileName, code))
@@ -229,14 +262,7 @@ void executeCode(const char* fileName, const char* code)
         exit(1);
     }
 
-    // run the vm
-    vm->run();
-    //
-    // // free vm
-    // vm = NULL;
-    // SAFE_DELETE(g_vm);
-    // // free the compiler
-    // compiler = NULL;
-    // SAFE_DELETE(g_compiler);
+    bbq->digi_in()->start();
+    bbq->digi_out()->start();
 }
 }

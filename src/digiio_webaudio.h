@@ -36,12 +36,12 @@
 #include <string>
 
 // defaults
-#define BUFFER_SIZE_DEFAULT          512
-#define NUM_BUFFERS_DEFAULT          8
-#define NUM_CHANNELS_DEFAULT         2       // number of channels
+#define BUFFER_SIZE_DEFAULT          4096
+#define NUM_BUFFERS_DEFAULT          1
+#define NUM_CHANNELS_DEFAULT         1       // number of channels
 #define SAMPLING_RATE_DEFAULT        44100   // sampling rate
 #define USE_CB_DEFAULT               TRUE    // callback
-#define BITS_PER_SAMPLE_DEFAULT      16      // sample size
+#define BITS_PER_SAMPLE_DEFAULT      32      // sample size
 #define DEVICE_NUM_OUT_DEFAULT       0
 #define DEVICE_NUM_IN_DEFAULT        0
 
@@ -133,6 +133,10 @@ public: // data
     static DWORD__ m_end;
     static DWORD__ m_block;
     static DWORD__ m_xrun;
+    static SAMPLE* m_buffer_out;
+    static SAMPLE* m_buffer_in;
+    static SAMPLE** m_write_ptr;
+    static SAMPLE** m_read_ptr;
     static Chuck_VM* m_vm;
 
     static DWORD__ m_dac_n;

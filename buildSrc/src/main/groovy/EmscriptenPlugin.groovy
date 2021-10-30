@@ -21,9 +21,9 @@ class EmscriptenCompiler extends EmscriptenBaseTask {
     inputs.outOfDate { change ->
       project.exec {
         // TODO: Don't hardcode YACC header dir
-        commandLine = [emccPath, '-Isrc', '-Isrc/lo', '-Ibuild/src/generated/yacc', '-o',
-            new File(outputDirectory, replaceExtension(change.file.name)).absolutePath] +
-        project.compilerFlags + [change.file.absolutePath]
+        commandLine = [emccPath, '-Isrc', '-Isrc/lo', '-Ibuild/src/generated/yacc', '-c',
+            new File('src', change.file.name).absolutePath] +
+        project.compilerFlags + ['-o', new File(outputDirectory, replaceExtension(change.file.name)).absolutePath]
       }
     }
 
@@ -41,8 +41,8 @@ class EmscriptenLinker extends EmscriptenBaseTask {
   void processEmscriptenFiles() {
     project.exec {
       // TODO: Make -g and SAFE_HEAP configurable
-      commandLine = [emccPath, '-g', '-s', 'EXPORTED_FUNCTIONS=["_executeCode"]', '--js-library',
-        'src/emscripten/libraries/webaudio.js', '-s', 'SAFE_HEAP=1', '-s', 'DEMANGLE_SUPPORT=1', '-o',
+      commandLine = [emccPath, '-g', '-s', 'EXTRA_EXPORTED_RUNTIME_METHODS=["ccall"]', '-s', 'EXPORTED_FUNCTIONS=["_executeCode"]', '--js-library',
+        'src/emscripten/libraries/webaudio.js', '-s', 'SAFE_HEAP=1', '-s', 'DEMANGLE_SUPPORT=1', '-s', 'ERROR_ON_UNDEFINED_SYMBOLS=0', '-o',
         new File(outputDirectory, 'chuck.js').absolutePath] + emscriptenFiles.collect { it.absolutePath }
     }
   }
