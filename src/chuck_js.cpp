@@ -129,6 +129,10 @@ t_CKBOOL sporkCode(Chuck_Compiler* compiler, Chuck_VM* vm, const char* filename,
 }
 }
 
+Chuck_Compiler *compiler = NULL;
+Chuck_VM *vm = NULL;
+BBQ *bbq = NULL;
+
 extern "C" {
 /** Execute ChucK code.
 
@@ -137,9 +141,6 @@ the audio engine before execution starts and shutting it down after.
 */
 void executeCode(const char* fileName, const char* code)
 {
-    Chuck_Compiler *compiler = NULL;
-    Chuck_VM *vm = NULL;
-
     t_CKBOOL vm_halt = TRUE;
     t_CKUINT srate = SAMPLING_RATE_DEFAULT;
     t_CKBOOL force_srate = FALSE; // added 1.3.1.2
@@ -178,8 +179,6 @@ void executeCode(const char* fileName, const char* code)
     // list of individually named chug-ins (added 1.3.0.0)
     std::list <std::string> named_dls;
 
-    t_CKUINT count = 1;
-
     // set log level
     EM_setlog(log_level);
 
@@ -187,70 +186,68 @@ void executeCode(const char* fileName, const char* code)
     buffer_size = ensurepow2(buffer_size);
 
     // allocate the vm - needs the type system
-    vm = g_vm = new Chuck_VM;
-    if (!vm->initialize(srate, dac_chans, adc_chans, adaptive_size, TRUE))
-    {
-        fprintf(stderr, "[chuck]: %s\n", vm->last_error());
-        exit(1);
+    if (!vm) {
+        vm = g_vm = new Chuck_VM;
+        if (!vm->initialize(srate, dac_chans, adc_chans, adaptive_size, TRUE))
+        {
+            fprintf(stderr, "[chuck]: %s\n", vm->last_error());
+            exit(1);
+        }
     }
 
-    // allocate the compiler
-    compiler = g_compiler = new Chuck_Compiler;
-    // initialize the compiler (search_apth and named_dls added 1.3.0.0 -- TODO: refactor)
-    if (!compiler->initialize(vm, dl_search_path, named_dls))
-    {
-        fprintf(stderr, "[chuck]: error initializing compiler...\n");
-        exit(1);
-    }
-    // enable dump
-    compiler->emitter->dump = dump;
-    // set auto depend
-    compiler->set_auto_depend(auto_depend);
+    if (!compiler) {
+        // allocate the compiler
+        compiler = g_compiler = new Chuck_Compiler;
+        // initialize the compiler (search_apth and named_dls added 1.3.0.0 -- TODO: refactor)
+        if (!compiler->initialize(vm, dl_search_path, named_dls))
+        {
+            fprintf(stderr, "[chuck]: error initializing compiler...\n");
+            exit(1);
+        }
+        // enable dump
+        compiler->emitter->dump = dump;
+        // set auto depend
+        compiler->set_auto_depend(auto_depend);
 
-    // vm synthesis subsystem - needs the type system
-    if (!vm->initialize_synthesis())
-    {
-        fprintf(stderr, "[chuck]: %s\n", vm->last_error());
-        exit(1);
+        // vm synthesis subsystem - needs the type system
+        if (!vm->initialize_synthesis())
+        {
+            fprintf(stderr, "[chuck]: %s\n", vm->last_error());
+            exit(1);
+        }
     }
 
     // set deprecate
     compiler->env->deprecate_level = deprecate_level;
 
-    // reset count
-    count = 1;
+    if (!bbq) {
+        bbq = new BBQ;
+        bbq->set_srate( srate );
+        bbq->set_bufsize( buffer_size );
+        bbq->set_numbufs( num_buffers );
+        bbq->set_inouts( adc, dac );
+        bbq->set_chans( adc_chans, dac_chans );
 
-    BBQ * bbq = new BBQ;
-    bbq->set_srate( srate );
-    bbq->set_bufsize( buffer_size );
-    bbq->set_numbufs( num_buffers );
-    bbq->set_inouts( adc, dac );
-    bbq->set_chans( adc_chans, dac_chans );
-    
-    EM_log( CK_LOG_SYSTEM, "initializing audio I/O..." );
-    EM_pushlog();
-    EM_log( CK_LOG_SYSTEM, "probing '%s' audio subsystem...", g_enable_realtime_audio ? "real-time" : "fake-time" );
+        EM_log( CK_LOG_SYSTEM, "initializing audio I/O..." );
+        EM_pushlog();
+        EM_log( CK_LOG_SYSTEM, "probing '%s' audio subsystem...", g_enable_realtime_audio ? "real-time" : "fake-time" );
 
-    SAMPLE * input = new SAMPLE[buffer_size * adc_chans];
-    SAMPLE * output = new SAMPLE[buffer_size * dac_chans];
-    memset( input, 0, sizeof(SAMPLE) * buffer_size * adc_chans );
-    memset( output, 0, sizeof(SAMPLE) * buffer_size * dac_chans );
+        if( !bbq->initialize( dac_chans, adc_chans, srate, 16, buffer_size, num_buffers,
+                            dac, adc, block, vm, g_enable_realtime_audio, NULL, NULL, force_srate ) )
+        {
+            EM_log( CK_LOG_SYSTEM,
+                    "cannot initialize audio device (use --silent/-s for non-realtime)" );
+            EM_poplog();
+            exit( 1 );
+        }
 
-    if( !bbq->initialize( dac_chans, adc_chans, srate, 16, buffer_size, num_buffers,
-                          dac, adc, block, vm, g_enable_realtime_audio, NULL, NULL, force_srate ) )
-    {
-        EM_log( CK_LOG_SYSTEM,
-                "cannot initialize audio device (use --silent/-s for non-realtime)" );
-        EM_poplog();
-        exit( 1 );
-    }
-
-    bbq->digi_in()->initialize();
-    if( !bbq->digi_out()->initialize() )
-    {
-        EM_log( CK_LOG_SYSTEM,
-               "cannot open audio output" );
-        exit(1);
+        bbq->digi_in()->initialize();
+        if( !bbq->digi_out()->initialize() )
+        {
+            EM_log( CK_LOG_SYSTEM,
+                "cannot open audio output" );
+            exit(1);
+        }
     }
 
     vm->start();

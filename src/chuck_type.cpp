@@ -152,8 +152,7 @@ Chuck_Env * Chuck_Env::our_instance = NULL;
 //-----------------------------------------------------------------------------
 t_CKBOOL Chuck_Env::startup()
 {
-    // TODO Deactivated for now to allow multiple initializations
-    // assert( our_instance == NULL );
+    assert( our_instance == NULL );
     our_instance = new Chuck_Env;
     assert( our_instance != NULL );
     
